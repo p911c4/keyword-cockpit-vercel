@@ -9,8 +9,8 @@ function httpsGet(options, redirectCount, callback) {
   const req = https.request(options, res => {
     if ([301,302,303,307,308].includes(res.statusCode) && res.headers.location) {
       res.resume();
-      const loc     = res.headers.location;
-      const newUrl  = new URL(loc, `https://${options.hostname}`);
+      const loc    = res.headers.location;
+      const newUrl = new URL(loc, `https://${options.hostname}`);
       const newOpts = Object.assign({}, options, {
         hostname: newUrl.hostname,
         path:     newUrl.pathname + newUrl.search,
@@ -34,10 +34,8 @@ module.exports = async (req, res) => {
   const { query } = req.query;
   if (!query) return res.status(400).json({ error: 'query 파라미터가 없습니다' });
 
-  // 네이버 블로그 검색 API — blogId 필터로 뉴카 포스팅만 추출
-  // "키워드 p911c4" 조합으로 검색 후 해당 블로그 글만 필터링
-  const searchQuery = encodeURIComponent(query);
-  const apiPath = `/v1/search/blog.json?query=${searchQuery}&display=100&sort=sim`;
+  // display=100으로 최대한 많이 가져온 뒤 뉴카 블로그만 필터
+  const apiPath = `/v1/search/blog.json?query=${encodeURIComponent(query)}&display=100&sort=sim`;
 
   const options = {
     hostname: 'openapi.naver.com',
@@ -58,11 +56,14 @@ module.exports = async (req, res) => {
         return res.status(statusCode).json({ error: json.errorMessage || '네이버 API 오류', items: [] });
       }
 
-      // 뉴카 블로그(p911c4) 포스팅만 필터링
-      const allItems  = json.items || [];
-      const myItems   = allItems.filter(item => {
-        // 블로그 링크에 blogId 포함 여부로 필터
-        return item.link && item.link.includes(BLOG_ID);
+      const allItems = json.items || [];
+
+      // 링크 또는 bloggername 으로 뉴카 포스팅 필터링
+      const myItems = allItems.filter(item => {
+        const linkMatch     = item.link        && item.link.toLowerCase().includes(BLOG_ID.toLowerCase());
+        const bloggerMatch  = item.bloggername && item.bloggername.toLowerCase().includes(BLOG_ID.toLowerCase());
+        const blogUrlMatch  = item.bloggerlink && item.bloggerlink.toLowerCase().includes(BLOG_ID.toLowerCase());
+        return linkMatch || bloggerMatch || blogUrlMatch;
       });
 
       return res.status(200).json({ items: myItems, total: myItems.length });
