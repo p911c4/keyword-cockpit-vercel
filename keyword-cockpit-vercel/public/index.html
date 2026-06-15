@@ -479,7 +479,7 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
   <!-- 키워드 순위 조회 -->
   <div class="card">
     <div class="card-header">
-      <div class="card-title">키워드 노출 순위 조회</div>
+      <div class="card-title">키워드 노출 현황</div>
     </div>
     <div class="card-body">
       <div class="bi-kw-input-row">
@@ -487,7 +487,7 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
           placeholder="키워드 입력 (예: 발리여행)"
           inputmode="search" enterkeyhint="search"
           onkeydown="if(event.key==='Enter'||event.keyCode===13){event.preventDefault();loadRanking();}"/>
-        <button class="btn btn-primary" onclick="loadRanking()">순위 조회</button>
+        <button class="btn btn-primary" onclick="loadRanking()">100위 내 노출 조회</button>
       </div>
       <div id="biRankResult">
         <div class="bi-rank-empty">키워드를 입력하면 상위 100개 결과 중<br>뉴카 블로그 포스팅의 순위를 확인합니다</div>
