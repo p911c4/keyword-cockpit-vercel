@@ -1,21 +1,25 @@
 const https = require('https');
 
-const CLIENT_ID     = process.env.NAVER_CLIENT_ID;
-const CLIENT_SECRET = process.env.NAVER_CLIENT_SECRET;
-const BLOG_ID       = 'p911c4'; // 뉴카 블로그 ID
+const BLOG_ID = 'p911c4';
+// 네이버 블로그 RSS — 최근 100개 포스팅
+const RSS_URL = `https://rss.blog.naver.com/${BLOG_ID}.xml`;
 
-function httpsGet(options, redirectCount, callback) {
+function httpsGet(url, redirectCount, callback) {
   if (redirectCount > 5) return callback(new Error('Too many redirects'));
+  const parsed = new URL(url);
+  const options = {
+    hostname: parsed.hostname,
+    path:     parsed.pathname + parsed.search,
+    method:   'GET',
+    headers:  { 'User-Agent': 'Mozilla/5.0' }
+  };
   const req = https.request(options, res => {
     if ([301,302,303,307,308].includes(res.statusCode) && res.headers.location) {
       res.resume();
-      const loc    = res.headers.location;
-      const newUrl = new URL(loc, `https://${options.hostname}`);
-      const newOpts = Object.assign({}, options, {
-        hostname: newUrl.hostname,
-        path:     newUrl.pathname + newUrl.search,
-      });
-      return httpsGet(newOpts, redirectCount + 1, callback);
+      const next = res.headers.location.startsWith('http')
+        ? res.headers.location
+        : `https://${parsed.hostname}${res.headers.location}`;
+      return httpsGet(next, redirectCount + 1, callback);
     }
     let data = '';
     res.on('data', chunk => data += chunk);
@@ -23,6 +27,34 @@ function httpsGet(options, redirectCount, callback) {
   });
   req.on('error', callback);
   req.end();
+}
+
+// XML에서 <tag>내용</tag> 파싱
+function extractAll(xml, tag) {
+  const results = [];
+  const re = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'gi');
+  let m;
+  while ((m = re.exec(xml)) !== null) {
+    results.push(m[1].replace(/<!\[CDATA\[|\]\]>/g, '').trim());
+  }
+  return results;
+}
+
+// RSS 아이템 파싱
+function parseRSS(xml) {
+  // <item>...</item> 블록 추출
+  const itemRe = /<item>([\s\S]*?)<\/item>/gi;
+  const items = [];
+  let m;
+  while ((m = itemRe.exec(xml)) !== null) {
+    const block = m[1];
+    const title       = (extractAll(block, 'title')[0]       || '').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"');
+    const link        = extractAll(block, 'link')[0]        || '';
+    const description = (extractAll(block, 'description')[0] || '').replace(/<[^>]+>/g,'').slice(0, 80);
+    const pubDate     = extractAll(block, 'pubDate')[0]     || '';
+    if (title && link) items.push({ title, link, description, pubDate });
+  }
+  return items;
 }
 
 module.exports = async (req, res) => {
@@ -34,42 +66,28 @@ module.exports = async (req, res) => {
   const { query } = req.query;
   if (!query) return res.status(400).json({ error: 'query 파라미터가 없습니다' });
 
-  // display=100으로 최대한 많이 가져온 뒤 뉴카 블로그만 필터
-  const apiPath = `/v1/search/blog.json?query=${encodeURIComponent(query)}&display=100&sort=sim`;
-
-  const options = {
-    hostname: 'openapi.naver.com',
-    path:     apiPath,
-    method:   'GET',
-    headers: {
-      'X-Naver-Client-Id':     CLIENT_ID,
-      'X-Naver-Client-Secret': CLIENT_SECRET,
-    }
-  };
-
-  httpsGet(options, 0, (err, statusCode, data) => {
-    if (err) return res.status(502).json({ error: '블로그 API 연결 실패: ' + err.message });
+  httpsGet(RSS_URL, 0, (err, statusCode, data) => {
+    if (err) return res.status(502).json({ error: 'RSS 연결 실패: ' + err.message, items: [] });
 
     try {
-      const json = JSON.parse(data);
-      if (statusCode !== 200) {
-        return res.status(statusCode).json({ error: json.errorMessage || '네이버 API 오류', items: [] });
-      }
+      const allItems = parseRSS(data);
 
-      const allItems = json.items || [];
+      // 키워드 토큰으로 필터링 (띄어쓰기 제거 후 매칭)
+      const kwNorm = query.replace(/\s+/g, '').toLowerCase();
+      const kwTokens = query.toLowerCase().split(/\s+/).filter(Boolean);
 
-      // 링크 또는 bloggername 으로 뉴카 포스팅 필터링
-      const myItems = allItems.filter(item => {
-        const linkMatch     = item.link        && item.link.toLowerCase().includes(BLOG_ID.toLowerCase());
-        const bloggerMatch  = item.bloggername && item.bloggername.toLowerCase().includes(BLOG_ID.toLowerCase());
-        const blogUrlMatch  = item.bloggerlink && item.bloggerlink.toLowerCase().includes(BLOG_ID.toLowerCase());
-        return linkMatch || bloggerMatch || blogUrlMatch;
+      const matched = allItems.filter(item => {
+        const haystack = (item.title + ' ' + item.description).replace(/\s+/g, '').toLowerCase();
+        // 전체 키워드 붙인 버전 OR 개별 토큰 모두 포함
+        const fullMatch  = haystack.includes(kwNorm);
+        const tokenMatch = kwTokens.every(t => haystack.includes(t));
+        return fullMatch || tokenMatch;
       });
 
-      return res.status(200).json({ items: myItems, total: myItems.length });
+      return res.status(200).json({ items: matched, total: matched.length });
 
     } catch(e) {
-      return res.status(502).json({ error: '응답 파싱 오류', items: [] });
+      return res.status(502).json({ error: 'RSS 파싱 오류: ' + e.message, items: [] });
     }
   });
 };
