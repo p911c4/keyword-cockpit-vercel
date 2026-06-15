@@ -260,6 +260,20 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
 .bi-rank-empty{font-size:13px;color:var(--text3);text-align:center;padding:24px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius)}
 .bi-loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:32px;font-size:13px;color:var(--text3)}
 
+/* ── 블로그 레벨 배지 ── */
+.bi-level-wrap{display:flex;align-items:center;gap:14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:14px;box-shadow:var(--shadow-sm)}
+.bi-level-badge{font-size:13px;font-weight:700;color:#fff;border-radius:8px;padding:6px 16px;letter-spacing:0.5px;white-space:nowrap;flex-shrink:0}
+.bi-level-info{flex:1}
+.bi-level-name{font-size:15px;font-weight:700;color:var(--text);letter-spacing:-0.2px}
+.bi-level-desc{font-size:11px;color:var(--text3);margin-top:2px}
+.lv1{background:#aaaaaa}.lv2{background:#88aa44}.lv3{background:#44aa66}
+.lv4{background:#2299aa}.lv5{background:#1177cc}.lv6{background:#1428a0}
+.lv7{background:#7733cc}.lv8{background:#cc3366}.lv9{background:#cc6600}
+
+/* ── 블로그 ID 입력 ── */
+.bi-id-row{display:flex;gap:8px;margin-bottom:16px;align-items:center}
+.bi-id-prefix{font-size:13px;color:var(--text3);white-space:nowrap;flex-shrink:0}
+
 /* ── Console ── */
 .console{position:fixed;bottom:0;left:0;right:0;background:var(--text);padding:10px 20px;display:flex;align-items:center;gap:10px;font-size:12px;color:rgba(255,255,255,0.7);z-index:99;box-shadow:0 -2px 12px rgba(0,0,0,0.15)}
 .cdot{width:6px;height:6px;border-radius:50%;background:#555;flex-shrink:0}
@@ -431,18 +445,35 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
 <div class="page">
 
   <div class="bi-hero">
-    <div class="bi-hero-title">📊 뉴카 블로그 지수</div>
-    <div class="bi-hero-sub">RSS 기반 활동 지표 · 키워드별 네이버 블로그 상위 노출 순위 조회</div>
+    <div class="bi-hero-title">📊 블로그 지수 분석</div>
+    <div class="bi-hero-sub">네이버 블로그 ID를 입력하면 활동 지표와 키워드 노출 순위를 조회합니다</div>
+  </div>
+
+  <!-- 블로그 ID 입력 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">블로그 ID 입력</div>
+    </div>
+    <div class="card-body">
+      <div class="bi-id-row">
+        <span class="bi-id-prefix">blog.naver.com/</span>
+        <input class="input" type="text" id="biIdInp"
+          placeholder="블로그 ID 입력 (예: p911c4)"
+          value="p911c4"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();loadBlogStats();}"/>
+        <button class="btn btn-primary" onclick="loadBlogStats()">조회</button>
+      </div>
+    </div>
   </div>
 
   <!-- 활동 지표 카드 -->
   <div class="card">
     <div class="card-header">
-      <div class="card-title">블로그 활동 지표</div>
+      <div class="card-title" id="biStatsTitle">블로그 활동 지표</div>
       <button class="rank-load-btn" onclick="loadBlogStats()">새로고침</button>
     </div>
     <div class="card-body" id="biStatsBody">
-      <div class="bi-loading"><div class="rank-spinner"></div>데이터 불러오는 중...</div>
+      <div class="bi-loading"><div class="rank-spinner"></div>블로그 ID를 입력하고 조회하세요</div>
     </div>
   </div>
 
@@ -498,7 +529,6 @@ function switchTab(id, btn) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-' + id).classList.add('active');
   btn.classList.add('active');
-  if (id === 'bi' && !biStatsLoaded) loadBlogStats();
 }
 
 /* ═══════════════════════════════
@@ -844,29 +874,72 @@ function copyJSON() {
    탭 2: 블로그 지수
 ═══════════════════════════════ */
 let biStatsLoaded = false;
+let currentBlogId = 'p911c4';
+
+// LEVEL 1~9 정의
+const LEVELS = [
+  { lv:1, min:0,   max:10,  name:'씨앗',     desc:'이제 막 시작한 블로거',         color:'lv1' },
+  { lv:2, min:11,  max:20,  name:'새싹',     desc:'꾸준히 글을 쓰기 시작했어요',    color:'lv2' },
+  { lv:3, min:21,  max:35,  name:'나무',     desc:'블로그가 자리를 잡아가고 있어요', color:'lv3' },
+  { lv:4, min:36,  max:50,  name:'꽃',       desc:'활발하게 활동 중인 블로거',      color:'lv4' },
+  { lv:5, min:51,  max:65,  name:'열매',     desc:'꾸준한 활동으로 성장 중',        color:'lv5' },
+  { lv:6, min:66,  max:75,  name:'숲',       desc:'탄탄한 콘텐츠를 쌓고 있어요',   color:'lv6' },
+  { lv:7, min:76,  max:85,  name:'별',       desc:'높은 활동성의 파워 블로거',      color:'lv7' },
+  { lv:8, min:86,  max:94,  name:'왕관',     desc:'최상위 활동 블로거',             color:'lv8' },
+  { lv:9, min:95,  max:100, name:'다이아',   desc:'전설적인 블로거',                color:'lv9' },
+];
+
+function getLevel(score) {
+  return LEVELS.find(l => score >= l.min && score <= l.max) || LEVELS[0];
+}
+
+// 활동 지수 계산 — 최근 30일 발행 수 기반 (월 30개 = 만점)
+function calcScore(recent30) {
+  return Math.min(Math.round((recent30 / 30) * 100), 100);
+}
 
 async function loadBlogStats() {
+  const idInp = document.getElementById('biIdInp');
+  const blogId = (idInp?.value || 'p911c4').trim().toLowerCase().replace(/^https?:\/\/[^/]+\//, '');
+  if (!blogId) return;
+  currentBlogId = blogId;
   biStatsLoaded = true;
-  const body = document.getElementById('biStatsBody');
+
+  const body      = document.getElementById('biStatsBody');
+  const titleEl   = document.getElementById('biStatsTitle');
+  if (titleEl) titleEl.textContent = `블로그 활동 지표 — ${blogId}`;
   body.innerHTML = '<div class="bi-loading"><div class="rank-spinner"></div>블로그 데이터 불러오는 중...</div>';
-  log('busy', '블로그 지수 데이터 로딩 중...');
+  log('busy', `"${blogId}" 블로그 지수 로딩 중...`);
+
   try {
-    const res  = await fetch('/api/blogstats');
+    const res  = await fetch(`/api/blogstats?blogId=${encodeURIComponent(blogId)}`);
     const json = await res.json();
     const stats = json.stats || {};
 
     const lastDateStr = stats.lastDate
       ? new Date(stats.lastDate).toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'})
       : '-';
-    const actScore = Math.min(Math.round((stats.recent30||0) * 3.3), 100);
-    const gaugeColor = actScore >= 70 ? 'var(--green)' : actScore >= 30 ? 'var(--amber)' : 'var(--red)';
+
+    const actScore   = calcScore(stats.recent30 || 0);
+    const level      = getLevel(actScore);
+    const gaugeColor = actScore >= 66 ? 'var(--blue)' : actScore >= 36 ? 'var(--amber)' : actScore >= 11 ? 'var(--green)' : '#aaa';
 
     body.innerHTML = `
+      <!-- 레벨 배지 -->
+      <div class="bi-level-wrap">
+        <div class="bi-level-badge ${level.color}">LV.${level.lv} ${level.name}</div>
+        <div class="bi-level-info">
+          <div class="bi-level-name">${level.desc}</div>
+          <div class="bi-level-desc">활동 지수 ${actScore}점 · ${LEVELS.map(l=>`<span style="opacity:${actScore>=l.min?'1':'0.25'};font-weight:${level.lv===l.lv?'700':'400'}">${l.lv}</span>`).join(' → ')}</div>
+        </div>
+      </div>
+
+      <!-- 통계 그리드 -->
       <div class="bi-stat-grid">
         <div class="bi-stat-cell">
-          <div class="bi-stat-num" style="color:var(--blue)">${(stats.total||0).toLocaleString()}</div>
+          <div class="bi-stat-num" style="color:var(--blue)">${(stats.total||0).toLocaleString()}+</div>
           <div class="bi-stat-lbl">총 포스팅 수</div>
-          <div class="bi-stat-sub">전체 발행 글</div>
+          <div class="bi-stat-sub">추정값</div>
         </div>
         <div class="bi-stat-cell">
           <div class="bi-stat-num" style="color:var(--green)">${stats.recent30||0}</div>
@@ -879,19 +952,23 @@ async function loadBlogStats() {
           <div class="bi-stat-sub">100점 만점</div>
         </div>
       </div>
+
+      <!-- 게이지 -->
       <div class="bi-gauge-wrap">
         <div class="bi-gauge-title">
           <span>활동 지수 게이지</span>
-          <span style="color:${gaugeColor};font-weight:700">${actScore}점</span>
+          <span style="color:${gaugeColor};font-weight:700">${actScore}점 · LV.${level.lv} ${level.name}</span>
         </div>
         <div class="bi-gauge-bar">
           <div class="bi-gauge-fill" style="width:${actScore}%;background:${gaugeColor}"></div>
         </div>
-        <div class="bi-gauge-labels"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+        <div class="bi-gauge-labels">
+          ${LEVELS.map(l=>`<span style="font-size:9px;color:${actScore>=l.min?'var(--blue)':'#ccc'}">LV${l.lv}</span>`).join('')}
+        </div>
       </div>
       <div class="bi-last-date">📅 마지막 포스팅: <strong>${lastDateStr}</strong></div>`;
 
-    log('ok', '블로그 지수 로드 완료');
+    log('ok', `"${blogId}" 블로그 지수 로드 완료 — LV.${level.lv} ${level.name} (${actScore}점)`);
   } catch(e) {
     body.innerHTML = `<div class="bi-rank-empty" style="color:var(--red)">데이터 로드 실패: ${e.message}</div>`;
     log('fail', '블로그 지수 로드 실패');
@@ -901,21 +978,22 @@ async function loadBlogStats() {
 async function loadRanking() {
   const kw     = document.getElementById('biKwInp').value.trim().replace(/\s+/g,'');
   const result = document.getElementById('biRankResult');
+  const blogId = currentBlogId || 'p911c4';
   if (!kw) return;
   result.innerHTML = '<div class="bi-loading"><div class="rank-spinner"></div>순위 조회 중...</div>';
   log('busy', `"${kw}" 노출 순위 조회 중...`);
   try {
-    const res  = await fetch(`/api/blogstats?keyword=${encodeURIComponent(kw)}`);
+    const res  = await fetch(`/api/blogstats?keyword=${encodeURIComponent(kw)}&blogId=${encodeURIComponent(blogId)}`);
     const json = await res.json();
     const ranks = json.ranking?.ranks || [];
     if (!ranks.length) {
-      result.innerHTML = `<div class="bi-rank-empty">상위 100개 결과에 <strong>"${kw}"</strong> 관련<br>뉴카 블로그 포스팅이 없습니다</div>`;
+      result.innerHTML = `<div class="bi-rank-empty">상위 100개 결과에 <strong>"${kw}"</strong> 관련<br><strong>${blogId}</strong> 블로그 포스팅이 없습니다</div>`;
       log('ok', `"${kw}" — 상위 100개 내 노출 없음`);
       return;
     }
     result.innerHTML = `
       <div style="font-size:12px;color:var(--text3);margin-bottom:10px">
-        "${kw}" 검색 상위 100개 중 <strong style="color:var(--blue)">${ranks.length}개</strong> 노출
+        <strong>${blogId}</strong> · "${kw}" 검색 상위 100개 중 <strong style="color:var(--blue)">${ranks.length}개</strong> 노출
       </div>
       <div class="bi-rank-result">
         ${ranks.map(r => {
