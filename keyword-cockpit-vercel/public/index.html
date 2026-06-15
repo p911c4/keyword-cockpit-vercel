@@ -459,7 +459,6 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
         <span class="bi-id-prefix">blog.naver.com/</span>
         <input class="input" type="text" id="biIdInp"
           placeholder="블로그 ID 입력 (예: p911c4)"
-          value="p911c4"
           onkeydown="if(event.key==='Enter'){event.preventDefault();loadBlogStats();}"/>
         <button class="btn btn-primary" onclick="loadBlogStats()">조회</button>
       </div>
@@ -662,20 +661,17 @@ function card(d, i, maxT, rel) {
           <div class="scell pc-cell">
             <div class="slbl"><span class="slbl-icon">🖥</span>PC 월간</div>
             <div class="snum pc">${fmt(d.pc)}</div>
-            <div class="ratio-bar-wrap"><div class="ratio-bar-inner pc" style="width:${pcPct}%"></div></div>
             <div class="sunit">전체의 ${pcPct}%</div>
           </div>
           <div class="scell mo-cell">
             <div class="slbl"><span class="slbl-icon">📱</span>모바일 월간</div>
             <div class="snum mo">${fmt(d.mo)}</div>
-            <div class="ratio-bar-wrap"><div class="ratio-bar-inner mo" style="width:${moPct}%"></div></div>
             <div class="sunit">전체의 ${moPct}%</div>
           </div>
           <div class="scell tot-cell">
             <div class="slbl"><span class="slbl-icon">📊</span>월간 합계</div>
             <div class="snum tot">${fmt(tot)}</div>
-            <div class="ratio-bar-wrap" style="background:linear-gradient(to right,var(--blue) ${pcPct}%,#0099cc ${pcPct}%)"></div>
-            <div class="sunit">PC+모바일</div>
+            <div class="sunit">PC ${pcPct}% · 모바일 ${moPct}%</div>
           </div>
         </div>
         <div class="ratio-summary">
@@ -874,7 +870,7 @@ function copyJSON() {
    탭 2: 블로그 지수
 ═══════════════════════════════ */
 let biStatsLoaded = false;
-let currentBlogId = 'p911c4';
+let currentBlogId = '';
 
 // LEVEL 1~9 정의
 const LEVELS = [
