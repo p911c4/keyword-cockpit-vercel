@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KEYWORD COCKPIT — 네이버 키워드 분석</title>
+<title>KEYWORD COCKPIT — 네이버 키워드 분석 v1.5</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -92,7 +92,7 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
 .results-meta{font-size:12px;color:var(--text3)}
 .exp-row{display:flex;gap:6px}
 
-/* KW card */
+/* ── KW card ── */
 .kwcard{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);margin-top:12px;overflow:hidden;box-shadow:var(--shadow-sm);animation:fadeUp 0.35s ease both;transition:box-shadow 0.2s}
 .kwcard:hover{box-shadow:var(--shadow-md)}
 .kwcard-head{padding:14px 20px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
@@ -103,17 +103,35 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
 .c-high{background:var(--red-bg);color:var(--red)}
 .kwcard-body{padding:18px 20px}
 
-/* Stat grid */
+/* ── 개선된 Stat grid ── */
 .sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
-.scell{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:14px 12px;text-align:center}
-.slbl{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:6px}
-.snum{font-size:26px;font-weight:700;letter-spacing:-1px;line-height:1;font-family:'Roboto',sans-serif}
+.scell{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px 12px;text-align:center;position:relative;overflow:hidden}
+.scell::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px}
+.scell.pc-cell::after{background:var(--blue)}
+.scell.mo-cell::after{background:#0099cc}
+.scell.tot-cell::after{background:#555}
+.slbl{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:4px}
+.slbl-icon{font-size:12px}
+.snum{font-size:28px;font-weight:700;letter-spacing:-1px;line-height:1;font-family:'Roboto',sans-serif}
 .snum.pc{color:var(--blue)}
 .snum.mo{color:#0099cc}
 .snum.tot{color:var(--text)}
-.sunit{font-size:10px;color:var(--text3);margin-top:4px}
-
-/* Bar */
+.sunit{font-size:10px;color:var(--text3);margin-top:5px}
+/* 비율 바 */
+.ratio-bar-wrap{margin:12px 0 4px;background:var(--border);border-radius:4px;height:5px;overflow:hidden}
+.ratio-bar-inner{height:100%;border-radius:4px;transition:width 0.6s ease}
+.ratio-bar-inner.pc{background:var(--blue)}
+.ratio-bar-inner.mo{background:#0099cc}
+/* PC/모바일 비율 요약 */
+.ratio-summary{display:flex;align-items:center;gap:6px;margin-bottom:14px;font-size:12px;color:var(--text2);background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 12px}
+.ratio-bar-h{flex:1;height:8px;border-radius:4px;overflow:hidden;background:var(--border);display:flex}
+.ratio-pc{height:100%;background:var(--blue);border-radius:4px 0 0 4px;transition:width 0.6s ease}
+.ratio-mo{height:100%;background:#0099cc;border-radius:0 4px 4px 0;transition:width 0.6s ease}
+.ratio-legend{display:flex;gap:8px;flex-shrink:0}
+.ratio-dot{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--text3);font-weight:500}
+.ratio-dot::before{content:'';width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ratio-dot.pc::before{background:var(--blue)}
+.ratio-dot.mo::before{background:#0099cc}
 
 /* Related */
 .rel-sec{border-top:1px solid var(--border);padding-top:14px}
@@ -123,7 +141,31 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
 .rtag:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-pale)}
 .rvol{font-size:10px;color:var(--text3)}
 
-/* 뉴카 포스팅 박스 */
+/* ── 뉴카 포스팅 박스 (접힌 형태) ── */
+.mypost-sec{border:1.5px solid rgba(20,40,160,0.2);background:var(--blue-pale);border-radius:8px;margin-top:14px;margin-bottom:10px;overflow:hidden}
+.mypost-toggle{width:100%;background:none;border:none;cursor:pointer;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;font-family:'Noto Sans KR',sans-serif;transition:background 0.15s}
+.mypost-toggle:hover{background:rgba(20,40,160,0.06)}
+.mypost-lbl{font-size:12px;font-weight:700;color:var(--blue);letter-spacing:0.3px;display:flex;align-items:center;gap:6px}
+.mypost-lbl-sub{font-size:10px;font-weight:400;color:rgba(20,40,160,0.5);letter-spacing:0;margin-left:2px}
+.mypost-chevron{font-size:12px;color:var(--blue);transition:transform 0.25s;flex-shrink:0}
+.mypost-chevron.open{transform:rotate(180deg)}
+.mypost-body{display:none;padding:0 16px 14px;border-top:1px solid rgba(20,40,160,0.12)}
+.mypost-body.open{display:block}
+.mypost-list{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.mypost-item{display:flex;align-items:flex-start;gap:8px;padding:9px 10px;background:#fff;border:1px solid rgba(20,40,160,0.12);border-radius:6px;text-decoration:none;transition:all 0.15s}
+.mypost-item:hover{border-color:var(--blue);box-shadow:0 2px 8px rgba(20,40,160,0.1)}
+.mypost-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+.mypost-info{flex:1;min-width:0}
+.mypost-title{font-size:13px;font-weight:500;color:var(--text);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.mypost-item:hover .mypost-title{color:var(--blue)}
+.mypost-desc{font-size:11px;color:var(--text3);margin-top:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.mypost-empty{font-size:12px;color:var(--text3);padding:8px 0}
+.mypost-more{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;margin-top:8px;background:var(--blue);color:#fff;border-radius:6px;text-decoration:none;font-size:12px;font-weight:600;transition:all 0.15s}
+.mypost-more:hover{background:var(--blue2);box-shadow:0 2px 8px rgba(20,40,160,0.2)}
+.mypost-loading{font-size:12px;color:var(--text3);display:flex;align-items:center;gap:6px;margin-top:10px}
+/* 접혀있을 때 카운트 뱃지 */
+.mypost-count-badge{font-size:10px;font-weight:600;background:var(--blue);color:#fff;border-radius:20px;padding:1px 8px;margin-left:4px}
+.mypost-count-badge.zero{background:var(--text3)}
 
 /* Rank / Blog posts */
 .rank-sec{border-top:1px solid var(--border);padding-top:14px;margin-top:14px}
@@ -152,145 +194,34 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
 .cdot.fail{background:#ff6060}
 
 /* ── 트렌드 선 그래프 ── */
-.trend-sec {
-  border-top: 1px solid var(--border);
-  padding-top: 14px;
-  margin-bottom: 16px;
-}
-.trend-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.trend-lbl {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text3);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.trend-badge {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 20px;
-}
-.trend-up   { background: var(--green-bg); color: var(--green); }
-.trend-down { background: var(--red-bg);   color: var(--red); }
-.trend-flat { background: var(--amber-bg); color: var(--amber); }
-
-.trend-chart-wrap {
-  position: relative;
-  width: 100%;
-  height: 120px;
-}
-.trend-chart-wrap svg {
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-.trend-loading {
-  height: 120px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--text3);
-}
-.trend-summary {
-  font-size: 12px;
-  color: var(--text2);
-  margin-top: 10px;
-  line-height: 1.6;
-}
-.trend-summary b { color: var(--blue); }
-.trend-summary .up   { color: var(--green); font-weight: 700; }
-.trend-summary .down { color: var(--red);   font-weight: 700; }
-
-/* SVG 툴팁 */
-.trend-tooltip {
-  position: absolute;
-  background: var(--text);
-  color: #fff;
-  font-size: 11px;
-  padding: 4px 8px;
-  border-radius: 4px;
-  pointer-events: none;
-  white-space: nowrap;
-  z-index: 20;
-  display: none;
-  transform: translate(-50%, -100%);
-  margin-top: -6px;
-  font-family: 'Roboto', monospace;
-}
+.trend-sec{border-top:1px solid var(--border);padding-top:14px;margin-bottom:16px}
+.trend-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:6px}
+.trend-lbl{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px}
+.trend-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px}
+.trend-up{background:var(--green-bg);color:var(--green)}
+.trend-down{background:var(--red-bg);color:var(--red)}
+.trend-flat{background:var(--amber-bg);color:var(--amber)}
+.trend-chart-wrap{position:relative;width:100%;height:120px}
+.trend-chart-wrap svg{width:100%;height:100%;overflow:visible}
+.trend-loading{height:120px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;color:var(--text3)}
+.trend-summary{font-size:12px;color:var(--text2);margin-top:10px;line-height:1.6}
+.trend-summary b{color:var(--blue)}
+.trend-summary .up{color:var(--green);font-weight:700}
+.trend-summary .down{color:var(--red);font-weight:700}
+.trend-tooltip{position:absolute;background:var(--text);color:#fff;font-size:11px;padding:4px 8px;border-radius:4px;pointer-events:none;white-space:nowrap;z-index:20;display:none;transform:translate(-50%,-100%);margin-top:-6px;font-family:'Roboto',monospace}
 
 /* ── 최근 검색 ── */
-.recent-wrap {
-  margin-top: 14px;
-  display: none;
-}
-.recent-wrap.show { display: block; }
-.recent-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text3);
-  letter-spacing: 0.3px;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.recent-clear {
-  font-size: 11px;
-  color: var(--text3);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  font-family: 'Noto Sans KR', sans-serif;
-  transition: color 0.15s;
-}
-.recent-clear:hover { color: var(--red); }
-.recent-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-}
-.recent-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--bg2);
-  border: 1.5px solid var(--border2);
-  border-radius: 20px;
-  padding: 6px 12px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text2);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.recent-tag:hover {
-  border-color: var(--blue);
-  color: var(--blue);
-  background: var(--blue-pale);
-}
-.recent-tag .rtag-icon {
-  font-size: 11px;
-  opacity: 0.5;
-}
-.recent-tag .rtag-del {
-  font-size: 14px;
-  opacity: 0.35;
-  line-height: 1;
-  transition: opacity 0.15s;
-  margin-left: 2px;
-}
-.recent-tag .rtag-del:hover { opacity: 1; color: var(--red); }
+.recent-wrap{margin-top:14px;display:none}
+.recent-wrap.show{display:block}
+.recent-label{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:0.3px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.recent-clear{font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;padding:0;font-family:'Noto Sans KR',sans-serif;transition:color 0.15s}
+.recent-clear:hover{color:var(--red)}
+.recent-list{display:flex;flex-wrap:wrap;gap:7px}
+.recent-tag{display:inline-flex;align-items:center;gap:6px;background:var(--bg2);border:1.5px solid var(--border2);border-radius:20px;padding:6px 12px;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;transition:all 0.15s}
+.recent-tag:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-pale)}
+.recent-tag .rtag-icon{font-size:11px;opacity:0.5}
+.recent-tag .rtag-del{font-size:14px;opacity:0.35;line-height:1;transition:opacity 0.15s;margin-left:2px}
+.recent-tag .rtag-del:hover{opacity:1;color:var(--red)}
 
 /* ── 태블릿 ── */
 @media(max-width:768px){
@@ -304,55 +235,37 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
   html{font-size:16px}
   .topbar{padding:0 16px;height:52px}
   .topbar-name{font-size:14px}
-  .topbar-logo{width:26px;height:26px;}
+  .topbar-logo{width:26px;height:26px}
   .topbar-status{font-size:11px}
   .page{padding:16px 12px 70px}
-
-  /* Hero */
   .hero{padding:20px 16px 18px;margin-bottom:12px}
   .hero-eyebrow{font-size:10px;letter-spacing:1.5px}
   .hero-title{font-size:21px}
   .hero-sub{font-size:12px}
-
-  /* Card */
   .card-header{padding:12px 16px}
   .card-title{font-size:13px}
   .card-body{padding:16px}
-
-  /* 입력 — 모바일에서 세로 배치 */
   .kw-row{flex-direction:column;gap:10px}
   .kw-row .btn{width:100%;padding:13px}
   .input{padding:13px 14px;font-size:16px}
-
-  /* 결과 헤더 — 줄바꿈 */
   .results-topbar{width:100%}
   .results-meta{font-size:11px;width:100%}
   .exp-row{width:100%}
   .exp-row .btn{flex:1}
-
-  /* KW 카드 */
   .kwcard-head{padding:12px 14px}
   .kwname{font-size:17px}
   .kwcard-body{padding:14px}
-
-  /* 통계 — 모바일에서 한 줄에 3개 유지하되 작게 */
   .sgrid{grid-template-columns:repeat(3,1fr);gap:7px}
   .scell{padding:11px 6px}
   .slbl{font-size:9px;letter-spacing:0.3px}
   .snum{font-size:19px}
   .sunit{font-size:9px}
-
-  /* 연관 키워드 */
   .rel-lbl{font-size:11px}
   .rtag{font-size:12px;padding:6px 12px}
-
-  /* 블로그 상위 포스팅 */
   .rank-item{padding:10px}
   .rank-title{font-size:13px}
   .rank-desc{font-size:11px}
   .rank-num{width:22px;height:22px;font-size:11px}
-
-  /* 콘솔바 */
   .console{padding:9px 14px;font-size:11px}
 }
 
@@ -361,7 +274,6 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
   .hero-title{font-size:19px}
   .sgrid{grid-template-columns:1fr 1fr;gap:8px}
   .snum{font-size:22px}
-  .topbar-status span:nth-child(3),.topbar-status{gap:4px}
 }
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -406,7 +318,7 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
 
   <div class="hero">
     <div class="hero-eyebrow">Naver Search Advertising API</div>
-    <div class="hero-title">네이버 키워드 검색량 분석 v1.4</div>
+    <div class="hero-title">네이버 키워드 검색량 분석 v1.5</div>
     <div class="hero-sub">키워드를 입력하면 월간 PC·모바일 검색량과 연관 키워드를 즉시 조회합니다.</div>
   </div>
 
@@ -421,7 +333,7 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
           placeholder="키워드 입력 후 검색"
           inputmode="search"
           enterkeyhint="search"
-          onkeydown="if(event.key==='Enter'||event.keyCode===13) { event.preventDefault(); doSearch(); }"
+          onkeydown="if(event.key==='Enter'||event.keyCode===13){event.preventDefault();doSearch();}"
           autofocus />
         <button class="btn btn-primary" onclick="doSearch()">검색</button>
       </div>
@@ -482,22 +394,20 @@ function getRecent() {
   try { return JSON.parse(localStorage.getItem('recentKw') || '[]'); }
   catch(e) { return []; }
 }
-
 function saveRecent(kw) {
-  let list = getRecent().filter(k => k !== kw); // 중복 제거
-  list.unshift(kw);                              // 맨 앞에 추가
-  list = list.slice(0, MAX_RECENT);              // 5개 제한
+  let list = getRecent().filter(k => k !== kw);
+  list.unshift(kw);
+  list = list.slice(0, MAX_RECENT);
   localStorage.setItem('recentKw', JSON.stringify(list));
   renderRecent();
 }
-
 function clearRecent() {
   localStorage.removeItem('recentKw');
   renderRecent();
 }
-
-function deleteRecentOne(kw, e) {
+function deleteRecentThis(el, e) {
   e.stopPropagation();
+  const kw = el.closest('.recent-tag').dataset.kw;
   const list = getRecent().filter(k => k !== kw);
   localStorage.setItem('recentKw', JSON.stringify(list));
   renderRecent();
@@ -515,11 +425,10 @@ function renderRecent() {
     <div class="recent-tag" onclick="searchFromRecent(this.dataset.kw)" data-kw="${safe}">
       <span class="rtag-icon">🕒</span>
       <span>${safe}</span>
-      <span class="rtag-del" onclick="deleteRecentThis(this, event)">×</span>
+      <span class="rtag-del" onclick="deleteRecentThis(this,event)">×</span>
     </div>`;
   }).join('');
 }
-
 function searchFromRecent(kw) {
   document.getElementById('kwInp').value = kw;
   kws = [kw];
@@ -527,22 +436,11 @@ function searchFromRecent(kw) {
   log('busy', '"' + kw + '" 검색 중...');
   runScan();
 }
-
-function deleteRecentThis(el, e) {
-  e.stopPropagation();
-  const kw = el.closest('.recent-tag').dataset.kw;
-  const list = getRecent().filter(k => k !== kw);
-  localStorage.setItem('recentKw', JSON.stringify(list));
-  renderRecent();
-}
-
-// DOM 준비 후 초기 렌더링
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', renderRecent);
 } else {
   renderRecent();
 }
-
 
 function doSearch() {
   const inp = document.getElementById('kwInp');
@@ -550,7 +448,7 @@ function doSearch() {
   if (!kw) return;
   kws = [kw];
   inp.value = '';
-  saveRecent(kw);  // 최근 검색 저장
+  saveRecent(kw);
   log('busy', `"${kw}" 검색 중...`);
   runScan();
 }
@@ -584,7 +482,7 @@ async function runScan() {
   } catch(e) {
     document.getElementById('loadingWrap').classList.remove('show');
     if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
-      showErr(`<strong>서버에 연결할 수 없습니다.</strong><br>터미널에서 <code>node server.js</code>를 실행한 후 다시 시도하세요.`);
+      showErr(`<strong>서버에 연결할 수 없습니다.</strong><br>배포 환경 설정을 확인하세요.`);
       log('fail', '서버 연결 실패');
     } else {
       showErr(`<strong>오류:</strong> ${e.message}`);
@@ -611,23 +509,25 @@ function renderResults() {
 
   setTimeout(() => {
     main.forEach(d => {
-      const rankId = 'rank-' + d.kw.replace(/[^a-zA-Z0-9가-힣]/g,'');
+      const rankId   = 'rank-' + d.kw.replace(/[^a-zA-Z0-9가-힣]/g,'');
+      const mypostId = 'my-'   + d.kw.replace(/[^a-zA-Z0-9가-힣]/g,'');
       loadTrend(d.kw, rankId);
+      loadMyPosts(d.kw, mypostId);
     });
   }, 60);
 }
 
-const compMap = {'LOW':'c-low','낮음':'c-low','MID':'c-mid','MEDIUM':'c-mid','중간':'c-mid','HIGH':'c-high','높음':'c-high'};
+const compMap    = {'LOW':'c-low','낮음':'c-low','MID':'c-mid','MEDIUM':'c-mid','중간':'c-mid','HIGH':'c-high','높음':'c-high'};
 const compTxtMap = {'c-low':'경쟁 낮음','c-mid':'경쟁 중간','c-high':'경쟁 높음'};
 
 function card(d, i, maxT, rel) {
-  const tot   = d.pc + d.mo;
-  const pcPct = tot > 0 ? Math.round(d.pc/tot*100) : 0;
-  const pcW   = Math.round(d.pc/maxT*100);
-  const moW   = Math.round(d.mo/maxT*100);
-  const cCls  = compMap[(d.comp||'').toUpperCase?.()] || compMap[d.comp] || 'c-mid';
-  const cTxt  = compTxtMap[cCls] || 'N/A';
-  const rankId = 'rank-' + d.kw.replace(/[^a-zA-Z0-9가-힣]/g,'');
+  const tot    = d.pc + d.mo;
+  const pcPct  = tot > 0 ? Math.round(d.pc / tot * 100) : 0;
+  const moPct  = 100 - pcPct;
+  const cCls   = compMap[(d.comp||'').toUpperCase?.()] || compMap[d.comp] || 'c-mid';
+  const cTxt   = compTxtMap[cCls] || 'N/A';
+  const rankId   = 'rank-'   + d.kw.replace(/[^a-zA-Z0-9가-힣]/g,'');
+  const mypostId = 'my-'     + d.kw.replace(/[^a-zA-Z0-9가-힣]/g,'');
 
   const relHtml = rel.length ? `
     <div class="rel-sec">
@@ -647,12 +547,40 @@ function card(d, i, maxT, rel) {
         <div class="comp-pill ${cCls}">${cTxt}</div>
       </div>
       <div class="kwcard-body">
+
+        <!-- ── 개선된 통계 그리드 ── -->
         <div class="sgrid">
-          <div class="scell"><div class="slbl">PC 월간</div><div class="snum pc">${fmt(d.pc)}</div><div class="sunit">PC ${pcPct}%</div></div>
-          <div class="scell"><div class="slbl">모바일 월간</div><div class="snum mo">${fmt(d.mo)}</div><div class="sunit">모바일 ${100-pcPct}%</div></div>
-          <div class="scell"><div class="slbl">합계</div><div class="snum tot">${fmt(tot)}</div><div class="sunit">월간 총합</div></div>
+          <div class="scell pc-cell">
+            <div class="slbl"><span class="slbl-icon">🖥</span>PC 월간</div>
+            <div class="snum pc">${fmt(d.pc)}</div>
+            <div class="ratio-bar-wrap"><div class="ratio-bar-inner pc" style="width:${pcPct}%"></div></div>
+            <div class="sunit">전체의 ${pcPct}%</div>
+          </div>
+          <div class="scell mo-cell">
+            <div class="slbl"><span class="slbl-icon">📱</span>모바일 월간</div>
+            <div class="snum mo">${fmt(d.mo)}</div>
+            <div class="ratio-bar-wrap"><div class="ratio-bar-inner mo" style="width:${moPct}%"></div></div>
+            <div class="sunit">전체의 ${moPct}%</div>
+          </div>
+          <div class="scell tot-cell">
+            <div class="slbl"><span class="slbl-icon">📊</span>월간 합계</div>
+            <div class="snum tot">${fmt(tot)}</div>
+            <div class="ratio-bar-wrap" style="background:linear-gradient(to right,var(--blue) ${pcPct}%,#0099cc ${pcPct}%)"></div>
+            <div class="sunit">PC+모바일</div>
+          </div>
         </div>
 
+        <!-- ── PC vs 모바일 비율 바 ── -->
+        <div class="ratio-summary">
+          <div class="ratio-dot pc">PC ${pcPct}%</div>
+          <div class="ratio-bar-h">
+            <div class="ratio-pc" style="width:${pcPct}%"></div>
+            <div class="ratio-mo" style="width:${moPct}%"></div>
+          </div>
+          <div class="ratio-dot mo">모바일 ${moPct}%</div>
+        </div>
+
+        <!-- ── 트렌드 ── -->
         <div class="trend-sec">
           <div class="trend-header">
             <div class="trend-lbl">📈 검색 트렌드 (최근 12개월)</div>
@@ -663,8 +591,27 @@ function card(d, i, maxT, rel) {
           </div>
           <div class="trend-summary" id="trend-sum-${rankId}"></div>
         </div>
+
         ${relHtml}
 
+        <!-- ── 뉴카 포스팅 (접힌 형태) ── -->
+        <div class="mypost-sec">
+          <button class="mypost-toggle" onclick="toggleMyPost(this)" aria-expanded="false">
+            <div class="mypost-lbl">
+              🔖 뉴카 포스팅
+              <span class="mypost-lbl-sub">RSS 최근 30개 + 검색 상위 100개 중</span>
+              <span class="mypost-count-badge" id="badge-mp-${mypostId}">로딩중</span>
+            </div>
+            <span class="mypost-chevron" aria-hidden="true">▼</span>
+          </button>
+          <div class="mypost-body" id="body-${mypostId}">
+            <div class="mypost-list" id="${mypostId}">
+              <div class="mypost-loading"><div class="rank-spinner"></div>불러오는 중...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── 네이버 블로그 상위 포스팅 ── -->
         <div class="rank-sec">
           <div class="rank-lbl">
             <span>네이버 블로그 상위 포스팅</span>
@@ -674,8 +621,20 @@ function card(d, i, maxT, rel) {
             <div class="rank-empty">위 버튼을 클릭하면 상위 포스팅 10개를 가져옵니다</div>
           </div>
         </div>
+
       </div>
     </div>`;
+}
+
+// ── 뉴카 포스팅 토글 ──────────────────────────────
+function toggleMyPost(btn) {
+  const chevron  = btn.querySelector('.mypost-chevron');
+  const bodyId   = btn.nextElementSibling.id;
+  const bodyEl   = document.getElementById(bodyId);
+  const isOpen   = bodyEl.classList.contains('open');
+  bodyEl.classList.toggle('open', !isOpen);
+  chevron.classList.toggle('open', !isOpen);
+  btn.setAttribute('aria-expanded', String(!isOpen));
 }
 
 function fmt(n) {
@@ -683,7 +642,6 @@ function fmt(n) {
   return n.toLocaleString('ko-KR');
 }
 
-// 연관 키워드 클릭 시 바로 검색
 function searchRelated(kw) {
   document.getElementById('kwInp').value = kw;
   kws = [kw];
@@ -732,13 +690,12 @@ function showErr(html) {
   el.innerHTML = html;
   el.classList.add('show');
 }
-
 function log(type, msg) {
   document.getElementById('cdot').className = 'cdot' + (type ? ' '+type : '');
   document.getElementById('ctxt').textContent = msg;
 }
 
-// 트렌드 선 그래프 로드
+// ── 트렌드 선 그래프 로드 ──────────────────────────
 async function loadTrend(kw, rankId) {
   const wrapEl  = document.getElementById('trend-' + rankId);
   const badgeEl = document.getElementById('badge-' + rankId);
@@ -766,14 +723,12 @@ async function loadTrend(kw, rankId) {
     const maxVal = Math.max(...values, 1);
     const minVal = Math.min(...values);
 
-    // 트렌드 방향 계산
     const recent3 = values.slice(-3);
     const prev3   = values.slice(-6, -3);
     const rAvg = recent3.reduce((a,b)=>a+b,0)/recent3.length;
     const pAvg = prev3.reduce((a,b)=>a+b,0)/Math.max(prev3.length,1);
     const diff = ((rAvg - pAvg) / Math.max(pAvg, 1)) * 100;
 
-    // 배지
     let badgeCls, badgeTxt;
     if (diff > 10)       { badgeCls='trend-up';   badgeTxt=`📈 상승 +${diff.toFixed(0)}%`; }
     else if (diff < -10) { badgeCls='trend-down';  badgeTxt=`📉 하락 ${diff.toFixed(0)}%`; }
@@ -781,25 +736,19 @@ async function loadTrend(kw, rankId) {
     badgeEl.className   = 'trend-badge ' + badgeCls;
     badgeEl.textContent = badgeTxt;
 
-    // SVG 선 그래프 생성
     const W = 600, H = 90;
     const padL = 8, padR = 8, padT = 16, padB = 28;
     const chartW = W - padL - padR;
     const chartH = H - padT - padB;
     const n = values.length;
-
     const xPos = i => padL + (i / (n-1)) * chartW;
     const yPos = v => padT + chartH - ((v - minVal) / Math.max(maxVal - minVal, 1)) * chartH;
 
-    // 폴리라인 포인트
     const pts = values.map((v,i) => `${xPos(i)},${yPos(v)}`).join(' ');
-
-    // 그라디언트 채우기 경로
     const fillPath = `M${xPos(0)},${yPos(values[0])} ` +
       values.map((v,i) => `L${xPos(i)},${yPos(v)}`).join(' ') +
       ` L${xPos(n-1)},${H-padB} L${xPos(0)},${H-padB} Z`;
 
-    // X축 레이블 — 3개월마다 표시 + 마지막
     const xLabels = labels.map((lbl, i) => {
       if (i % 3 !== 0 && i !== n-1) return '';
       const mon = lbl.slice(5,7) + '월';
@@ -807,22 +756,19 @@ async function loadTrend(kw, rankId) {
         font-size="9" fill="#999" font-family="Roboto,sans-serif">${mon}</text>`;
     }).join('');
 
-    // 데이터 포인트 원
     const dots = values.map((v,i) => {
       const isLast = i === n-1;
       const isPeak = v === maxVal;
-      const r = isPeak ? 5 : isLast ? 5 : 3.5;
-      const fill = isPeak ? '#1428a0' : isLast ? '#1428a0' : '#fff';
-      const stroke = '#1428a0';
-      const sw = isPeak ? 2.5 : isLast ? 2.5 : 2;
+      const r    = isPeak || isLast ? 5 : 3.5;
+      const fill = isPeak || isLast ? '#1428a0' : '#fff';
+      const sw   = isPeak || isLast ? 2.5 : 2;
       return `<circle cx="${xPos(i)}" cy="${yPos(v)}" r="${r}"
-        fill="${fill}" stroke="${stroke}" stroke-width="${sw}"
+        fill="${fill}" stroke="#1428a0" stroke-width="${sw}"
         style="cursor:pointer"
-        onmouseenter="showTrendTip(event,'${lbl(labels[i])}  ${v.toFixed(1)}%')"
+        onmouseenter="showTrendTip(event,'${labels[i]}  ${v.toFixed(1)}%')"
         onmouseleave="hideTrendTip()"/>`;
     }).join('');
 
-    // 최고점 라벨
     const peakIdx = values.indexOf(maxVal);
     const peakLabel = `<text x="${xPos(peakIdx)}" y="${yPos(maxVal)-10}"
       text-anchor="middle" font-size="10" fill="#1428a0"
@@ -836,24 +782,13 @@ async function loadTrend(kw, rankId) {
             <stop offset="100%" stop-color="#1428a0" stop-opacity="0.01"/>
           </linearGradient>
         </defs>
-        <!-- 그리드 라인 -->
-        <line x1="${padL}" y1="${padT}" x2="${W-padR}" y2="${padT}"
-          stroke="#e5e5e5" stroke-width="1" stroke-dasharray="3,3"/>
-        <line x1="${padL}" y1="${padT+chartH/2}" x2="${W-padR}" y2="${padT+chartH/2}"
-          stroke="#e5e5e5" stroke-width="1" stroke-dasharray="3,3"/>
-        <line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}"
-          stroke="#e0e0e0" stroke-width="1"/>
-        <!-- 채우기 -->
+        <line x1="${padL}" y1="${padT}" x2="${W-padR}" y2="${padT}" stroke="#e5e5e5" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="${padL}" y1="${padT+chartH/2}" x2="${W-padR}" y2="${padT+chartH/2}" stroke="#e5e5e5" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="#e0e0e0" stroke-width="1"/>
         <path d="${fillPath}" fill="url(#tg-${rankId})"/>
-        <!-- 선 -->
-        <polyline points="${pts}"
-          fill="none" stroke="#1428a0" stroke-width="2.5"
-          stroke-linecap="round" stroke-linejoin="round"/>
-        <!-- X축 레이블 -->
+        <polyline points="${pts}" fill="none" stroke="#1428a0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
         ${xLabels}
-        <!-- 데이터 포인트 -->
         ${dots}
-        <!-- 최고점 라벨 -->
         ${peakLabel}
       </svg>
       <div class="trend-tooltip" id="ttip-${rankId}"></div>`;
@@ -861,7 +796,6 @@ async function loadTrend(kw, rankId) {
     wrapEl.innerHTML = svg;
     wrapEl.style.height = 'auto';
 
-    // 요약
     const peak = results.reduce((a,b) => a.ratio>b.ratio ? a : b);
     const diffCls = diff > 10 ? 'up' : diff < -10 ? 'down' : '';
     const diffStr = (diff >= 0 ? '+' : '') + diff.toFixed(0) + '%';
@@ -869,11 +803,8 @@ async function loadTrend(kw, rankId) {
 
   } catch(e) {
     wrapEl.innerHTML = `<div class="trend-loading" style="color:var(--red)">트렌드 로드 실패: ${e.message}</div>`;
-    console.error('trend error', e);
   }
 }
-
-function lbl(s) { return s.slice(0,7); }
 
 function showTrendTip(e, text) {
   const el = e.target.closest('.trend-chart-wrap')?.querySelector('[id^="ttip-"]');
@@ -881,14 +812,54 @@ function showTrendTip(e, text) {
   el.textContent = text;
   el.style.display = 'block';
   const rect = e.target.closest('.trend-chart-wrap').getBoundingClientRect();
-  const cx   = e.clientX - rect.left;
-  const cy   = e.clientY - rect.top;
-  el.style.left = cx + 'px';
-  el.style.top  = cy + 'px';
+  el.style.left = (e.clientX - rect.left) + 'px';
+  el.style.top  = (e.clientY - rect.top)  + 'px';
 }
-
 function hideTrendTip() {
   document.querySelectorAll('[id^="ttip-"]').forEach(el => el.style.display='none');
+}
+
+// ── 뉴카 포스팅 로드 ────────────────────────────────
+async function loadMyPosts(kw, mypostId) {
+  const listEl   = document.getElementById(mypostId);
+  const badgeEl  = document.getElementById('badge-mp-' + mypostId);
+  if (!listEl) return;
+
+  try {
+    const res  = await fetch(`/api/myposts?query=${encodeURIComponent(kw)}`);
+    const json = await res.json();
+    const items = json.items || [];
+
+    // 뱃지 업데이트
+    if (badgeEl) {
+      badgeEl.textContent = items.length > 0 ? items.length + '개' : '없음';
+      if (items.length === 0) badgeEl.classList.add('zero');
+    }
+
+    const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+    const moreUrl  = isMobile
+      ? `https://m.blog.naver.com/PostSearchList.naver?blogId=p911c4&orderType=sim&pageAccess=direct&periodType=all&searchText=${encodeURIComponent(kw)}`
+      : `https://blog.naver.com/PostSearchList.naver?blogId=p911c4&searchText=${encodeURIComponent(kw)}`;
+
+    let html = items.length === 0
+      ? '<div class="mypost-empty">앱에서 찾은 연관 포스팅이 없습니다.</div>'
+      : items.map(item => `
+          <a class="mypost-item" href="${item.link}" target="_blank" rel="noopener">
+            <span class="mypost-icon">📝</span>
+            <div class="mypost-info">
+              <div class="mypost-title">${item.title.replace(/<[^>]+>/g,'')}</div>
+              <div class="mypost-desc">${(item.description||'').replace(/<[^>]+>/g,'').slice(0,60)}...</div>
+            </div>
+          </a>`).join('');
+    html += `<a class="mypost-more" href="${moreUrl}" target="_blank" rel="noopener">🔍 뉴카's "${kw}" 포스팅 →</a>`;
+    listEl.innerHTML = html;
+
+  } catch(e) {
+    const listEl2 = document.getElementById(mypostId);
+    if (listEl2) listEl2.innerHTML = '<div class="mypost-empty">불러오기 실패</div>';
+    const badgeEl2 = document.getElementById('badge-mp-' + mypostId);
+    if (badgeEl2) { badgeEl2.textContent = '오류'; badgeEl2.classList.add('zero'); }
+  }
 }
 
 function exportCSV() {
@@ -902,7 +873,6 @@ function exportCSV() {
   }).click();
   log('ok', 'CSV 파일로 저장됐습니다');
 }
-
 function copyJSON() {
   if (!data.length) return;
   navigator.clipboard.writeText(JSON.stringify(data,null,2))
