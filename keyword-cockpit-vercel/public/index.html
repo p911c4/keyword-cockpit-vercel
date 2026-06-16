@@ -34,8 +34,8 @@ html{font-size:15px}
 body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
 
 /* ── Topbar ── */
-.topbar{background:var(--blue);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.15)}
-.topbar-brand{display:flex;align-items:center;gap:10px}
+.topbar{background:var(--blue);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:98;box-shadow:0 2px 8px rgba(0,0,0,0.15)}
+.topbar-brand{display:flex;align-items:center;gap:10px;cursor:pointer;z-index:98}
 .topbar-logo{width:28px;height:28px;display:flex;align-items:center;justify-content:center}
 .topbar-name{color:#fff;font-size:16px;font-weight:700;letter-spacing:-0.3px}
 .topbar-status{display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.75);font-weight:300}
@@ -43,7 +43,7 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
 .status-dot.live{background:#4cff8f;animation:blink 2.5s infinite}
 
 /* ── 탭 네비게이션 ── */
-.tab-nav{background:var(--bg);border-bottom:2px solid var(--border);position:sticky;top:56px;z-index:99;box-shadow:var(--shadow-sm)}
+.tab-nav{background:var(--bg);border-bottom:2px solid var(--border);position:sticky;top:56px;z-index:97;box-shadow:var(--shadow-sm)}
 .tab-nav-inner{max-width:780px;margin:0 auto;display:flex;padding:0 16px}
 .tab-btn{font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:600;color:var(--text3);background:none;border:none;border-bottom:3px solid transparent;padding:14px 20px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:7px;letter-spacing:0.1px;margin-bottom:-2px}
 .tab-btn:hover{color:var(--text)}
@@ -345,7 +345,7 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
 
 <!-- ── Topbar ── -->
 <div class="topbar">
-  <div class="topbar-brand" onclick="resetApp()" style="cursor:pointer" title="처음으로">
+  <div class="topbar-brand" onclick="resetApp()" title="처음으로">
     <div class="topbar-logo">
       <svg width="32" height="32" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs><linearGradient id="tl" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#a8d4f5"/></linearGradient></defs>
