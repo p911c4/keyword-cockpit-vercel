@@ -64,11 +64,11 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
 .hero-sub{font-size:13px;color:rgba(255,255,255,0.7);font-weight:300;line-height:1.6}
 
 /* ── Card ── */
-.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;box-shadow:var(--shadow-sm);overflow:hidden;animation:fadeUp 0.4s ease both}
+.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;box-shadow:var(--shadow-sm);animation:fadeUp 0.4s ease both}
 .card-header{padding:14px 20px;border-bottom:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;justify-content:space-between}
 .card-title{font-size:13px;font-weight:700;color:var(--text);letter-spacing:0.2px;display:flex;align-items:center;gap:8px}
 .card-title::before{content:'';width:3px;height:14px;background:var(--blue);border-radius:2px;flex-shrink:0}
-.card-body{padding:20px}
+.card-body{padding:20px;overflow:visible}
 
 /* ── Input ── */
 .kw-row{display:flex;gap:8px}
@@ -426,13 +426,6 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
           <div class="input-dropdown" id="kwDropdown"></div>
         </div>
         <button class="btn btn-primary" onclick="hideDropdown('kwDropdown');doSearch()">검색</button>
-      </div>
-      <div class="recent-wrap" id="recentWrap">
-        <div class="recent-label">
-          <span>🕒 최근 검색</span>
-          <button class="recent-clear" onclick="clearRecent()">전체 삭제</button>
-        </div>
-        <div class="recent-list" id="recentList"></div>
       </div>
     </div>
   </div>
