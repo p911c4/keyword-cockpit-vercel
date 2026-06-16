@@ -34,8 +34,8 @@ html{font-size:15px}
 body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
 
 /* ── Topbar ── */
-.topbar{background:var(--blue);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:98;box-shadow:0 2px 8px rgba(0,0,0,0.15)}
-.topbar-brand{display:flex;align-items:center;gap:10px;cursor:pointer;z-index:98}
+.topbar{background:var(--blue);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,0.15)}
+.topbar-brand{display:flex;align-items:center;gap:10px;cursor:pointer}
 .topbar-logo{width:28px;height:28px;display:flex;align-items:center;justify-content:center}
 .topbar-name{color:#fff;font-size:16px;font-weight:700;letter-spacing:-0.3px}
 .topbar-status{display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.75);font-weight:300}
@@ -43,7 +43,7 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
 .status-dot.live{background:#4cff8f;animation:blink 2.5s infinite}
 
 /* ── 탭 네비게이션 ── */
-.tab-nav{background:var(--bg);border-bottom:2px solid var(--border);position:sticky;top:56px;z-index:97;box-shadow:var(--shadow-sm)}
+.tab-nav{background:var(--bg);border-bottom:2px solid var(--border);position:sticky;top:56px;z-index:49;box-shadow:var(--shadow-sm)}
 .tab-nav-inner{max-width:780px;margin:0 auto;display:flex;padding:0 16px}
 .tab-btn{font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:600;color:var(--text3);background:none;border:none;border-bottom:3px solid transparent;padding:14px 20px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:7px;letter-spacing:0.1px;margin-bottom:-2px}
 .tab-btn:hover{color:var(--text)}
@@ -282,7 +282,7 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
 .bi-id-prefix{font-size:13px;color:var(--text3);white-space:nowrap;flex-shrink:0}
 
 /* ── Console ── */
-.console{position:fixed;bottom:0;left:0;right:0;background:var(--text);padding:10px 20px;display:flex;align-items:center;gap:10px;font-size:12px;color:rgba(255,255,255,0.7);z-index:99;box-shadow:0 -2px 12px rgba(0,0,0,0.15)}
+.console{position:fixed;bottom:0;left:0;right:0;background:var(--text);padding:10px 20px;display:flex;align-items:center;gap:10px;font-size:12px;color:rgba(255,255,255,0.7);z-index:10;box-shadow:0 -2px 12px rgba(0,0,0,0.15);pointer-events:none}
 .cdot{width:6px;height:6px;border-radius:50%;background:#555;flex-shrink:0}
 .cdot.ok{background:#4cff8f}
 .cdot.busy{background:#ffc107;animation:blink 0.5s infinite}
@@ -546,19 +546,27 @@ function log(type, msg) {
 
 /* ── 앱 초기화 ── */
 function resetApp() {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-kw').classList.add('active');
-  document.querySelector('.tab-btn').classList.add('active');
-  const kwInp = document.getElementById('kwInp');
-  if (kwInp) { kwInp.value = ''; kwInp.focus(); }
-  document.getElementById('kwClear')?.classList.remove('show');
-  document.getElementById('resultsPanel')?.classList.remove('show');
-  document.getElementById('loadingWrap')?.classList.remove('show');
-  document.getElementById('errBox')?.classList.remove('show');
-  kws = []; data = [];
-  log('ok', '준비 완료 — 키워드를 입력하고 검색하세요');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  try {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    const kwTab = document.getElementById('tab-kw');
+    if (kwTab) kwTab.classList.add('active');
+    const firstTabBtn = document.querySelector('.tab-nav .tab-btn');
+    if (firstTabBtn) firstTabBtn.classList.add('active');
+    const kwInp = document.getElementById('kwInp');
+    if (kwInp) { kwInp.value = ''; kwInp.focus(); }
+    const kwClear = document.getElementById('kwClear');
+    if (kwClear) kwClear.classList.remove('show');
+    const resultsPanel = document.getElementById('resultsPanel');
+    if (resultsPanel) resultsPanel.classList.remove('show');
+    const loadingWrap = document.getElementById('loadingWrap');
+    if (loadingWrap) loadingWrap.classList.remove('show');
+    const errBox = document.getElementById('errBox');
+    if (errBox) errBox.classList.remove('show');
+    kws = []; data = [];
+    log('ok', '준비 완료 — 키워드를 입력하고 검색하세요');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch(e) { console.error('resetApp error', e); }
 }
 
 /* ── 입력창 X 버튼 ── */
