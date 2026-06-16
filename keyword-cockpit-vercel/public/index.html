@@ -345,7 +345,7 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
 
 <!-- ── Topbar ── -->
 <div class="topbar">
-  <div class="topbar-brand">
+  <div class="topbar-brand" onclick="resetApp()" style="cursor:pointer" title="처음으로">
     <div class="topbar-logo">
       <svg width="32" height="32" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs><linearGradient id="tl" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#a8d4f5"/></linearGradient></defs>
@@ -544,8 +544,24 @@ function log(type, msg) {
   document.getElementById('ctxt').textContent = msg;
 }
 
+/* ── 앱 초기화 ── */
+function resetApp() {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-kw').classList.add('active');
+  document.querySelector('.tab-btn').classList.add('active');
+  const kwInp = document.getElementById('kwInp');
+  if (kwInp) { kwInp.value = ''; kwInp.focus(); }
+  document.getElementById('kwClear')?.classList.remove('show');
+  document.getElementById('resultsPanel')?.classList.remove('show');
+  document.getElementById('loadingWrap')?.classList.remove('show');
+  document.getElementById('errBox')?.classList.remove('show');
+  kws = []; data = [];
+  log('ok', '준비 완료 — 키워드를 입력하고 검색하세요');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 /* ── 입력창 X 버튼 ── */
-function toggleClear(inputId, btnId) {
   const inp = document.getElementById(inputId);
   const btn = document.getElementById(btnId);
   if (!inp || !btn) return;
