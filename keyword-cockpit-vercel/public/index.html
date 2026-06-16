@@ -547,12 +547,15 @@ function log(type, msg) {
 /* ── 앱 초기화 ── */
 function resetApp() {
   try {
+    // 탭 전환
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     const kwTab = document.getElementById('tab-kw');
     if (kwTab) kwTab.classList.add('active');
     const firstTabBtn = document.querySelector('.tab-nav .tab-btn');
     if (firstTabBtn) firstTabBtn.classList.add('active');
+
+    // 키워드 분석 초기화
     const kwInp = document.getElementById('kwInp');
     if (kwInp) { kwInp.value = ''; kwInp.focus(); }
     const kwClear = document.getElementById('kwClear');
@@ -564,6 +567,25 @@ function resetApp() {
     const errBox = document.getElementById('errBox');
     if (errBox) errBox.classList.remove('show');
     kws = []; data = [];
+
+    // 블로그 지수 탭 초기화
+    const biIdInp = document.getElementById('biIdInp');
+    if (biIdInp) biIdInp.value = '';
+    const biIdClear = document.getElementById('biIdClear');
+    if (biIdClear) biIdClear.classList.remove('show');
+    const biStatsTitle = document.getElementById('biStatsTitle');
+    if (biStatsTitle) biStatsTitle.textContent = '블로그 활동 지표';
+    const biStatsBody = document.getElementById('biStatsBody');
+    if (biStatsBody) biStatsBody.innerHTML = '<div class="bi-loading"><div class="rank-spinner"></div>블로그 ID를 입력하고 조회하세요</div>';
+    const biKwInp = document.getElementById('biKwInp');
+    if (biKwInp) biKwInp.value = '';
+    const biKwClear = document.getElementById('biKwClear');
+    if (biKwClear) biKwClear.classList.remove('show');
+    const biRankResult = document.getElementById('biRankResult');
+    if (biRankResult) biRankResult.innerHTML = '<div class="bi-rank-empty">키워드를 입력하면 상위 100개 결과 중<br>포스팅 포함 여부를 확인합니다</div>';
+    biStatsLoaded = false;
+    currentBlogId = '';
+
     log('ok', '준비 완료 — 키워드를 입력하고 검색하세요');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   } catch(e) { console.error('resetApp error', e); }
