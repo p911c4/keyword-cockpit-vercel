@@ -1,37 +1,50 @@
 const https = require('https');
 
-const BLOG_ID = 'p911c4';
-const RSS_URL = `https://rss.blog.naver.com/${BLOG_ID}.xml`;
+const BLOG_ID       = 'p911c4';
+const RSS_URL       = `https://rss.blog.naver.com/${BLOG_ID}.xml`;
+const CLIENT_ID     = process.env.NAVER_CLIENT_ID;
+const CLIENT_SECRET = process.env.NAVER_CLIENT_SECRET;
 
-function httpsGet(url, redirectCount, callback) {
+function httpsGet(urlOrOpts, redirectCount, callback) {
   if (redirectCount > 5) return callback(new Error('Too many redirects'));
-  const parsed = new URL(url);
-  const options = {
-    hostname: parsed.hostname,
-    path:     parsed.pathname + parsed.search,
-    method:   'GET',
-    headers:  { 'User-Agent': 'Mozilla/5.0' }
-  };
+  let options;
+  if (typeof urlOrOpts === 'string') {
+    const p = new URL(urlOrOpts);
+    options = { hostname: p.hostname, path: p.pathname + p.search, method: 'GET', headers: { 'User-Agent': 'Mozilla/5.0' } };
+  } else {
+    options = urlOrOpts;
+  }
   const req = https.request(options, res => {
     if ([301,302,303,307,308].includes(res.statusCode) && res.headers.location) {
       res.resume();
       const loc  = res.headers.location;
-      const next = loc.startsWith('http') ? loc : `https://${parsed.hostname}${loc}`;
+      const next = loc.startsWith('http') ? loc : `https://${options.hostname}${loc}`;
       return httpsGet(next, redirectCount + 1, callback);
     }
     let data = '';
-    res.on('data', chunk => data += chunk);
+    res.on('data', c => data += c);
     res.on('end', () => callback(null, res.statusCode, data));
   });
   req.on('error', callback);
   req.end();
 }
 
+// 정규화: 괄호·특수문자·공백 제거 후 소문자
+function normalize(str) {
+  return str.toLowerCase().replace(/[()（）\[\]【】\s\-_·•,./]/g, '');
+}
+
+// 한글/숫자/영문 토큰 분리
+function tokenize(str) {
+  return str.match(/[가-힣]+|[0-9]+|[a-zA-Z]+/g) || [];
+}
+
+// RSS 파싱
 function parseRSS(xml) {
-  const itemRe = /<item>([\s\S]*?)<\/item>/gi;
-  const items  = [];
+  const re = /<item>([\s\S]*?)<\/item>/gi;
+  const items = [];
   let m;
-  while ((m = itemRe.exec(xml)) !== null) {
+  while ((m = re.exec(xml)) !== null) {
     const block = m[1];
     const get = tag => {
       const r = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i');
@@ -44,9 +57,72 @@ function parseRSS(xml) {
     const pubDate     = get('pubDate');
     if (title && link) items.push({ title, link, description, pubDate });
   }
-  // RSS는 이미 최신순이지만 명시적으로 날짜 내림차순 정렬
   items.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
   return items;
+}
+
+// RSS 검색 (최근 50개 내에서 키워드 필터)
+function searchRSS(query, callback) {
+  httpsGet(RSS_URL, 0, (err, statusCode, data) => {
+    if (err) return callback([]);
+    try {
+      const allItems = parseRSS(data);
+      const kwNorm   = normalize(query);
+      const kwTokens = tokenize(query.toLowerCase());
+      const matched  = allItems.filter(item => {
+        const hayNorm = normalize(item.title + ' ' + item.description);
+        const hayRaw  = (item.title + ' ' + item.description).toLowerCase();
+        return hayNorm.includes(kwNorm)
+          || (kwTokens.length > 1 && kwTokens.every(t => hayNorm.includes(t)))
+          || hayRaw.includes(query.toLowerCase());
+      });
+      callback(matched);
+    } catch(e) { callback([]); }
+  });
+}
+
+// 네이버 블로그 검색 API — "키워드 blogId" 쿼리로 해당 블로그 포스팅 검색
+function searchAPI(query, callback) {
+  // "키워드 blogId" 조합으로 검색 → 블로그 내 포스팅이 상위에 노출됨
+  const combined = encodeURIComponent(`${query} ${BLOG_ID}`);
+  const apiPath  = `/v1/search/blog.json?query=${combined}&display=20&sort=sim`;
+  const options  = {
+    hostname: 'openapi.naver.com',
+    path:     apiPath,
+    method:   'GET',
+    headers: {
+      'X-Naver-Client-Id':     CLIENT_ID,
+      'X-Naver-Client-Secret': CLIENT_SECRET,
+    }
+  };
+  httpsGet(options, 0, (err, statusCode, data) => {
+    if (err) return callback([]);
+    try {
+      const json  = JSON.parse(data);
+      const items = (json.items || []).filter(item => {
+        const l = (item.link        || '').toLowerCase();
+        const n = (item.bloggername || '').toLowerCase();
+        const b = (item.bloggerlink || '').toLowerCase();
+        return l.includes(BLOG_ID) || n.includes(BLOG_ID) || b.includes(BLOG_ID);
+      }).map(item => ({
+        title:       item.title.replace(/<[^>]+>/g, ''),
+        link:        item.link,
+        description: (item.description || '').replace(/<[^>]+>/g, '').slice(0, 80),
+        pubDate:     item.pubDate || '',
+      }));
+      callback(items);
+    } catch(e) { callback([]); }
+  });
+}
+
+// 링크 기준 중복 제거
+function dedupe(items) {
+  const seen = new Set();
+  return items.filter(item => {
+    if (seen.has(item.link)) return false;
+    seen.add(item.link);
+    return true;
+  });
 }
 
 module.exports = async (req, res) => {
@@ -58,25 +134,14 @@ module.exports = async (req, res) => {
   const { query } = req.query;
   if (!query) return res.status(400).json({ error: 'query 파라미터가 없습니다' });
 
-  httpsGet(RSS_URL, 0, (err, statusCode, data) => {
-    if (err) return res.status(502).json({ error: 'RSS 연결 실패: ' + err.message, items: [] });
+  // RSS + API 병렬 실행
+  const [rssItems, apiItems] = await Promise.all([
+    new Promise(resolve => searchRSS(query, resolve)),
+    new Promise(resolve => searchAPI(query, resolve)),
+  ]);
 
-    try {
-      const allItems = parseRSS(data);
+  // RSS 우선 + API 보완 (최신순 유지, 중복 제거)
+  const merged = dedupe([...rssItems, ...apiItems]);
 
-      // 키워드 매칭 — 최신순 유지
-      const kwNorm   = query.replace(/\s+/g, '').toLowerCase();
-      const kwTokens = query.toLowerCase().split(/\s+/).filter(Boolean);
-
-      const matched = allItems.filter(item => {
-        const hay = (item.title + ' ' + item.description).replace(/\s+/g, '').toLowerCase();
-        return hay.includes(kwNorm) || kwTokens.every(t => hay.includes(t));
-      });
-
-      return res.status(200).json({ items: matched, total: matched.length });
-
-    } catch(e) {
-      return res.status(502).json({ error: 'RSS 파싱 오류: ' + e.message, items: [] });
-    }
-  });
+  return res.status(200).json({ items: merged, total: merged.length });
 };
