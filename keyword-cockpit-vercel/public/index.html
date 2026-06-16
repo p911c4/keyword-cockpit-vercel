@@ -395,7 +395,7 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
     </div>
     <div class="card-body">
       <div class="kw-row">
-        <input class="input" type="search" id="kwInp"
+        <input class="input" type="text" id="kwInp"
           placeholder="키워드 입력 후 검색"
           inputmode="search" enterkeyhint="search"
           onkeydown="if(event.key==='Enter'||event.keyCode===13){event.preventDefault();doSearch();}"
@@ -483,7 +483,7 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
     </div>
     <div class="card-body">
       <div class="bi-kw-input-row">
-        <input class="input" type="search" id="biKwInp"
+        <input class="input" type="text" id="biKwInp"
           placeholder="키워드 입력 (예: 발리여행)"
           inputmode="search" enterkeyhint="search"
           onkeydown="if(event.key==='Enter'||event.keyCode===13){event.preventDefault();loadRanking();}"/>
