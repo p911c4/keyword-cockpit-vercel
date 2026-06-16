@@ -260,6 +260,13 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
 .bi-rank-empty{font-size:13px;color:var(--text3);text-align:center;padding:24px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius)}
 .bi-loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:32px;font-size:13px;color:var(--text3)}
 
+/* ── 입력창 X 버튼 ── */
+.input-wrap{position:relative;flex:1;display:flex;align-items:center}
+.input-wrap .input{padding-right:36px;width:100%}
+.input-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;background:var(--border2);border:none;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:12px;color:var(--text3);line-height:1;padding:0;transition:all 0.15s;flex-shrink:0}
+.input-clear:hover{background:var(--text3);color:#fff}
+.input-clear.show{display:flex}
+
 /* ── 블로그 레벨 배지 ── */
 .bi-level-wrap{display:flex;align-items:center;gap:14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:14px;box-shadow:var(--shadow-sm)}
 .bi-level-badge{font-size:13px;font-weight:700;color:#fff;border-radius:8px;padding:6px 16px;letter-spacing:0.5px;white-space:nowrap;flex-shrink:0}
@@ -395,11 +402,16 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
     </div>
     <div class="card-body">
       <div class="kw-row">
-        <input class="input" type="text" id="kwInp"
-          placeholder="키워드 입력 후 검색"
-          inputmode="search" enterkeyhint="search"
-          onkeydown="if(event.key==='Enter'||event.keyCode===13){event.preventDefault();doSearch();}"
-          autofocus />
+        <div class="input-wrap">
+          <input class="input" type="text" id="kwInp"
+            placeholder="키워드 입력 후 검색"
+            inputmode="search" enterkeyhint="search"
+            autocomplete="off"
+            oninput="toggleClear('kwInp','kwClear')"
+            onkeydown="if(event.key==='Enter'||event.keyCode===13){event.preventDefault();doSearch();}"
+            autofocus />
+          <button class="input-clear" id="kwClear" onclick="clearInput('kwInp','kwClear')" tabindex="-1">✕</button>
+        </div>
         <button class="btn btn-primary" onclick="doSearch()">검색</button>
       </div>
       <div class="recent-wrap" id="recentWrap">
@@ -457,9 +469,14 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
     <div class="card-body">
       <div class="bi-id-row">
         <span class="bi-id-prefix">blog.naver.com/</span>
-        <input class="input" type="text" id="biIdInp"
-          placeholder="블로그 ID 입력 (예: p911c4)"
-          onkeydown="if(event.key==='Enter'){event.preventDefault();loadBlogStats();}"/>
+        <div class="input-wrap">
+          <input class="input" type="text" id="biIdInp"
+            placeholder="블로그 ID 입력 (예: p911c4)"
+            autocomplete="off"
+            oninput="toggleClear('biIdInp','biIdClear')"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();loadBlogStats();}"/>
+          <button class="input-clear" id="biIdClear" onclick="clearInput('biIdInp','biIdClear')" tabindex="-1">✕</button>
+        </div>
         <button class="btn btn-primary" onclick="loadBlogStats()">조회</button>
       </div>
     </div>
@@ -483,10 +500,15 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
     </div>
     <div class="card-body">
       <div class="bi-kw-input-row">
-        <input class="input" type="text" id="biKwInp"
-          placeholder="키워드 입력 (예: 발리여행)"
-          inputmode="search" enterkeyhint="search"
-          onkeydown="if(event.key==='Enter'||event.keyCode===13){event.preventDefault();loadRanking();}"/>
+        <div class="input-wrap">
+          <input class="input" type="text" id="biKwInp"
+            placeholder="키워드 입력 (예: 발리여행)"
+            inputmode="search" enterkeyhint="search"
+            autocomplete="off"
+            oninput="toggleClear('biKwInp','biKwClear')"
+            onkeydown="if(event.key==='Enter'||event.keyCode===13){event.preventDefault();loadRanking();}"/>
+          <button class="input-clear" id="biKwClear" onclick="clearInput('biKwInp','biKwClear')" tabindex="-1">✕</button>
+        </div>
         <button class="btn btn-primary" onclick="loadRanking()">100위 내 노출 조회</button>
       </div>
       <div id="biRankResult">
@@ -520,6 +542,22 @@ setInterval(() => {
 function log(type, msg) {
   document.getElementById('cdot').className = 'cdot' + (type ? ' '+type : '');
   document.getElementById('ctxt').textContent = msg;
+}
+
+/* ── 입력창 X 버튼 ── */
+function toggleClear(inputId, btnId) {
+  const inp = document.getElementById(inputId);
+  const btn = document.getElementById(btnId);
+  if (!inp || !btn) return;
+  btn.classList.toggle('show', inp.value.length > 0);
+}
+function clearInput(inputId, btnId) {
+  const inp = document.getElementById(inputId);
+  const btn = document.getElementById(btnId);
+  if (!inp || !btn) return;
+  inp.value = '';
+  btn.classList.remove('show');
+  inp.focus();
 }
 
 /* ── 탭 전환 ── */
