@@ -64,11 +64,11 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
 .hero-sub{font-size:13px;color:rgba(255,255,255,0.7);font-weight:300;line-height:1.6}
 
 /* ── Card ── */
-.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;box-shadow:var(--shadow-sm);animation:fadeUp 0.4s ease both}
+.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;box-shadow:var(--shadow-sm);overflow:hidden;animation:fadeUp 0.4s ease both}
 .card-header{padding:14px 20px;border-bottom:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;justify-content:space-between}
 .card-title{font-size:13px;font-weight:700;color:var(--text);letter-spacing:0.2px;display:flex;align-items:center;gap:8px}
 .card-title::before{content:'';width:3px;height:14px;background:var(--blue);border-radius:2px;flex-shrink:0}
-.card-body{padding:20px;overflow:visible}
+.card-body{padding:20px}
 
 /* ── Input ── */
 .kw-row{display:flex;gap:8px}
@@ -212,7 +212,7 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
 .trend-tooltip{position:absolute;background:var(--text);color:#fff;font-size:11px;padding:4px 8px;border-radius:4px;pointer-events:none;white-space:nowrap;z-index:20;display:none;transform:translate(-50%,-100%);margin-top:-6px;font-family:'Roboto',monospace}
 
 /* ── 최근 검색 ── */
-.recent-wrap{margin-top:14px;display:none!important}
+.recent-wrap{margin-top:14px;display:none}
 .recent-wrap.show{display:block}
 .recent-label{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:0.3px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
 .recent-clear{font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;padding:0;font-family:'Noto Sans KR',sans-serif;transition:color 0.15s}
@@ -266,17 +266,6 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
 .input-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;background:var(--border2);border:none;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:12px;color:var(--text3);line-height:1;padding:0;transition:all 0.15s;flex-shrink:0}
 .input-clear:hover{background:var(--text3);color:#fff}
 .input-clear.show{display:flex}
-
-/* ── 입력창 드롭다운 툴팁 ── */
-.input-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1.5px solid var(--border2);border-radius:8px;box-shadow:var(--shadow-md);z-index:200;overflow:hidden;display:none}
-.input-dropdown.show{display:block}
-.dropdown-item{display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:13px;color:var(--text2);cursor:pointer;transition:background 0.1s;border-bottom:1px solid var(--border)}
-.dropdown-item:last-child{border-bottom:none}
-.dropdown-item:hover{background:var(--blue-pale);color:var(--blue)}
-.dropdown-icon{font-size:12px;color:var(--text3);flex-shrink:0}
-.dropdown-text{flex:1}
-.dropdown-del{font-size:16px;color:var(--text3);opacity:0.4;transition:opacity 0.15s;line-height:1;padding:0 2px}
-.dropdown-del:hover{opacity:1;color:var(--red)}
 
 /* ── 블로그 레벨 배지 ── */
 .bi-level-wrap{display:flex;align-items:center;gap:14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:14px;box-shadow:var(--shadow-sm)}
@@ -418,14 +407,19 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
             placeholder="키워드 입력 후 검색"
             inputmode="search" enterkeyhint="search"
             autocomplete="off"
-            oninput="toggleClear('kwInp','kwClear');showDropdown('kwInp','kwDropdown')"
-            onfocus="showDropdown('kwInp','kwDropdown')"
-            onkeydown="if(event.key==='Enter'||event.keyCode===13){event.preventDefault();hideDropdown('kwDropdown');doSearch();}if(event.key==='Escape'){hideDropdown('kwDropdown');}"
+            oninput="toggleClear('kwInp','kwClear')"
+            onkeydown="if(event.key==='Enter'||event.keyCode===13){event.preventDefault();doSearch();}"
             autofocus />
-          <button class="input-clear" id="kwClear" onclick="clearInput('kwInp','kwClear','kwDropdown')" tabindex="-1">✕</button>
-          <div class="input-dropdown" id="kwDropdown"></div>
+          <button class="input-clear" id="kwClear" onclick="clearInput('kwInp','kwClear')" tabindex="-1">✕</button>
         </div>
-        <button class="btn btn-primary" onclick="hideDropdown('kwDropdown');doSearch()">검색</button>
+        <button class="btn btn-primary" onclick="doSearch()">검색</button>
+      </div>
+      <div class="recent-wrap" id="recentWrap">
+        <div class="recent-label">
+          <span>🕒 최근 검색</span>
+          <button class="recent-clear" onclick="clearRecent()">전체 삭제</button>
+        </div>
+        <div class="recent-list" id="recentList"></div>
       </div>
     </div>
   </div>
@@ -511,14 +505,11 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
             placeholder="키워드 입력 (예: 발리여행)"
             inputmode="search" enterkeyhint="search"
             autocomplete="off"
-            oninput="toggleClear('biKwInp','biKwClear');showDropdown('biKwInp','biKwDropdown')"
-            onfocus="showDropdown('biKwInp','biKwDropdown')"
-            onkeydown="if(event.key==='Enter'||event.keyCode===13){event.preventDefault();hideDropdown('biKwDropdown');loadRanking();}if(event.key==='Escape'){hideDropdown('biKwDropdown');}"
-            />
-          <button class="input-clear" id="biKwClear" onclick="clearInput('biKwInp','biKwClear','biKwDropdown')" tabindex="-1">✕</button>
-          <div class="input-dropdown" id="biKwDropdown"></div>
+            oninput="toggleClear('biKwInp','biKwClear')"
+            onkeydown="if(event.key==='Enter'||event.keyCode===13){event.preventDefault();loadRanking();}"/>
+          <button class="input-clear" id="biKwClear" onclick="clearInput('biKwInp','biKwClear')" tabindex="-1">✕</button>
         </div>
-        <button class="btn btn-primary" onclick="hideDropdown('biKwDropdown');loadRanking()">100위 내 노출 조회</button>
+        <button class="btn btn-primary" onclick="loadRanking()">100위 내 노출 조회</button>
       </div>
       <div id="biRankResult">
         <div class="bi-rank-empty">키워드를 입력하면 상위 100개 결과 중<br>포스팅 포함 여부를 확인합니다</div>
@@ -560,71 +551,14 @@ function toggleClear(inputId, btnId) {
   if (!inp || !btn) return;
   btn.classList.toggle('show', inp.value.length > 0);
 }
-function clearInput(inputId, btnId, dropdownId) {
+function clearInput(inputId, btnId) {
   const inp = document.getElementById(inputId);
   const btn = document.getElementById(btnId);
   if (!inp || !btn) return;
   inp.value = '';
   btn.classList.remove('show');
-  if (dropdownId) showDropdown(inputId, dropdownId);
   inp.focus();
 }
-
-/* ── 최근 검색 드롭다운 ── */
-function showDropdown(inputId, dropdownId) {
-  const inp      = document.getElementById(inputId);
-  const dropdown = document.getElementById(dropdownId);
-  if (!dropdown) return;
-
-  const list    = getRecent();
-  const val     = (inp?.value || '').trim().toLowerCase();
-  // 입력값 없으면 전체, 있으면 필터
-  const filtered = val
-    ? list.filter(k => k.toLowerCase().includes(val))
-    : list;
-
-  if (filtered.length === 0) { hideDropdown(dropdownId); return; }
-
-  dropdown.innerHTML = filtered.slice(0, 5).map(kw => {
-    const safe = kw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    return `<div class="dropdown-item"
-      onmousedown="pickDropdown(event,'${safe}','${inputId}','${dropdownId}')">
-      <span class="dropdown-icon">🕒</span>
-      <span class="dropdown-text">${safe}</span>
-      <span class="dropdown-del" onmousedown="delDropdown(event,'${safe}','${inputId}','${dropdownId}')">×</span>
-    </div>`;
-  }).join('');
-  dropdown.classList.add('show');
-}
-
-function hideDropdown(dropdownId) {
-  const el = document.getElementById(dropdownId);
-  if (el) el.classList.remove('show');
-}
-
-function pickDropdown(e, kw, inputId, dropdownId) {
-  e.preventDefault();
-  const inp = document.getElementById(inputId);
-  if (inp) { inp.value = kw; toggleClear(inputId, inputId.replace('Inp','Clear')); }
-  hideDropdown(dropdownId);
-  // 키워드 분석 탭이면 바로 검색
-  if (inputId === 'kwInp') { saveRecent(kw); kws = [kw]; log('busy', `"${kw}" 검색 중...`); runScan(); }
-}
-
-function delDropdown(e, kw, inputId, dropdownId) {
-  e.preventDefault(); e.stopPropagation();
-  const list = getRecent().filter(k => k !== kw);
-  localStorage.setItem('recentKw', JSON.stringify(list));
-  renderRecent();
-  showDropdown(inputId, dropdownId);
-}
-
-// 외부 클릭 시 드롭다운 닫기
-document.addEventListener('click', e => {
-  if (!e.target.closest('.input-wrap')) {
-    document.querySelectorAll('.input-dropdown').forEach(d => d.classList.remove('show'));
-  }
-});
 
 /* ── 탭 전환 ── */
 function switchTab(id, btn) {
