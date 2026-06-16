@@ -81,11 +81,11 @@ function searchRSS(query, callback) {
   });
 }
 
-// 네이버 블로그 검색 API — "키워드 blogId" 쿼리로 해당 블로그 포스팅 검색
+// 네이버 블로그 검색 API
+// 링크에 blogId(p911c4) 포함 여부로만 필터 — bloggername은 한글일 수 있으므로 제외
 function searchAPI(query, callback) {
-  // "키워드 blogId" 조합으로 검색 → 블로그 내 포스팅이 상위에 노출됨
-  const combined = encodeURIComponent(`${query} ${BLOG_ID}`);
-  const apiPath  = `/v1/search/blog.json?query=${combined}&display=20&sort=sim`;
+  const combined = encodeURIComponent(query);
+  const apiPath  = `/v1/search/blog.json?query=${combined}&display=100&sort=sim`;
   const options  = {
     hostname: 'openapi.naver.com',
     path:     apiPath,
@@ -99,17 +99,15 @@ function searchAPI(query, callback) {
     if (err) return callback([]);
     try {
       const json  = JSON.parse(data);
-      const items = (json.items || []).filter(item => {
-        const l = (item.link        || '').toLowerCase();
-        const n = (item.bloggername || '').toLowerCase();
-        const b = (item.bloggerlink || '').toLowerCase();
-        return l.includes(BLOG_ID) || n.includes(BLOG_ID) || b.includes(BLOG_ID);
-      }).map(item => ({
-        title:       item.title.replace(/<[^>]+>/g, ''),
-        link:        item.link,
-        description: (item.description || '').replace(/<[^>]+>/g, '').slice(0, 80),
-        pubDate:     item.pubDate || '',
-      }));
+      const items = (json.items || [])
+        // ✅ 링크 URL에 blogId 포함 여부로만 판단 (bloggername은 한글이므로 제외)
+        .filter(item => (item.link || '').toLowerCase().includes(BLOG_ID.toLowerCase()))
+        .map(item => ({
+          title:       item.title.replace(/<[^>]+>/g, ''),
+          link:        item.link,
+          description: (item.description || '').replace(/<[^>]+>/g, '').slice(0, 80),
+          pubDate:     item.pubDate || '',
+        }));
       callback(items);
     } catch(e) { callback([]); }
   });
@@ -140,7 +138,7 @@ module.exports = async (req, res) => {
     new Promise(resolve => searchAPI(query, resolve)),
   ]);
 
-  // RSS 우선 + API 보완 (최신순 유지, 중복 제거)
+  // RSS 우선 + API 보완, 중복 제거
   const merged = dedupe([...rssItems, ...apiItems]);
 
   return res.status(200).json({ items: merged, total: merged.length });
