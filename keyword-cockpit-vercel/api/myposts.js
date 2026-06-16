@@ -61,7 +61,7 @@ function parseRSS(xml) {
   return items;
 }
 
-// RSS 검색 (최근 50개 내에서 키워드 필터)
+// RSS 검색 (최근 30개 내에서 키워드 필터)
 function searchRSS(query, callback) {
   httpsGet(RSS_URL, 0, (err, statusCode, data) => {
     if (err) return callback([]);
