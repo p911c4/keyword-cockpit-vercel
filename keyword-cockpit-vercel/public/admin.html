@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KEYWORD COCKPIT — 관리자</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--blue:#1428a0;--blue2:#1a34c8;--blue-pale:#f0f2fd;--bg:#f4f4f4;--bg2:#fff;--border:#e5e5e5;--text:#1a1a1a;--text2:#444;--text3:#888;--green:#00b200;--green-bg:#e6f7e6;--red:#c00;--shadow:0 2px 12px rgba(0,0,0,0.08)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);font-family:'Noto Sans KR','Roboto',sans-serif;color:var(--text);min-height:100vh}
+.topbar{background:var(--blue);height:56px;display:flex;align-items:center;padding:0 24px;justify-content:space-between;position:sticky;top:0;z-index:99;box-shadow:0 2px 8px rgba(0,0,0,0.15)}
+.topbar-brand{color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;gap:10px}
+.topbar-badge{background:rgba(255,255,255,0.2);border-radius:4px;padding:3px 10px;font-size:11px;font-weight:600;color:#fff}
+.topbar-back{color:rgba(255,255,255,0.75);font-size:12px;text-decoration:none;background:rgba(255,255,255,0.12);border-radius:6px;padding:5px 12px;transition:background 0.15s}
+.topbar-back:hover{background:rgba(255,255,255,0.22)}
+.page{max-width:900px;margin:0 auto;padding:28px 16px 80px}
+
+/* 로그인 */
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 56px)}
+.login-card{background:#fff;border-radius:12px;padding:40px;width:100%;max-width:380px;box-shadow:var(--shadow);text-align:center}
+.login-icon{font-size:48px;margin-bottom:16px}
+.login-title{font-size:18px;font-weight:700;margin-bottom:8px}
+.login-sub{font-size:13px;color:var(--text3);margin-bottom:24px}
+.input{width:100%;background:#fff;border:1.5px solid #d0d0d0;border-radius:6px;padding:12px 14px;font-family:'Noto Sans KR',sans-serif;font-size:14px;color:var(--text);outline:none;transition:border-color 0.15s}
+.input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(20,40,160,0.1)}
+.btn{font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:600;border:none;border-radius:6px;cursor:pointer;padding:12px 20px;transition:all 0.15s;width:100%;margin-top:12px}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue2)}
+.login-err{font-size:12px;color:var(--red);margin-top:8px;display:none}
+.login-err.show{display:block}
+
+/* 대시보드 */
+.dashboard{display:none}
+.dashboard.show{display:block}
+.section-title{font-size:13px;font-weight:700;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.section-title::before{content:'';width:3px;height:14px;background:var(--blue);border-radius:2px;flex-shrink:0}
+
+/* 통계 그리드 */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.stat-card{background:#fff;border-radius:10px;padding:18px 16px;box-shadow:var(--shadow);text-align:center;border-top:3px solid var(--blue)}
+.stat-num{font-size:30px;font-weight:700;font-family:'Roboto',sans-serif;color:var(--blue);line-height:1;margin-bottom:6px}
+.stat-lbl{font-size:11px;color:var(--text3);font-weight:600;letter-spacing:0.3px;text-transform:uppercase}
+
+/* 차트 */
+.chart-card{background:#fff;border-radius:10px;padding:20px;box-shadow:var(--shadow);margin-bottom:20px}
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:120px;margin-top:16px}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar{width:100%;background:var(--blue);border-radius:4px 4px 0 0;transition:height 0.4s ease;min-height:2px;opacity:0.85}
+.bar:hover{opacity:1}
+.bar-lbl{font-size:9px;color:var(--text3);font-family:'Roboto',sans-serif}
+.bar-val{font-size:10px;color:var(--blue);font-weight:700;font-family:'Roboto',sans-serif}
+
+/* 키워드 리스트 */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.kw-list{display:flex;flex-direction:column;gap:6px}
+.kw-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg);border-radius:6px;font-size:13px}
+.kw-rank{font-size:11px;font-weight:700;color:#fff;background:var(--blue);border-radius:4px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-family:'Roboto',sans-serif;flex-shrink:0}
+.kw-rank.gold{background:#f5a623}
+.kw-rank.silver{background:#9b9b9b}
+.kw-rank.bronze{background:#c47a35}
+.kw-text{flex:1;font-weight:500}
+.kw-count{font-size:11px;color:var(--text3);font-family:'Roboto',sans-serif;flex-shrink:0}
+.kw-bar-wrap{flex:1;background:var(--border);border-radius:3px;height:5px;overflow:hidden;margin:0 8px}
+.kw-bar-fill{height:100%;background:var(--blue);border-radius:3px}
+
+/* 최근 키워드 */
+.recent-list{display:flex;flex-direction:column;gap:4px}
+.recent-item{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;background:var(--bg);border-radius:6px;font-size:12px}
+.recent-kw{font-weight:500;color:var(--text)}
+.recent-time{color:var(--text3);font-family:'Roboto',sans-serif;font-size:11px}
+
+/* 새로고침 */
+.refresh-btn{font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:600;color:var(--blue);background:var(--blue-pale);border:1px solid rgba(20,40,160,0.2);border-radius:6px;padding:5px 14px;cursor:pointer;transition:all 0.15s;margin-left:auto}
+.refresh-btn:hover{background:var(--blue);color:#fff}
+.last-updated{font-size:11px;color:var(--text3);margin-top:6px;text-align:right}
+
+.loading{text-align:center;padding:48px;color:var(--text3);font-size:13px}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.dashboard{animation:fadeUp 0.3s ease both}
+
+@media(max-width:600px){
+  .stat-grid{grid-template-columns:1fr 1fr;gap:8px}
+  .stat-num{font-size:24px}
+  .two-col{grid-template-columns:1fr}
+  .page{padding:16px 12px 60px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-brand">
+    ✈️ KEYWORD COCKPIT
+    <span class="topbar-badge">관리자</span>
+  </div>
+  <a href="/" class="topbar-back">← 메인으로</a>
+</div>
+
+<!-- 로그인 -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <div class="login-icon">🔐</div>
+    <div class="login-title">관리자 로그인</div>
+    <div class="login-sub">KEYWORD COCKPIT 통계 대시보드</div>
+    <input class="input" type="password" id="pwInput" placeholder="비밀번호 입력"
+      onkeydown="if(event.key==='Enter') doLogin()"/>
+    <button class="btn btn-primary" onclick="doLogin()">로그인</button>
+    <div class="login-err" id="loginErr">비밀번호가 올바르지 않습니다</div>
+  </div>
+</div>
+
+<!-- 대시보드 -->
+<div class="dashboard" id="dashboard">
+  <div class="page">
+
+    <!-- 페이지뷰 통계 -->
+    <div class="section-title" style="justify-content:space-between">
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:3px;height:14px;background:var(--blue);border-radius:2px;display:inline-block"></span>📊 방문자 통계</span>
+      <button class="refresh-btn" onclick="loadStats()">🔄 새로고침</button>
+    </div>
+    <div class="stat-grid" id="statGrid">
+      <div class="loading"><div class="spinner"></div>로딩 중...</div>
+    </div>
+
+    <!-- 일별 차트 -->
+    <div class="chart-card">
+      <div class="section-title">📈 최근 7일 페이지뷰</div>
+      <div class="bar-chart" id="barChart">
+        <div class="loading" style="width:100%">로딩 중...</div>
+      </div>
+    </div>
+
+    <!-- 키워드 통계 -->
+    <div class="two-col">
+      <div>
+        <div class="section-title">🔥 인기 검색 키워드 TOP 20</div>
+        <div class="kw-list" id="topKwList">
+          <div class="loading">로딩 중...</div>
+        </div>
+      </div>
+      <div>
+        <div class="section-title">🕒 최근 검색 키워드</div>
+        <div class="recent-list" id="recentKwList">
+          <div class="loading">로딩 중...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="last-updated" id="lastUpdated"></div>
+  </div>
+</div>
+
+<script>
+let adminToken = '';
+
+function doLogin() {
+  const pw = document.getElementById('pwInput').value;
+  if (!pw) return;
+  adminToken = pw;
+  loadStats();
+}
+
+async function loadStats() {
+  try {
+    const res  = await fetch('/api/stats', {
+      headers: { 'Authorization': `Bearer ${adminToken}` }
+    });
+    if (res.status === 401) {
+      document.getElementById('loginErr').classList.add('show');
+      adminToken = '';
+      return;
+    }
+    const json = await res.json();
+
+    // 로그인 성공
+    document.getElementById('loginErr').classList.remove('show');
+    document.getElementById('loginWrap').style.display = 'none';
+    document.getElementById('dashboard').classList.add('show');
+
+    renderStats(json);
+  } catch(e) {
+    alert('데이터 로드 실패: ' + e.message);
+  }
+}
+
+function renderStats(data) {
+  const pv = data.pageviews || {};
+
+  // 통계 카드
+  document.getElementById('statGrid').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-num">${Number(pv.today||0).toLocaleString()}</div>
+      <div class="stat-lbl">오늘 방문</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">${Number(pv.week||0).toLocaleString()}</div>
+      <div class="stat-lbl">7일 방문</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">${Number(pv.month||0).toLocaleString()}</div>
+      <div class="stat-lbl">30일 방문</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">${Number(pv.total||0).toLocaleString()}</div>
+      <div class="stat-lbl">누적 방문</div>
+    </div>`;
+
+  // 일별 차트
+  const daily = data.dailyViews || [];
+  const maxVal = Math.max(...daily.map(d => d.count), 1);
+  document.getElementById('barChart').innerHTML = daily.map(d => {
+    const h = Math.max(Math.round((d.count / maxVal) * 100), 2);
+    const mon = d.date.slice(5,7) + '/' + d.date.slice(8,10);
+    return `<div class="bar-wrap">
+      <div class="bar-val">${d.count}</div>
+      <div class="bar" style="height:${h}px" title="${d.date}: ${d.count}건"></div>
+      <div class="bar-lbl">${mon}</div>
+    </div>`;
+  }).join('');
+
+  // 인기 키워드
+  const topKw = data.topKeywords || [];
+  const maxCnt = topKw[0]?.count || 1;
+  document.getElementById('topKwList').innerHTML = topKw.length
+    ? topKw.map((k, i) => {
+        const rankCls = i===0?'gold':i===1?'silver':i===2?'bronze':'';
+        const pct = Math.round(k.count/maxCnt*100);
+        return `<div class="kw-item">
+          <div class="kw-rank ${rankCls}">${i+1}</div>
+          <div class="kw-text">${k.keyword}</div>
+          <div class="kw-bar-wrap"><div class="kw-bar-fill" style="width:${pct}%"></div></div>
+          <div class="kw-count">${k.count}회</div>
+        </div>`;
+      }).join('')
+    : '<div style="font-size:13px;color:var(--text3);padding:12px">검색 기록이 없습니다</div>';
+
+  // 최근 키워드
+  const recentKw = data.recentKeywords || [];
+  document.getElementById('recentKwList').innerHTML = recentKw.length
+    ? recentKw.map(k => {
+        const t = new Date(k.created_at);
+        const timeStr = t.toLocaleDateString('ko-KR',{month:'short',day:'numeric'}) + ' ' +
+          t.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+        return `<div class="recent-item">
+          <span class="recent-kw">${k.keyword}</span>
+          <span class="recent-time">${timeStr}</span>
+        </div>`;
+      }).join('')
+    : '<div style="font-size:13px;color:var(--text3);padding:12px">검색 기록이 없습니다</div>';
+
+  const now = new Date();
+  document.getElementById('lastUpdated').textContent =
+    `마지막 업데이트: ${now.toLocaleTimeString('ko-KR')}`;
+}
+</script>
+</body>
+</html>

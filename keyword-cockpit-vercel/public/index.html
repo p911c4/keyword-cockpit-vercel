@@ -544,6 +544,27 @@ function log(type, msg) {
   document.getElementById('ctxt').textContent = msg;
 }
 
+/* ── 통계 로깅 (admin 기능용 신규 추가) ── */
+function logPageView() {
+  fetch('/api/log', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type: 'pageview' })
+  }).catch(() => {});
+}
+function logSearch(keyword) {
+  fetch('/api/log', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type: 'search', keyword })
+  }).catch(() => {});
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', logPageView);
+} else {
+  logPageView();
+}
+
 /* ── 앱 초기화 ── */
 function resetApp() {
   try {
@@ -684,6 +705,8 @@ async function runScan() {
       comp:   d.compIdx || 'N/A',
       isHint: kws.includes(d.relKeyword),
     }));
+    // 키워드 검색 로깅 (admin 기능용 신규 추가)
+    kws.forEach(kw => logSearch(kw));
     renderResults();
     log('ok', `조회 완료 — 총 ${data.length}개 키워드 데이터`);
   } catch(e) {
