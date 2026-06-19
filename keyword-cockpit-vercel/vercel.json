@@ -1,16 +1,10 @@
 {
   "rewrites": [
-    {
-      "source": "/api/keyword",
-      "destination": "/api/keyword.js"
-    },
-    {
-      "source": "/api/blog",
-      "destination": "/api/blog.js"
-    },
-    {
-      "source": "/api/trend",
-      "destination": "/api/trend.js"
-    }
+    { "source": "/api/keyword", "destination": "/api/keyword.js" },
+    { "source": "/api/blog",    "destination": "/api/blog.js"    },
+    { "source": "/api/trend",   "destination": "/api/trend.js"   },
+    { "source": "/api/log",     "destination": "/api/log.js"     },
+    { "source": "/api/stats",   "destination": "/api/stats.js"   },
+    { "source": "/admin",       "destination": "/public/admin.html" }
   ]
 }
