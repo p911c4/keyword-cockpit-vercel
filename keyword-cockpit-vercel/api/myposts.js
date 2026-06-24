@@ -1,7 +1,4 @@
 const https = require('https');
-
-const BLOG_ID       = 'p911c4';
-const RSS_URL       = `https://rss.blog.naver.com/${BLOG_ID}.xml`;
 const CLIENT_ID     = process.env.NAVER_CLIENT_ID;
 const CLIENT_SECRET = process.env.NAVER_CLIENT_SECRET;
 
@@ -11,9 +8,7 @@ function httpsGet(urlOrOpts, redirectCount, callback) {
   if (typeof urlOrOpts === 'string') {
     const p = new URL(urlOrOpts);
     options = { hostname: p.hostname, path: p.pathname + p.search, method: 'GET', headers: { 'User-Agent': 'Mozilla/5.0' } };
-  } else {
-    options = urlOrOpts;
-  }
+  } else { options = urlOrOpts; }
   const req = https.request(options, res => {
     if ([301,302,303,307,308].includes(res.statusCode) && res.headers.location) {
       res.resume();
@@ -29,17 +24,20 @@ function httpsGet(urlOrOpts, redirectCount, callback) {
   req.end();
 }
 
-// 정규화: 괄호·특수문자·공백 제거 후 소문자
 function normalize(str) {
   return str.toLowerCase().replace(/[()（）\[\]【】\s\-_·•,./]/g, '');
 }
-
-// 한글/숫자/영문 토큰 분리
 function tokenize(str) {
   return str.match(/[가-힣]+|[0-9]+|[a-zA-Z]+/g) || [];
 }
+function extractPostNo(link) {
+  const m1 = link.match(/blog\.naver\.com\/[^/]+\/(\d+)/);
+  if (m1) return m1[1];
+  const m2 = link.match(/logNo=(\d+)/);
+  if (m2) return m2[1];
+  return link;
+}
 
-// RSS 파싱
 function parseRSS(xml) {
   const re = /<item>([\s\S]*?)<\/item>/gi;
   const items = [];
@@ -55,18 +53,22 @@ function parseRSS(xml) {
     const link        = get('link');
     const description = get('description').replace(/<[^>]+>/g,'').slice(0, 80);
     const pubDate     = get('pubDate');
-    if (title && link) items.push({ title, link, description, pubDate });
+    const tagRaw      = get('tag'); // 콤마로 구분된 글쓴이 직접 입력 해시태그
+    const tags        = tagRaw ? tagRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
+    if (title && link) items.push({ title, link, description, pubDate, tags });
   }
   items.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
   return items;
 }
 
-// RSS 검색 (최근 30개 내에서 키워드 필터)
-function searchRSS(query, callback) {
+function searchRSS(query, blogId, callback) {
+  const RSS_URL = `https://rss.blog.naver.com/${blogId}.xml`;
   httpsGet(RSS_URL, 0, (err, statusCode, data) => {
     if (err) return callback([]);
     try {
       const allItems = parseRSS(data);
+      // __all__ 이면 전체 반환
+      if (query === '__all__') return callback(allItems);
       const kwNorm   = normalize(query);
       const kwTokens = tokenize(query.toLowerCase());
       const matched  = allItems.filter(item => {
@@ -81,9 +83,9 @@ function searchRSS(query, callback) {
   });
 }
 
-// 네이버 블로그 검색 API
-// 링크에 blogId(p911c4) 포함 여부로만 필터 — bloggername은 한글일 수 있으므로 제외
-function searchAPI(query, callback) {
+function searchAPI(query, blogId, callback) {
+  // __all__ 이면 API 검색 스킵
+  if (query === '__all__') return callback([]);
   const combined = encodeURIComponent(query);
   const apiPath  = `/v1/search/blog.json?query=${combined}&display=100&sort=sim`;
   const options  = {
@@ -100,8 +102,7 @@ function searchAPI(query, callback) {
     try {
       const json  = JSON.parse(data);
       const items = (json.items || [])
-        // ✅ 링크 URL에 blogId 포함 여부로만 판단 (bloggername은 한글이므로 제외)
-        .filter(item => (item.link || '').toLowerCase().includes(BLOG_ID.toLowerCase()))
+        .filter(item => (item.link || '').toLowerCase().includes(blogId.toLowerCase()))
         .map(item => ({
           title:       item.title.replace(/<[^>]+>/g, ''),
           link:        item.link,
@@ -113,12 +114,12 @@ function searchAPI(query, callback) {
   });
 }
 
-// 링크 기준 중복 제거
 function dedupe(items) {
   const seen = new Set();
   return items.filter(item => {
-    if (seen.has(item.link)) return false;
-    seen.add(item.link);
+    const key = extractPostNo(item.link);
+    if (seen.has(key)) return false;
+    seen.add(key);
     return true;
   });
 }
@@ -129,17 +130,16 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(204).end();
 
-  const { query } = req.query;
+  const { query, blogId: qBlogId } = req.query;
   if (!query) return res.status(400).json({ error: 'query 파라미터가 없습니다' });
 
-  // RSS + API 병렬 실행
+  const blogId = (qBlogId || 'p911c4').trim().toLowerCase();
+
   const [rssItems, apiItems] = await Promise.all([
-    new Promise(resolve => searchRSS(query, resolve)),
-    new Promise(resolve => searchAPI(query, resolve)),
+    new Promise(resolve => searchRSS(query, blogId, resolve)),
+    new Promise(resolve => searchAPI(query, blogId, resolve)),
   ]);
 
-  // RSS 우선 + API 보완, 중복 제거
   const merged = dedupe([...rssItems, ...apiItems]);
-
   return res.status(200).json({ items: merged, total: merged.length });
 };
