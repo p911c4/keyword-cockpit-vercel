@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KEYWORD COCKPIT — 네이버 키워드 분석 v1.5</title>
+<title>KEYWORD COCKPIT — 네이버 키워드 분석 v1.6</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -45,7 +45,7 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
 /* ── 탭 네비게이션 ── */
 .tab-nav{background:var(--bg);border-bottom:2px solid var(--border);position:sticky;top:56px;z-index:49;box-shadow:var(--shadow-sm)}
 .tab-nav-inner{max-width:780px;margin:0 auto;display:flex;padding:0 16px}
-.tab-btn{font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:600;color:var(--text3);background:none;border:none;border-bottom:3px solid transparent;padding:14px 20px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:7px;letter-spacing:0.1px;margin-bottom:-2px}
+.tab-btn{font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:600;color:var(--text3);background:none;border:none;border-bottom:3px solid transparent;padding:14px 16px;cursor:pointer;transition:color 0.2s,border-color 0.2s;display:flex;align-items:center;gap:6px;letter-spacing:0.1px;margin-bottom:-2px;white-space:nowrap}
 .tab-btn:hover{color:var(--text)}
 .tab-btn.active{color:var(--blue);border-bottom-color:var(--blue)}
 .tab-icon{font-size:15px}
@@ -281,6 +281,75 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
 .bi-id-row{display:flex;gap:8px;margin-bottom:16px;align-items:center}
 .bi-id-prefix{font-size:13px;color:var(--text3);white-space:nowrap;flex-shrink:0}
 
+/* ── 설정 버튼 ── */
+.topbar-settings{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:#fff;font-size:12px;font-weight:600;font-family:'Noto Sans KR',sans-serif;padding:5px 12px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:5px}
+.topbar-settings:hover{background:rgba(255,255,255,0.22)}
+.topbar-settings-txt{display:inline}
+
+/* ── 설정 모달 ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:12px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,0.3);overflow:hidden;animation:fadeUp 0.25s ease both}
+.modal-header{background:var(--blue);padding:18px 22px;display:flex;align-items:center;justify-content:space-between}
+.modal-title{color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
+.modal-close{background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:28px;height:28px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s;line-height:1}
+.modal-close:hover{background:rgba(255,255,255,0.3)}
+.modal-body{padding:24px 22px}
+.modal-label{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.modal-desc{font-size:11px;color:var(--text3);margin-bottom:14px;line-height:1.6}
+.modal-input-row{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.modal-prefix{font-size:12px;color:var(--text3);white-space:nowrap;flex-shrink:0}
+.modal-saved{font-size:11px;color:var(--green);margin-top:8px;display:none}
+.modal-saved.show{display:block}
+.modal-footer{padding:16px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+.modal-current{background:var(--blue-pale);border:1px solid rgba(20,40,160,0.2);border-radius:6px;padding:10px 14px;font-size:12px;color:var(--blue);margin-bottom:16px;display:flex;align-items:center;gap:6px}
+
+/* ── 노출 레이더 ── */
+.radar-hero{background:var(--blue);border-radius:var(--radius);padding:24px 28px;margin-bottom:16px;color:#fff;animation:fadeUp 0.4s ease both}
+.radar-hero-title{font-size:20px;font-weight:700;letter-spacing:-0.4px;margin-bottom:4px}
+.radar-hero-sub{font-size:12px;color:rgba(255,255,255,0.7);font-weight:300}
+/* 블로그 ID 상태 표시 */
+.radar-blogid-bar{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;font-size:13px;box-shadow:var(--shadow-sm)}
+.radar-blogid-val{font-weight:700;color:var(--blue)}
+.radar-blogid-hint{font-size:11px;color:var(--text3)}
+/* 스캔 컨트롤 */
+.radar-scan-wrap{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:14px;box-shadow:var(--shadow-sm)}
+.radar-scan-btn{font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;background:var(--blue);color:#fff;border:none;border-radius:8px;padding:14px 28px;cursor:pointer;width:100%;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:0.2px}
+.radar-scan-btn:hover{background:var(--blue2);transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.radar-scan-btn:disabled{background:var(--text3);cursor:not-allowed;transform:none}
+.radar-progress{margin-top:14px;display:none}
+.radar-progress.show{display:block}
+.radar-progress-bar-wrap{background:var(--border);border-radius:6px;height:8px;overflow:hidden;margin-bottom:6px}
+.radar-progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),#0099cc);border-radius:6px;transition:width 0.3s ease}
+.radar-progress-txt{font-size:12px;color:var(--text3);text-align:center}
+/* 결과 리스트 */
+.radar-results{display:flex;flex-direction:column;gap:10px}
+.radar-item{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm);animation:fadeUp 0.3s ease both}
+.radar-item-head{padding:12px 16px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.radar-post-title{font-size:13px;font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.radar-post-title a{color:inherit;text-decoration:none}
+.radar-post-title a:hover{color:var(--blue)}
+.radar-kw-tags{display:flex;flex-wrap:wrap;gap:5px;padding:10px 16px 6px}
+.radar-kw-tag{display:inline-flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--text2)}
+.radar-rank-badge{font-size:11px;font-weight:700;color:#fff;border-radius:4px;padding:2px 8px;white-space:nowrap}
+.radar-rank-badge.top3{background:var(--blue)}
+.radar-rank-badge.top10{background:#0099cc}
+.radar-rank-badge.out{background:var(--text3)}
+.radar-rank-badge.scanning{background:var(--amber)}
+.radar-rank-badge.error{background:var(--red)}
+.radar-empty{font-size:13px;color:var(--text3);text-align:center;padding:32px}
+.radar-kw-row{display:flex;align-items:center;gap:8px;padding:0 16px 10px;flex-wrap:wrap}
+.radar-kw-result{font-size:12px;color:var(--text2)}
+
+.radar-page-tab{font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:600;flex:1;padding:9px;text-align:center;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--bg);color:var(--text3);cursor:pointer;transition:all 0.15s}
+.radar-page-tab:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-pale)}
+.radar-page-tab.active{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 2px 8px rgba(20,40,160,0.25)}
+.radar-page-tab.scanning{background:var(--blue-pale);color:var(--blue);border-color:var(--blue);border-style:dashed}
+.radar-page-tab.scanning .tab-spinner{display:inline-block;animation:hourglass 1.2s steps(1) infinite;margin-right:3px}
+.radar-page-tab.done{background:var(--green-bg);color:var(--green);border-color:var(--green)}
+.radar-page-tab.done.active{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 2px 8px rgba(20,40,160,0.25)}
+@keyframes hourglass{0%{content:'⏳'}50%{content:'⌛'}100%{content:'⏳'}}
+
 /* ── Console ── */
 .console{position:fixed;bottom:0;left:0;right:0;background:var(--text);padding:10px 20px;display:flex;align-items:center;gap:10px;font-size:12px;color:rgba(255,255,255,0.7);z-index:10;box-shadow:0 -2px 12px rgba(0,0,0,0.15);pointer-events:none}
 .cdot{width:6px;height:6px;border-radius:50%;background:#555;flex-shrink:0}
@@ -299,10 +368,13 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
 /* ── 모바일 ── */
 @media(max-width:600px){
   html{font-size:16px}
-  .topbar{padding:0 16px;height:52px}
-  .topbar-name{font-size:14px}
-  .topbar-status{font-size:11px}
-  .tab-btn{padding:12px 14px;font-size:12px}
+  .topbar{padding:0 12px;height:52px}
+  .topbar-name{font-size:13px}
+  .topbar-status{font-size:11px;gap:4px}
+  .topbar-settings{padding:5px 8px}
+  .topbar-settings-txt{display:none}
+  .tab-btn{padding:12px 10px;font-size:12px;gap:4px}
+  .tab-icon{font-size:13px}
   .page{padding:16px 12px 70px}
   .hero{padding:20px 16px 18px;margin-bottom:12px}
   .hero-title{font-size:21px}
@@ -314,6 +386,9 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
   .input{padding:13px 14px;font-size:16px}
   .bi-kw-input-row{flex-direction:column}
   .bi-kw-input-row .btn{width:100%}
+  .bi-id-row{flex-wrap:wrap;gap:6px}
+  .bi-id-row .btn{width:100%}
+  .bi-id-prefix{font-size:11px}
   .kwcard-head{padding:12px 14px}
   .kwname{font-size:17px}
   .kwcard-body{padding:14px}
@@ -323,6 +398,9 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
   .snum{font-size:19px}
   .bi-stat-grid{grid-template-columns:1fr 1fr;gap:8px}
   .bi-stat-num{font-size:22px}
+  /* 노출 레이더 모바일 */
+  .radar-kw-row{flex-direction:column;gap:6px}
+  .radar-scan-btn{width:100%;padding:13px}
   .console{padding:9px 14px;font-size:11px}
 }
 
@@ -368,6 +446,37 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
     <span id="apiTxt">서버 연결됨</span>
     &nbsp;·&nbsp;
     <span id="clock">--:--</span>
+    &nbsp;&nbsp;
+    <button class="topbar-settings" onclick="openSettings()">⚙️ <span class="topbar-settings-txt">설정</span></button>
+  </div>
+</div>
+
+<!-- ── 설정 모달 ── -->
+<div class="modal-overlay" id="settingsModal" onclick="if(event.target===this)closeSettings()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">⚙️ 블로그 설정</div>
+      <button class="modal-close" onclick="closeSettings()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-label">📌 내 블로그 ID</div>
+      <div class="modal-desc">키워드 분석 결과에서 <strong>내 포스팅</strong>을 자동으로 찾아 보여줍니다.<br>네이버 블로그 주소에서 ID 부분만 입력하세요.</div>
+      <div class="modal-current" id="modalCurrentBlog">
+        현재 설정: <strong id="modalCurrentId">미설정 (기본값 사용)</strong>
+      </div>
+      <div class="modal-input-row">
+        <span class="modal-prefix">blog.naver.com/</span>
+        <input class="input" type="text" id="settingsBlogId"
+          placeholder="블로그 ID 입력 (예: p911c4)"
+          autocomplete="off"
+          onkeydown="if(event.key==='Enter'){saveBlogSetting();}"/>
+      </div>
+      <div class="modal-saved" id="modalSaved">✅ 저장되었습니다!</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="resetBlogSetting()">초기화</button>
+      <button class="btn btn-primary btn-sm" onclick="saveBlogSetting()">저장</button>
+    </div>
   </div>
 </div>
 
@@ -380,6 +489,9 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
     <button class="tab-btn" onclick="switchTab('bi', this)">
       <span class="tab-icon">📊</span> 블로그 지수
     </button>
+    <button class="tab-btn" onclick="switchTab('radar', this)">
+      <span class="tab-icon">📡</span> 노출 레이더
+    </button>
   </div>
 </div>
 
@@ -391,7 +503,7 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
 
   <div class="hero">
     <div class="hero-eyebrow">Naver Search Advertising API</div>
-    <div class="hero-title">네이버 키워드 검색량 분석 v1.5</div>
+    <div class="hero-title">네이버 키워드 검색량 분석 v1.6</div>
     <div class="hero-sub">키워드를 입력하면 월간 PC·모바일 검색량과 연관 키워드를 즉시 조회합니다.</div>
   </div>
 
@@ -489,7 +601,7 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
       <button class="rank-load-btn" onclick="loadBlogStats()">새로고침</button>
     </div>
     <div class="card-body" id="biStatsBody">
-      <div class="bi-loading"><div class="rank-spinner"></div>블로그 ID를 입력하고 조회하세요</div>
+      <div class="bi-rank-empty" style="color:var(--text3);font-size:13px">블로그 ID를 입력하고 조회하세요</div>
     </div>
   </div>
 
@@ -520,6 +632,57 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
 </div>
 </div>
 
+<!-- ════════════════════════════════════════
+     탭 3: 노출 레이더
+════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-radar">
+<div class="page">
+
+  <div class="radar-hero">
+    <div class="radar-hero-title">📡 노출 레이더</div>
+    <div class="radar-hero-sub">최근 포스팅 10개의 핵심 키워드를 자동 추출하고 네이버 상위 100개 결과에서 노출 순위를 스캔합니다</div>
+  </div>
+
+  <!-- 현재 블로그 ID 표시 -->
+  <div class="radar-blogid-bar">
+    <div>
+      <span class="radar-blogid-hint">스캔 대상 블로그 · </span>
+      <span class="radar-blogid-val" id="radarBlogId">blog.naver.com/p911c4</span>
+    </div>
+    <button class="rank-load-btn" onclick="openSettings()">⚙️ 변경</button>
+  </div>
+
+  <!-- 스캔 실행 -->
+  <div class="radar-scan-wrap">
+    <button class="radar-scan-btn" id="radarScanBtn" onclick="startRadarScan()">
+      📡 노출 레이더 스캔 시작
+    </button>
+    <div class="radar-progress" id="radarProgress">
+      <div class="radar-progress-bar-wrap">
+        <div class="radar-progress-fill" id="radarProgressFill" style="width:0%"></div>
+      </div>
+      <div class="radar-progress-txt" id="radarProgressTxt">스캔 준비 중...</div>
+      <button id="radarStopBtn" style="display:none;margin-top:8px;width:100%;padding:8px;background:#fff0f0;color:var(--red);border:1px solid rgba(200,0,0,0.2);border-radius:6px;font-family:'Noto Sans KR',sans-serif;font-size:12px;cursor:pointer" onclick="radarScanning=false">⏹ 스캔 중단</button>
+    </div>
+  </div>
+
+  <!-- 페이징 탭 -->
+  <div id="radarPageTabs" style="display:none;margin-bottom:12px">
+    <div style="display:flex;gap:6px">
+      <button class="radar-page-tab active" id="radarTab0" onclick="showRadarPage(0)">1~5</button>
+      <button class="radar-page-tab" id="radarTab1" onclick="showRadarPage(1)">6~10</button>
+      <button class="radar-page-tab" id="radarTab2" onclick="showRadarPage(2)">11~15</button>
+    </div>
+  </div>
+
+  <!-- 스캔 결과 -->
+  <div id="radarResults">
+    <div class="radar-empty">스캔 버튼을 누르면 최근 포스팅 15개의<br>노출 순위를 자동으로 분석합니다</div>
+  </div>
+
+</div>
+</div>
+
 <!-- ── Console ── -->
 <div class="console">
   <div class="cdot ok" id="cdot"></div>
@@ -544,25 +707,90 @@ function log(type, msg) {
   document.getElementById('ctxt').textContent = msg;
 }
 
-/* ── 통계 로깅 (admin 기능용 신규 추가) ── */
-function logPageView() {
-  fetch('/api/log', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ type: 'pageview' })
-  }).catch(() => {});
+/* ═══════════════════════════════
+   블로그 설정 (localStorage)
+═══════════════════════════════ */
+const BLOG_SETTING_KEY = 'kc_my_blog_id';
+
+function getMyBlogId() {
+  return localStorage.getItem(BLOG_SETTING_KEY) || 'p911c4';
 }
-function logSearch(keyword) {
-  fetch('/api/log', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ type: 'search', keyword })
-  }).catch(() => {});
+
+function openSettings() {
+  const saved = localStorage.getItem(BLOG_SETTING_KEY) || '';
+  const inp   = document.getElementById('settingsBlogId');
+  const cur   = document.getElementById('modalCurrentId');
+  const savedMsg = document.getElementById('modalSaved');
+  if (inp) inp.value = saved;
+  if (cur) cur.textContent = saved ? saved : '미설정 (기본값 사용)';
+  if (savedMsg) savedMsg.classList.remove('show');
+  document.getElementById('settingsModal').classList.add('show');
+  setTimeout(() => inp?.focus(), 100);
 }
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', logPageView);
-} else {
-  logPageView();
+
+function closeSettings() {
+  document.getElementById('settingsModal').classList.remove('show');
+}
+
+function saveBlogSetting() {
+  const inp = document.getElementById('settingsBlogId');
+  const val = (inp?.value || '').trim().toLowerCase().replace(/^https?:\/\/[^/]+\//, '').replace(/\/$/, '');
+  if (!val) {
+    resetBlogSetting();
+    closeSettings();
+    resetAllResults();
+    return;
+  }
+  localStorage.setItem(BLOG_SETTING_KEY, val);
+  const cur = document.getElementById('modalCurrentId');
+  if (cur) cur.textContent = val;
+  const savedMsg = document.getElementById('modalSaved');
+  if (savedMsg) { savedMsg.classList.add('show'); setTimeout(() => savedMsg.classList.remove('show'), 1500); }
+  log('ok', `블로그 ID "${val}" 저장 완료`);
+  setTimeout(() => { closeSettings(); resetAllResults(); }, 1000);
+}
+
+function resetBlogSetting() {
+  localStorage.removeItem(BLOG_SETTING_KEY);
+  const inp = document.getElementById('settingsBlogId');
+  const cur = document.getElementById('modalCurrentId');
+  if (inp) inp.value = '';
+  if (cur) cur.textContent = '미설정 (기본값 사용)';
+  log('ok', '블로그 설정이 초기화되었습니다');
+}
+
+// 설정 변경 시 결과 초기화
+function resetAllResults() {
+  // 키워드 분석 초기화
+  kws = []; data = [];
+  document.getElementById('resultsPanel')?.classList.remove('show');
+  document.getElementById('loadingWrap')?.classList.remove('show');
+  document.getElementById('errBox')?.classList.remove('show');
+  const kwInp = document.getElementById('kwInp');
+  if (kwInp) { kwInp.value = ''; }
+  document.getElementById('kwClear')?.classList.remove('show');
+
+  // 블로그 지수 초기화
+  const biIdInp = document.getElementById('biIdInp');
+  const savedId = localStorage.getItem(BLOG_SETTING_KEY) || '';
+  if (biIdInp) {
+    biIdInp.value = savedId;
+    toggleClear('biIdInp', 'biIdClear');
+  }
+  const biStatsTitle = document.getElementById('biStatsTitle');
+  if (biStatsTitle) biStatsTitle.textContent = '블로그 활동 지표';
+  const biStatsBody = document.getElementById('biStatsBody');
+  if (biStatsBody) biStatsBody.innerHTML = '<div class="bi-rank-empty" style="color:var(--text3);font-size:13px">블로그 ID를 입력하고 조회하세요</div>';
+  const biKwInp = document.getElementById('biKwInp');
+  if (biKwInp) biKwInp.value = '';
+  document.getElementById('biKwClear')?.classList.remove('show');
+  const biRankResult = document.getElementById('biRankResult');
+  if (biRankResult) biRankResult.innerHTML = '<div class="bi-rank-empty">키워드를 입력하면 상위 100개 결과 중<br>포스팅 포함 여부를 확인합니다</div>';
+  biStatsLoaded = false;
+  currentBlogId = savedId;
+
+  // 상단으로 스크롤
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 /* ── 앱 초기화 ── */
@@ -597,7 +825,7 @@ function resetApp() {
     const biStatsTitle = document.getElementById('biStatsTitle');
     if (biStatsTitle) biStatsTitle.textContent = '블로그 활동 지표';
     const biStatsBody = document.getElementById('biStatsBody');
-    if (biStatsBody) biStatsBody.innerHTML = '<div class="bi-loading"><div class="rank-spinner"></div>블로그 ID를 입력하고 조회하세요</div>';
+    if (biStatsBody) biStatsBody.innerHTML = '<div class="bi-rank-empty" style="color:var(--text3);font-size:13px">블로그 ID를 입력하고 조회하세요</div>';
     const biKwInp = document.getElementById('biKwInp');
     if (biKwInp) biKwInp.value = '';
     const biKwClear = document.getElementById('biKwClear');
@@ -634,6 +862,17 @@ function switchTab(id, btn) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-' + id).classList.add('active');
   btn.classList.add('active');
+  // 블로그 지수 탭 전환 시 저장된 ID 자동 입력
+  if (id === 'bi') {
+    const savedId = localStorage.getItem(BLOG_SETTING_KEY) || '';
+    const biIdInp = document.getElementById('biIdInp');
+    if (biIdInp && savedId && !biIdInp.value) {
+      biIdInp.value = savedId;
+      toggleClear('biIdInp', 'biIdClear');
+    }
+  }
+  // 노출 레이더 탭 전환 시 블로그 ID 업데이트
+  if (id === 'radar') updateRadarBlogId();
 }
 
 /* ═══════════════════════════════
@@ -689,6 +928,28 @@ function doSearch() {
   runScan();
 }
 
+/* ── 통계 로깅 ── */
+function logPageView() {
+  fetch('/api/log', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type: 'pageview' })
+  }).catch(() => {});
+}
+function logSearch(keyword) {
+  fetch('/api/log', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type: 'search', keyword })
+  }).catch(() => {});
+}
+// 페이지 로드 완료 후 방문 기록
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', logPageView);
+} else {
+  logPageView();
+}
+
 async function runScan() {
   log('busy', '데이터를 가져오는 중...');
   document.getElementById('loadingWrap').classList.add('show');
@@ -705,7 +966,7 @@ async function runScan() {
       comp:   d.compIdx || 'N/A',
       isHint: kws.includes(d.relKeyword),
     }));
-    // 키워드 검색 로깅 (admin 기능용 신규 추가)
+    // 키워드 검색 로깅
     kws.forEach(kw => logSearch(kw));
     renderResults();
     log('ok', `조회 완료 — 총 ${data.length}개 키워드 데이터`);
@@ -795,7 +1056,7 @@ function card(d, i, maxT, rel) {
         ${relHtml}
         <div class="mypost-sec">
           <button class="mypost-toggle" onclick="toggleMyPost(this)" aria-expanded="false">
-            <div class="mypost-lbl">🔖 뉴카 포스팅
+            <div class="mypost-lbl">🔖 <span class="mypost-blog-name">${getMyBlogId()}</span> 포스팅
               <span class="mypost-lbl-sub">RSS 최근 30개 + 검색 상위 100개 중</span>
               <span class="mypost-count-badge" id="badge-mp-${mypostId}">로딩중</span>
             </div>
@@ -870,15 +1131,23 @@ async function loadMyPosts(kw, mypostId) {
   const listEl  = document.getElementById(mypostId);
   const badgeEl = document.getElementById('badge-mp-' + mypostId);
   if (!listEl) return;
+
+  const blogId   = getMyBlogId();
+  const blogName = blogId;
+
   try {
-    const res  = await fetch(`/api/myposts?query=${encodeURIComponent(kw)}`);
+    const res  = await fetch(`/api/myposts?query=${encodeURIComponent(kw)}&blogId=${encodeURIComponent(blogId)}`);
     const json = await res.json();
     const items = json.items || [];
-    if (badgeEl) { badgeEl.textContent = items.length > 0 ? items.length+'개' : '없음'; if(!items.length) badgeEl.classList.add('zero'); }
+    if (badgeEl) {
+      badgeEl.textContent = items.length > 0 ? items.length+'개' : '없음';
+      if (!items.length) badgeEl.classList.add('zero');
+      else badgeEl.classList.remove('zero');
+    }
     const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
     const moreUrl  = isMobile
-      ? `https://m.blog.naver.com/PostSearchList.naver?blogId=p911c4&orderType=sim&pageAccess=direct&periodType=all&searchText=${encodeURIComponent(kw)}`
-      : `https://blog.naver.com/PostSearchList.naver?blogId=p911c4&searchText=${encodeURIComponent(kw)}`;
+      ? `https://m.blog.naver.com/PostSearchList.naver?blogId=${blogId}&orderType=sim&pageAccess=direct&periodType=all&searchText=${encodeURIComponent(kw)}`
+      : `https://blog.naver.com/PostSearchList.naver?blogId=${blogId}&searchText=${encodeURIComponent(kw)}`;
     let html = !items.length ? '<div class="mypost-empty">연관 포스팅이 없습니다.</div>'
       : items.map(item => `
         <a class="mypost-item" href="${item.link}" target="_blank" rel="noopener">
@@ -888,7 +1157,7 @@ async function loadMyPosts(kw, mypostId) {
             <div class="mypost-desc">${(item.description||'').replace(/<[^>]+>/g,'').slice(0,60)}...</div>
           </div>
         </a>`).join('');
-    html += `<a class="mypost-more" href="${moreUrl}" target="_blank" rel="noopener">🔍 뉴카's "${kw}" 포스팅 →</a>`;
+    html += `<a class="mypost-more" href="${moreUrl}" target="_blank" rel="noopener">🔍 ${blogName}'s "${kw}" 포스팅 →</a>`;
     listEl.innerHTML = html;
   } catch(e) {
     const el = document.getElementById(mypostId);
@@ -967,8 +1236,344 @@ function copyJSON() {
 }
 
 /* ═══════════════════════════════
-   탭 2: 블로그 지수
+   탭 3: 노출 레이더
 ═══════════════════════════════ */
+
+// 탭 전환 시 블로그 ID 표시 업데이트
+function updateRadarBlogId() {
+  const blogId = getMyBlogId();
+  const el = document.getElementById('radarBlogId');
+  if (el) el.textContent = `blog.naver.com/${blogId}`;
+}
+
+// 포스팅 제목에서 핵심 키워드 추출
+let radarScanning = false;
+let radarAllPosts = [];
+let radarScores   = {};
+let radarPage     = 0;
+const RADAR_PAGE_SIZE = 5;
+
+function updateRadarBlogId() {
+  const blogId = getMyBlogId();
+  const el = document.getElementById('radarBlogId');
+  if (el) el.textContent = `blog.naver.com/${blogId}`;
+}
+
+function extractKeywords(title) {
+  const stopWords = ['이','그','저','것','수','있','하','에','를','을','의','가','이','은','는',
+    '으로','로','에서','에게','까지','부터','처럼','보다','만','도','와','과','및',
+    '또는','혹은','그리고','하지만','그러나','따라서','그래서',
+    '방법','방식','정리','소개','알아보기','알아보자','해보자','총정리','완벽',
+    '최고','최신','추천','리뷰','후기','이야기','내용','정보','꿀팁','팁','노하우'];
+  const cleaned = title.replace(/<[^>]+>/g,'').replace(/[|·\-–—\[\]【】()（）《》「」『』]/g,' ').trim();
+  const words   = cleaned.match(/[가-힣]{2,}|[a-zA-Z]{3,}/g) || [];
+  const filtered = [...new Set(words.filter(w => !stopWords.includes(w)))];
+  return filtered.sort((a,b) => b.length - a.length).slice(0, 5);
+}
+
+// 키워드 후보 풀 구성: 글쓴이가 직접 입력한 태그를 우선 사용, 없으면 제목 자동추출로 대체
+function getCandidateKeywords(post) {
+  const tags = (post.tags || []).filter(Boolean);
+  if (tags.length > 0) {
+    // 태그가 너무 많으면 앞쪽 일부만 후보로 (검색량 조회 비용 고려, 최대 8개)
+    return tags.slice(0, 8);
+  }
+  return extractKeywords(post.title);
+}
+
+async function checkRank(keyword, blogId) {
+  try {
+    const res  = await fetch(`/api/blogstats?keyword=${encodeURIComponent(keyword)}&blogId=${encodeURIComponent(blogId)}`);
+    const json = await res.json();
+    const ranks = json.ranking?.ranks || [];
+    return ranks.length > 0 ? ranks[0].rank : null;
+  } catch(e) { return null; }
+}
+
+async function fetchRecentPosts(blogId) {
+  try {
+    const res  = await fetch(`/api/myposts?query=__all__&blogId=${encodeURIComponent(blogId)}`);
+    const json = await res.json();
+    return (json.items || []).slice(0, 15);
+  } catch(e) { return []; }
+}
+
+// 검색광고 API - 키워드 후보 전체(태그 또는 자동추출분) + 연관 키워드까지 한번에 조회 (1회 호출 유지)
+// 반환: { keyword, volume } 형태의 배열 (검색량 = PC+모바일 월간 검색수 합)
+async function getKeywordVolumes(keywords) {
+  try {
+    const res  = await fetch('/api/keyword', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ keywords })
+    });
+    const json = await res.json();
+    const list = json.keywordList || [];
+    const volOf = d => (parseInt(d.monthlyPcQcCnt)||0) + (parseInt(d.monthlyMobileQcCnt)||0);
+
+    // 원본 후보 키워드의 검색량 (API에 그대로 잡히는 경우)
+    const baseVolMap = {};
+    list.forEach(d => { baseVolMap[d.relKeyword] = volOf(d); });
+
+    // 기본 키워드 자체의 검색량 (없으면 0)
+    const baseResults = keywords.map(kw => ({ keyword: kw, volume: baseVolMap[kw] || 0 }));
+
+    // 연관 키워드(각 기본 키워드별 검색량 상위 2개) — 후보 풀 확장용
+    const relatedResults = [];
+    for (const baseKw of keywords) {
+      const related = list
+        .filter(d => d.relKeyword !== baseKw)
+        .sort((a,b) => volOf(b) - volOf(a))
+        .slice(0, 2)
+        .map(d => ({ keyword: d.relKeyword, volume: volOf(d) }));
+      related.forEach(r => {
+        if (!relatedResults.some(x => x.keyword === r.keyword) && !keywords.includes(r.keyword)) {
+          relatedResults.push(r);
+        }
+      });
+    }
+    return [...baseResults, ...relatedResults];
+  } catch(e) { return keywords.map(kw => ({ keyword: kw, volume: 0 })); }
+}
+
+// 스캔할 최종 키워드 N개를 선정
+// 원칙: 글쓴이가 의도한 키워드(태그 또는 제목 자동추출분)만 검색량 순으로 추리고,
+//       연관 키워드는 의도 키워드 수가 n개에 못 미칠 때만 빈자리를 채운다.
+//       (연관 키워드로 대체하면 "내 글의 노출력"이 아니라 "그 시장의 검색량"을 보게 되어 지수 취지에서 벗어남)
+function pickTopKeywordsByVolume(allVolumes, baseKeywords, n = 3) {
+  const baseSet = new Set(baseKeywords);
+  const volMap = {};
+  allVolumes.forEach(v => { volMap[v.keyword] = v.volume; });
+
+  // 1) 의도 키워드만 검색량 내림차순 정렬
+  const baseSorted = baseKeywords
+    .map(kw => ({ keyword: kw, volume: volMap[kw] || 0 }))
+    .sort((a, b) => b.volume - a.volume);
+
+  const picked = baseSorted.slice(0, n).map(x => x.keyword);
+
+  // 2) 의도 키워드가 n개에 못 미치면, 연관 키워드(검색량 순)로 부족한 자리만 보충
+  if (picked.length < n) {
+    const seen = new Set(picked);
+    const fillers = allVolumes
+      .filter(v => !baseSet.has(v.keyword) && !seen.has(v.keyword))
+      .sort((a, b) => b.volume - a.volume);
+    for (const f of fillers) {
+      if (picked.length >= n) break;
+      if (seen.has(f.keyword)) continue;
+      seen.add(f.keyword);
+      picked.push(f.keyword);
+    }
+  }
+  return picked;
+}
+
+function calcPostScore(ranks, pubDate, title, keywords) {
+  // ① 검색 노출 순위 — 50점 → 30점으로 축소 (API sim 순위는 실제 노출과 괴리가 있어 비중을 낮춤)
+  let rankScore = 0;
+  const validRanks = ranks.filter(r => r !== null);
+  const bestRank = validRanks.sort((a,b) => a-b)[0] ?? null;
+  if      (bestRank === null) rankScore = 0;
+  else if (bestRank <= 3)     rankScore = 30;
+  else if (bestRank <= 10)    rankScore = 23;
+  else if (bestRank <= 30)    rankScore = 15;
+  else                        rankScore = 7;
+
+  // ② 최신성 — 25점 (변경 없음, API 오차 없는 확실한 데이터)
+  let freshScore = 0;
+  if (pubDate) {
+    const days = (Date.now() - new Date(pubDate)) / (1000*60*60*24);
+    if      (days <= 7)   freshScore = 25;
+    else if (days <= 30)  freshScore = 20;
+    else if (days <= 90)  freshScore = 12;
+    else if (days <= 180) freshScore = 6;
+    else                  freshScore = 2;
+  }
+
+  // ③ 키워드 적합도 — 25점 → 30점으로 확대 (콕핏이 직접 계산, 오차 없음)
+  let kwScore = 6;
+  const cleanTitle = title.replace(/<[^>]+>/g,'').toLowerCase();
+  const first15 = cleanTitle.slice(0,15);
+  for (const kw of keywords) {
+    const kwLower = kw.toLowerCase();
+    if      (first15.includes(kwLower))    { kwScore = 30; break; }
+    else if (cleanTitle.includes(kwLower)) { kwScore = Math.max(kwScore, 18); }
+  }
+
+  // ④ (신설) 키워드 매칭 폭 — 15점. 순위값 자체보단 "포착된 키워드 개수"만 보아 API 오차 영향을 줄임
+  let matchScore = 0;
+  const matchedCount = validRanks.length;
+  if      (matchedCount >= 2) matchScore = 15;
+  else if (matchedCount === 1) matchScore = 8;
+  else                         matchScore = 0;
+
+  return ((rankScore + freshScore + kwScore + matchScore) / 100).toFixed(2);
+}
+
+function scoreColor(score) {
+  const s = parseFloat(score);
+  if (s >= 0.80) return '#00b200';
+  if (s >= 0.60) return '#1428a0';
+  if (s >= 0.40) return '#b06000';
+  return '#c00';
+}
+
+function showRadarPage(page) {
+  radarPage = page;
+  for (let t = 0; t < 3; t++) {
+    const tab = document.getElementById(`radarTab${t}`);
+    if (!tab) continue;
+    tab.classList.remove('active');
+    const s = t * RADAR_PAGE_SIZE;
+    const isDone = radarAllPosts.slice(s, s+RADAR_PAGE_SIZE).every((_,i) => radarScores[s+i] !== undefined);
+    if (isDone) tab.classList.add('done'); else tab.classList.remove('done');
+    if (t === page) tab.classList.add('active');
+  }
+  const start = page * RADAR_PAGE_SIZE;
+  const pagePosts = radarAllPosts.slice(start, start + RADAR_PAGE_SIZE);
+  const resultsEl = document.getElementById('radarResults');
+  if (!resultsEl) return;
+  resultsEl.innerHTML = pagePosts.map((post, idx) => {
+    const i = start + idx;
+    const safeTitle = post.title.replace(/<[^>]+>/g,'');
+    const score = radarScores[i];
+    const scoreHtml = score !== undefined
+      ? `<span style="font-size:11px;color:var(--text3);margin-right:3px">포스팅 지수</span><span style="font-size:16px;font-weight:700;color:${scoreColor(score)}">${score}</span>`
+      : `<span style="font-size:11px;color:var(--text3)">대기 중</span>`;
+    return `<div class="radar-item" id="radar-item-${i}">
+      <div class="radar-item-head">
+        <div class="radar-post-title"><a href="${post.link}" target="_blank" rel="noopener">${safeTitle}</a></div>
+        <div id="radar-score-${i}" style="flex-shrink:0">${scoreHtml}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function startRadarScan() {
+  if (radarScanning) return;
+  radarScanning = true;
+
+  const blogId   = getMyBlogId();
+  const scanBtn  = document.getElementById('radarScanBtn');
+  const progress = document.getElementById('radarProgress');
+  const progFill = document.getElementById('radarProgressFill');
+  const progTxt  = document.getElementById('radarProgressTxt');
+  const stopBtn  = document.getElementById('radarStopBtn');
+  const tabWrap  = document.getElementById('radarPageTabs');
+
+  scanBtn.disabled = true;
+  scanBtn.innerHTML = '<div class="rank-spinner" style="width:16px;height:16px;border-width:2px"></div> 스캔 중...';
+  progress.classList.add('show');
+  if (stopBtn) stopBtn.style.display = 'block';
+  progFill.style.width = '0%';
+  progTxt.textContent = 'RSS에서 포스팅 불러오는 중...';
+  radarScores = {};
+  log('busy', `📡 노출 레이더 스캔 시작 — ${blogId}`);
+
+  const posts = await fetchRecentPosts(blogId);
+  if (!posts.length) {
+    document.getElementById('radarResults').innerHTML = '<div class="radar-empty">포스팅을 불러올 수 없습니다.<br>블로그 ID를 확인해 주세요.</div>';
+    scanBtn.disabled = false; scanBtn.innerHTML = '📡 노출 레이더 스캔 시작';
+    progress.classList.remove('show');
+    if (stopBtn) stopBtn.style.display = 'none';
+    radarScanning = false; return;
+  }
+
+  radarAllPosts = posts;
+  const total    = posts.length;
+  const tabCount = Math.ceil(total / RADAR_PAGE_SIZE);
+
+  if (tabWrap) {
+    tabWrap.style.display = 'block';
+    for (let t = 0; t < 3; t++) {
+      const tab = document.getElementById(`radarTab${t}`);
+      if (!tab) continue;
+      const s = t * RADAR_PAGE_SIZE;
+      const e = Math.min(s + RADAR_PAGE_SIZE, total);
+      tab.textContent = `${s+1}~${e}`;
+      tab.style.display = t < tabCount ? '' : 'none';
+      tab.classList.remove('active','done');
+    }
+    document.getElementById('radarTab0')?.classList.add('active');
+  }
+
+  showRadarPage(0);
+
+  for (let page = 0; page < tabCount; page++) {
+    if (!radarScanning) { progTxt.textContent = `⏹ 스캔 중단됨`; break; }
+
+    // 현재 스캔 중 탭에 scanning 클래스 추가
+    const curTab = document.getElementById(`radarTab${page}`);
+    if (curTab) {
+      curTab.classList.add('scanning');
+      curTab.innerHTML = `<span class="tab-spinner">⏳</span>${curTab.textContent.trim()}`;
+    }
+
+    const start = page * RADAR_PAGE_SIZE;
+    const pagePosts = posts.slice(start, start + RADAR_PAGE_SIZE);
+
+    for (let idx = 0; idx < pagePosts.length; idx++) {
+      if (!radarScanning) break;
+      const i    = start + idx;
+      const post = pagePosts[idx];
+
+      if (page === radarPage) {
+        const scoreEl = document.getElementById(`radar-score-${i}`);
+        if (scoreEl) scoreEl.innerHTML = `<span style="font-size:11px;color:var(--text3)">분석 중...</span>`;
+      }
+
+      const candidateKws = getCandidateKeywords(post); // 태그 우선, 없으면 제목 자동추출 — "의도한 키워드" 전체
+
+      // 1단계: 의도 키워드 전체 + 연관 키워드까지 한번에 검색량 조회 (1회 API 호출, 변경 없음)
+      progTxt.textContent = `[${i+1}/${total}] 키워드 검색량 조회 중...`;
+      const allVolumes = await getKeywordVolumes(candidateKws);
+
+      // 2단계: 의도 키워드 중 검색량 상위 3개를 스캔 대상으로 선정 (부족하면 연관키워드로 보충)
+      const topKws = pickTopKeywordsByVolume(allVolumes, candidateKws, 3);
+
+      // 3단계: 순위 조회 (3개를 한 묶음으로, 딜레이 80ms 그대로 유지)
+      progTxt.textContent = `[${i+1}/${total}] 순위 스캔 중... (${topKws.length}개)`;
+      const rankResults = [];
+      for (let j = 0; j < topKws.length; j += 3) {
+        if (!radarScanning) break;
+        const chunk = topKws.slice(j, j+3);
+        const ranks = await Promise.all(chunk.map(kw => checkRank(kw, blogId)));
+        chunk.forEach((kw, k) => rankResults.push({ kw, rank: ranks[k] }));
+        if (j+3 < topKws.length) await new Promise(r => setTimeout(r, 80));
+      }
+
+      // 키워드 적합도는 "의도 키워드(candidateKws)"가 제목에 잘 반영됐는지로 평가 — 스캔 대상(topKws)과는 별개 기준
+      const score = calcPostScore(rankResults.map(r=>r.rank), post.pubDate, post.title, candidateKws);
+      radarScores[i] = score;
+
+      if (page === radarPage) {
+        const scoreEl = document.getElementById(`radar-score-${i}`);
+        if (scoreEl) scoreEl.innerHTML = `<span style="font-size:11px;color:var(--text3);margin-right:3px">포스팅 지수</span><span style="font-size:16px;font-weight:700;color:${scoreColor(score)}">${score}</span>`;
+      }
+
+      progFill.style.width = Math.round(((i+1)/total)*100) + '%';
+    }
+
+    const doneTab = document.getElementById(`radarTab${page}`);
+    if (doneTab) {
+      doneTab.classList.remove('scanning');
+      doneTab.classList.add('done');
+      const s = page * RADAR_PAGE_SIZE;
+      const e = Math.min(s + RADAR_PAGE_SIZE, total);
+      doneTab.innerHTML = `${s+1}~${e} ✓`;
+    }
+    showRadarPage(radarPage);
+  }
+
+  if (stopBtn) stopBtn.style.display = 'none';
+  if (radarScanning) {
+    progFill.style.width = '100%';
+    progTxt.textContent  = `✅ 스캔 완료 — 포스팅 ${total}개 분석`;
+    log('ok', `📡 노출 레이더 스캔 완료 — 포스팅 ${total}개`);
+  }
+  scanBtn.disabled  = false;
+  scanBtn.innerHTML = '🔄 다시 스캔';
+  radarScanning     = false;
+}
 let biStatsLoaded = false;
 let currentBlogId = '';
 
