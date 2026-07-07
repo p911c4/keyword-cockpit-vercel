@@ -1271,16 +1271,6 @@ function extractKeywords(title) {
   return filtered.sort((a,b) => b.length - a.length).slice(0, 5);
 }
 
-// 키워드 후보 풀 구성: 글쓴이가 직접 입력한 태그를 우선 사용, 없으면 제목 자동추출로 대체
-function getCandidateKeywords(post) {
-  const tags = (post.tags || []).filter(Boolean);
-  if (tags.length > 0) {
-    // 태그가 너무 많으면 앞쪽 일부만 후보로 (검색량 조회 비용 고려, 최대 8개)
-    return tags.slice(0, 8);
-  }
-  return extractKeywords(post.title);
-}
-
 async function checkRank(keyword, blogId) {
   try {
     const res  = await fetch(`/api/blogstats?keyword=${encodeURIComponent(keyword)}&blogId=${encodeURIComponent(blogId)}`);
@@ -1298,9 +1288,8 @@ async function fetchRecentPosts(blogId) {
   } catch(e) { return []; }
 }
 
-// 검색광고 API - 키워드 후보 전체(태그 또는 자동추출분) + 연관 키워드까지 한번에 조회 (1회 호출 유지)
-// 반환: { keyword, volume } 형태의 배열 (검색량 = PC+모바일 월간 검색수 합)
-async function getKeywordVolumes(keywords) {
+// 검색광고 API - 여러 키워드 한번에 조회해서 각각 연관 키워드 2개씩 추출
+async function getRelatedKeywordsAll(keywords) {
   try {
     const res  = await fetch('/api/keyword', {
       method: 'POST', headers: {'Content-Type':'application/json'},
@@ -1308,77 +1297,34 @@ async function getKeywordVolumes(keywords) {
     });
     const json = await res.json();
     const list = json.keywordList || [];
-    const volOf = d => (parseInt(d.monthlyPcQcCnt)||0) + (parseInt(d.monthlyMobileQcCnt)||0);
 
-    // 원본 후보 키워드의 검색량 (API에 그대로 잡히는 경우)
-    const baseVolMap = {};
-    list.forEach(d => { baseVolMap[d.relKeyword] = volOf(d); });
-
-    // 기본 키워드 자체의 검색량 (없으면 0)
-    const baseResults = keywords.map(kw => ({ keyword: kw, volume: baseVolMap[kw] || 0 }));
-
-    // 연관 키워드(각 기본 키워드별 검색량 상위 2개) — 후보 풀 확장용
-    const relatedResults = [];
+    // 각 기본 키워드별로 연관 키워드 2개씩 추출
+    const result = [];
     for (const baseKw of keywords) {
       const related = list
         .filter(d => d.relKeyword !== baseKw)
-        .sort((a,b) => volOf(b) - volOf(a))
-        .slice(0, 2)
-        .map(d => ({ keyword: d.relKeyword, volume: volOf(d) }));
-      related.forEach(r => {
-        if (!relatedResults.some(x => x.keyword === r.keyword) && !keywords.includes(r.keyword)) {
-          relatedResults.push(r);
-        }
-      });
+        .sort((a,b) => {
+          const va = (parseInt(a.monthlyPcQcCnt)||0)+(parseInt(a.monthlyMobileQcCnt)||0);
+          const vb = (parseInt(b.monthlyPcQcCnt)||0)+(parseInt(b.monthlyMobileQcCnt)||0);
+          return vb - va;
+        })
+        .slice(0,2)
+        .map(d => d.relKeyword);
+      related.forEach(kw => { if (!result.includes(kw) && !keywords.includes(kw)) result.push(kw); });
     }
-    return [...baseResults, ...relatedResults];
-  } catch(e) { return keywords.map(kw => ({ keyword: kw, volume: 0 })); }
-}
-
-// 스캔할 최종 키워드 N개를 선정
-// 원칙: 글쓴이가 의도한 키워드(태그 또는 제목 자동추출분)만 검색량 순으로 추리고,
-//       연관 키워드는 의도 키워드 수가 n개에 못 미칠 때만 빈자리를 채운다.
-//       (연관 키워드로 대체하면 "내 글의 노출력"이 아니라 "그 시장의 검색량"을 보게 되어 지수 취지에서 벗어남)
-function pickTopKeywordsByVolume(allVolumes, baseKeywords, n = 3) {
-  const baseSet = new Set(baseKeywords);
-  const volMap = {};
-  allVolumes.forEach(v => { volMap[v.keyword] = v.volume; });
-
-  // 1) 의도 키워드만 검색량 내림차순 정렬
-  const baseSorted = baseKeywords
-    .map(kw => ({ keyword: kw, volume: volMap[kw] || 0 }))
-    .sort((a, b) => b.volume - a.volume);
-
-  const picked = baseSorted.slice(0, n).map(x => x.keyword);
-
-  // 2) 의도 키워드가 n개에 못 미치면, 연관 키워드(검색량 순)로 부족한 자리만 보충
-  if (picked.length < n) {
-    const seen = new Set(picked);
-    const fillers = allVolumes
-      .filter(v => !baseSet.has(v.keyword) && !seen.has(v.keyword))
-      .sort((a, b) => b.volume - a.volume);
-    for (const f of fillers) {
-      if (picked.length >= n) break;
-      if (seen.has(f.keyword)) continue;
-      seen.add(f.keyword);
-      picked.push(f.keyword);
-    }
-  }
-  return picked;
+    return result;
+  } catch(e) { return []; }
 }
 
 function calcPostScore(ranks, pubDate, title, keywords) {
-  // ① 검색 노출 순위 — 50점 → 30점으로 축소 (API sim 순위는 실제 노출과 괴리가 있어 비중을 낮춤)
   let rankScore = 0;
-  const validRanks = ranks.filter(r => r !== null);
-  const bestRank = validRanks.sort((a,b) => a-b)[0] ?? null;
+  const bestRank = ranks.filter(r => r !== null).sort((a,b) => a-b)[0] ?? null;
   if      (bestRank === null) rankScore = 0;
-  else if (bestRank <= 3)     rankScore = 30;
-  else if (bestRank <= 10)    rankScore = 23;
-  else if (bestRank <= 30)    rankScore = 15;
-  else                        rankScore = 7;
+  else if (bestRank <= 3)     rankScore = 50;
+  else if (bestRank <= 10)    rankScore = 38;
+  else if (bestRank <= 30)    rankScore = 25;
+  else                        rankScore = 12;
 
-  // ② 최신성 — 25점 (변경 없음, API 오차 없는 확실한 데이터)
   let freshScore = 0;
   if (pubDate) {
     const days = (Date.now() - new Date(pubDate)) / (1000*60*60*24);
@@ -1389,24 +1335,15 @@ function calcPostScore(ranks, pubDate, title, keywords) {
     else                  freshScore = 2;
   }
 
-  // ③ 키워드 적합도 — 25점 → 30점으로 확대 (콕핏이 직접 계산, 오차 없음)
-  let kwScore = 6;
+  let kwScore = 5;
   const cleanTitle = title.replace(/<[^>]+>/g,'').toLowerCase();
   const first15 = cleanTitle.slice(0,15);
   for (const kw of keywords) {
     const kwLower = kw.toLowerCase();
-    if      (first15.includes(kwLower))    { kwScore = 30; break; }
-    else if (cleanTitle.includes(kwLower)) { kwScore = Math.max(kwScore, 18); }
+    if      (first15.includes(kwLower))    { kwScore = 25; break; }
+    else if (cleanTitle.includes(kwLower)) { kwScore = Math.max(kwScore, 15); }
   }
-
-  // ④ (신설) 키워드 매칭 폭 — 15점. 순위값 자체보단 "포착된 키워드 개수"만 보아 API 오차 영향을 줄임
-  let matchScore = 0;
-  const matchedCount = validRanks.length;
-  if      (matchedCount >= 2) matchScore = 15;
-  else if (matchedCount === 1) matchScore = 8;
-  else                         matchScore = 0;
-
-  return ((rankScore + freshScore + kwScore + matchScore) / 100).toFixed(2);
+  return ((rankScore + freshScore + kwScore) / 100).toFixed(2);
 }
 
 function scoreColor(score) {
@@ -1521,28 +1458,25 @@ async function startRadarScan() {
         if (scoreEl) scoreEl.innerHTML = `<span style="font-size:11px;color:var(--text3)">분석 중...</span>`;
       }
 
-      const candidateKws = getCandidateKeywords(post); // 태그 우선, 없으면 제목 자동추출 — "의도한 키워드" 전체
+      const baseKws = extractKeywords(post.title);
 
-      // 1단계: 의도 키워드 전체 + 연관 키워드까지 한번에 검색량 조회 (1회 API 호출, 변경 없음)
-      progTxt.textContent = `[${i+1}/${total}] 키워드 검색량 조회 중...`;
-      const allVolumes = await getKeywordVolumes(candidateKws);
+      // 1단계: 5개 키워드 한번에 연관 키워드 조회 (1회 API 호출)
+      progTxt.textContent = `[${i+1}/${total}] 연관 키워드 조회 중...`;
+      const related = await getRelatedKeywordsAll(baseKws);
+      const allKws  = [...baseKws, ...related];
 
-      // 2단계: 의도 키워드 중 검색량 상위 3개를 스캔 대상으로 선정 (부족하면 연관키워드로 보충)
-      const topKws = pickTopKeywordsByVolume(allVolumes, candidateKws, 3);
-
-      // 3단계: 순위 조회 (3개를 한 묶음으로, 딜레이 80ms 그대로 유지)
-      progTxt.textContent = `[${i+1}/${total}] 순위 스캔 중... (${topKws.length}개)`;
+      // 2단계: 순위 조회 (3개씩 묶어서, 딜레이 80ms)
+      progTxt.textContent = `[${i+1}/${total}] 순위 스캔 중... (${allKws.length}개)`;
       const rankResults = [];
-      for (let j = 0; j < topKws.length; j += 3) {
+      for (let j = 0; j < allKws.length; j += 3) {
         if (!radarScanning) break;
-        const chunk = topKws.slice(j, j+3);
+        const chunk = allKws.slice(j, j+3);
         const ranks = await Promise.all(chunk.map(kw => checkRank(kw, blogId)));
         chunk.forEach((kw, k) => rankResults.push({ kw, rank: ranks[k] }));
-        if (j+3 < topKws.length) await new Promise(r => setTimeout(r, 80));
+        if (j+3 < allKws.length) await new Promise(r => setTimeout(r, 80));
       }
 
-      // 키워드 적합도는 "의도 키워드(candidateKws)"가 제목에 잘 반영됐는지로 평가 — 스캔 대상(topKws)과는 별개 기준
-      const score = calcPostScore(rankResults.map(r=>r.rank), post.pubDate, post.title, candidateKws);
+      const score = calcPostScore(rankResults.map(r=>r.rank), post.pubDate, post.title, baseKws);
       radarScores[i] = score;
 
       if (page === radarPage) {

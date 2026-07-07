@@ -4,110 +4,184 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KEYWORD COCKPIT — 관리자</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--blue:#1428a0;--blue2:#1a34c8;--blue-pale:#f0f2fd;--bg:#f4f4f4;--bg2:#fff;--border:#e5e5e5;--text:#1a1a1a;--text2:#444;--text3:#888;--green:#00b200;--green-bg:#e6f7e6;--red:#c00;--shadow:0 2px 12px rgba(0,0,0,0.08)}
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);font-family:'Noto Sans KR','Roboto',sans-serif;color:var(--text);min-height:100vh}
-.topbar{background:var(--blue);height:56px;display:flex;align-items:center;padding:0 24px;justify-content:space-between;position:sticky;top:0;z-index:99;box-shadow:0 2px 8px rgba(0,0,0,0.15)}
-.topbar-brand{color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;gap:10px}
-.topbar-badge{background:rgba(255,255,255,0.2);border-radius:4px;padding:3px 10px;font-size:11px;font-weight:600;color:#fff}
-.topbar-back{color:rgba(255,255,255,0.75);font-size:12px;text-decoration:none;background:rgba(255,255,255,0.12);border-radius:6px;padding:5px 12px;transition:background 0.15s}
-.topbar-back:hover{background:rgba(255,255,255,0.22)}
-.page{max-width:900px;margin:0 auto;padding:28px 16px 80px}
+:root{
+  --accent:#2f5fd0;
+  --accent-soft:#eef1fb;
+  --accent2:#1f9e8f;
+  --accent2-soft:#eaf7f5;
+  --bg:#f5f6f8;
+  --card:#fff;
+  --border:#e7e9ee;
+  --text:#1c2430;
+  --text2:#46505d;
+  --text3:#9aa3b0;
+  --text4:#aab2bd;
+  --red:#d64545;
+  --shadow:0 1px 3px rgba(20,30,50,0.05);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);font-family:'Noto Sans KR','Pretendard',-apple-system,'Apple SD Gothic Neo',sans-serif;color:var(--text);min-height:100vh}
+.mono{font-family:'JetBrains Mono',monospace}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:#d9dde4;border-radius:5px}
+::-webkit-scrollbar-thumb:hover{background:#c6ccd5}
+
+@keyframes kc-spin{to{transform:rotate(360deg)}}
+@keyframes kc-fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* 헤더 */
+.topbar{position:sticky;top:0;z-index:30;background:rgba(248,249,251,0.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.topbar-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:62px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.topbar-brand{display:flex;align-items:center;gap:11px;min-width:0}
+.topbar-logo{width:36px;height:36px;border-radius:9px;background:transparent;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.topbar-title{font-size:15px;font-weight:700;letter-spacing:-0.01em;color:var(--text);white-space:nowrap}
+.topbar-badge{font-size:11px;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:3px 10px;letter-spacing:0.02em;white-space:nowrap}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:7px;border-radius:9px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;border:1px solid transparent}
+.btn-ghost{border-color:var(--border);background:#fff;color:var(--text2)}
+.btn-ghost:hover{background:#f3f5f8;border-color:#d4d8df}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 2px 6px rgba(47,95,208,0.22)}
+.btn-primary:hover{filter:brightness(1.06)}
+.btn-primary:disabled,.btn-ghost:disabled{opacity:.55;cursor:not-allowed;filter:none}
+.btn svg{flex-shrink:0}
+.spin{transform-origin:center;animation:kc-spin .65s linear}
+
+.page{max-width:1200px;margin:0 auto;padding:30px 24px 64px;display:flex;flex-direction:column;gap:30px}
 
 /* 로그인 */
-.login-wrap{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 56px)}
-.login-card{background:#fff;border-radius:12px;padding:40px;width:100%;max-width:380px;box-shadow:var(--shadow);text-align:center}
-.login-icon{font-size:48px;margin-bottom:16px}
-.login-title{font-size:18px;font-weight:700;margin-bottom:8px}
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 62px)}
+.login-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:40px;width:100%;max-width:380px;box-shadow:var(--shadow);text-align:center}
+.login-icon-wrap{width:52px;height:52px;border-radius:14px;background:var(--accent-soft);color:var(--accent);display:inline-flex;align-items:center;justify-content:center;margin-bottom:18px}
+.login-title{font-size:18px;font-weight:700;margin-bottom:6px;letter-spacing:-0.01em}
 .login-sub{font-size:13px;color:var(--text3);margin-bottom:24px}
-.input{width:100%;background:#fff;border:1.5px solid #d0d0d0;border-radius:6px;padding:12px 14px;font-family:'Noto Sans KR',sans-serif;font-size:14px;color:var(--text);outline:none;transition:border-color 0.15s}
-.input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(20,40,160,0.1)}
-.btn{font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:600;border:none;border-radius:6px;cursor:pointer;padding:12px 20px;transition:all 0.15s;width:100%;margin-top:12px}
-.btn-primary{background:var(--blue);color:#fff}
-.btn-primary:hover{background:var(--blue2)}
+.input{width:100%;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-family:inherit;font-size:14px;color:var(--text);outline:none;transition:border-color .15s}
+.input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.login-card .btn{width:100%;justify-content:center;margin-top:12px;padding:12px 20px}
 .login-err{font-size:12px;color:var(--red);margin-top:8px;display:none}
 .login-err.show{display:block}
 
-/* 대시보드 */
-.dashboard{display:none}
-.dashboard.show{display:block}
-.section-title{font-size:13px;font-weight:700;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:6px}
-.section-title::before{content:'';width:3px;height:14px;background:var(--blue);border-radius:2px;flex-shrink:0}
+/* 섹션 헤더 */
+.section-title{display:flex;align-items:center;gap:10px;margin-bottom:15px}
+.section-title-bar{width:4px;height:15px;border-radius:2px;background:var(--accent);flex-shrink:0}
+.section-title-icon{color:var(--accent);display:inline-flex;flex-shrink:0}
+.section-title-icon.t2{color:var(--accent2)}
+.section-title-text{font-size:15px;font-weight:700;letter-spacing:-0.01em}
+.section-title-tag{font-size:11px;font-weight:600;color:var(--text3);background:#f3f5f8;border-radius:999px;padding:2px 9px;font-family:'JetBrains Mono',monospace}
+.section-head-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px;flex-wrap:wrap}
+
+section{animation:kc-fade .5s ease both}
 
 /* 통계 그리드 */
-.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
-.stat-card{background:#fff;border-radius:10px;padding:18px 16px;box-shadow:var(--shadow);text-align:center;border-top:3px solid var(--blue)}
-.stat-num{font-size:30px;font-weight:700;font-family:'Roboto',sans-serif;color:var(--blue);line-height:1;margin-bottom:6px}
-.stat-lbl{font-size:11px;color:var(--text3);font-weight:600;letter-spacing:0.3px;text-transform:uppercase}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.stat-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:20px 22px;display:flex;flex-direction:column;gap:13px}
+.stat-icon-wrap{width:30px;height:30px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.stat-grid-search .stat-icon-wrap{background:var(--accent2-soft);color:var(--accent2)}
+.stat-icon-row{display:flex;align-items:center;gap:9px}
+.stat-lbl{font-size:13px;font-weight:600;color:var(--text2)}
+.stat-num{font-variant-numeric:tabular-nums;font-weight:700;font-size:34px;letter-spacing:-0.03em;line-height:1;color:var(--text)}
+.stat-cap{font-size:12px;color:var(--text3)}
 
-/* 차트 */
-.chart-card{background:#fff;border-radius:10px;padding:20px;box-shadow:var(--shadow);margin-bottom:20px}
-.bar-chart{display:flex;align-items:flex-end;gap:6px;height:120px;margin-top:16px}
-.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
-.bar{width:100%;background:var(--blue);border-radius:4px 4px 0 0;transition:height 0.4s ease;min-height:2px;opacity:0.85}
-.bar:hover{opacity:1}
-.bar-lbl{font-size:9px;color:var(--text3);font-family:'Roboto',sans-serif}
-.bar-val{font-size:10px;color:var(--blue);font-weight:700;font-family:'Roboto',sans-serif}
+/* 차트 카드 */
+.chart-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:22px 24px 18px}
+.chart-avg{font-size:12.5px;color:var(--text3)}
+.chart-avg b{color:var(--text2);font-weight:700}
+.chart-legend{display:flex;align-items:center;gap:18px;margin-bottom:6px;flex-wrap:wrap}
+.chart-legend-item{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)}
+.chart-legend-swatch{width:14px;height:3px;border-radius:2px;display:inline-block;flex-shrink:0}
+.chart-legend-swatch.dashed{height:0;border-top:2px dashed var(--text4);background:none}
+.line-chart-wrap{width:100%;overflow:hidden}
+.line-chart-wrap svg{width:100%;height:auto;display:block;overflow:visible}
+
+/* 2단 컬럼 */
+.two-col{display:grid;grid-template-columns:1.32fr 1fr;gap:20px;align-items:start}
+.list-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:20px 22px}
 
 /* 키워드 리스트 */
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
-.kw-list{display:flex;flex-direction:column;gap:6px}
-.kw-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg);border-radius:6px;font-size:13px}
-.kw-rank{font-size:11px;font-weight:700;color:#fff;background:var(--blue);border-radius:4px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-family:'Roboto',sans-serif;flex-shrink:0}
-.kw-rank.gold{background:#f5a623}
-.kw-rank.silver{background:#9b9b9b}
-.kw-rank.bronze{background:#c47a35}
-.kw-text{flex:1;font-weight:500}
-.kw-count{font-size:11px;color:var(--text3);font-family:'Roboto',sans-serif;flex-shrink:0}
-.kw-bar-wrap{flex:1;background:var(--border);border-radius:3px;height:5px;overflow:hidden;margin:0 8px}
-.kw-bar-fill{height:100%;background:var(--blue);border-radius:3px}
+.kw-item{display:flex;align-items:center;gap:14px;padding:9px 0;border-bottom:1px solid #f1f2f5}
+.kw-item:last-child{border-bottom:none}
+.kw-rank{flex:none;width:24px;height:24px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;background:#eef1f6;color:#8a93a0}
+.kw-rank.top{background:var(--accent);color:#fff}
+.kw-text{flex:none;width:138px;font-size:14px;font-weight:600;color:#27303c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kw-bar-wrap{flex:1;height:6px;border-radius:3px;background:#eef1f6;overflow:hidden}
+.kw-bar-fill{display:block;height:100%;border-radius:3px;background:var(--accent)}
+.kw-count{flex:none;width:46px;text-align:right;font-size:13px;font-weight:700;color:var(--text2);font-variant-numeric:tabular-nums;font-family:'JetBrains Mono',monospace}
+.kw-count span{font-size:11px;font-weight:500;color:var(--text4);font-family:'Noto Sans KR',sans-serif}
 
-/* 최근 키워드 */
-.recent-list{display:flex;flex-direction:column;gap:4px}
-.recent-item{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;background:var(--bg);border-radius:6px;font-size:12px}
-.recent-kw{font-weight:500;color:var(--text)}
-.recent-time{color:var(--text3);font-family:'Roboto',sans-serif;font-size:11px}
+/* 최근 검색 리스트 */
+.recent-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8.5px 0;border-bottom:1px solid #f1f2f5}
+.recent-item:last-child{border-bottom:none}
+.recent-kw-wrap{display:flex;align-items:center;gap:9px;min-width:0;font-size:14px;color:#27303c}
+.recent-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);opacity:.45;flex-shrink:0}
+.recent-kw{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.recent-time{flex:none;font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace}
 
-/* 새로고침 */
-.refresh-btn{font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:600;color:var(--blue);background:var(--blue-pale);border:1px solid rgba(20,40,160,0.2);border-radius:6px;padding:5px 14px;cursor:pointer;transition:all 0.15s;margin-left:auto}
-.refresh-btn:hover{background:var(--blue);color:#fff}
-.last-updated{font-size:11px;color:var(--text3);margin-top:6px;text-align:right}
+.empty-msg{font-size:13px;color:var(--text3);padding:16px 0;text-align:center}
+.loading{text-align:center;padding:40px 0;color:var(--text3);font-size:13px}
+.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:kc-spin .8s linear infinite;margin:0 auto 12px}
 
-.loading{text-align:center;padding:48px;color:var(--text3);font-size:13px}
-.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 12px}
-@keyframes spin{to{transform:rotate(360deg)}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.dashboard{animation:fadeUp 0.3s ease both}
+.footer-row{display:flex;align-items:center;justify-content:space-between;padding-top:4px;flex-wrap:wrap;gap:6px}
+.footer-row span{font-size:12px;color:var(--text4)}
+.footer-row .mono{color:var(--text3)}
 
-@media(max-width:600px){
-  .stat-grid{grid-template-columns:1fr 1fr;gap:8px}
-  .stat-num{font-size:24px}
+.dashboard{display:none}
+.dashboard.show{display:block}
+
+@media(max-width:760px){
+  .topbar-inner{padding:0 16px}
+  .page{padding:20px 14px 56px}
+  .stat-grid{grid-template-columns:1fr 1fr;gap:10px}
+  .stat-card{padding:16px 16px;gap:10px}
+  .stat-num{font-size:26px}
   .two-col{grid-template-columns:1fr}
-  .page{padding:16px 12px 60px}
+  .kw-text{width:96px}
+}
+@media(max-width:420px){
+  .stat-grid{grid-template-columns:1fr 1fr;gap:8px}
 }
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <div class="topbar-brand">
-    ✈️ KEYWORD COCKPIT
-    <span class="topbar-badge">관리자</span>
+  <div class="topbar-inner">
+    <div class="topbar-brand">
+      <span class="topbar-logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#221e1a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="6" width="18" height="13" rx="4.2"></rect>
+          <line x1="7" y1="10.3" x2="14.5" y2="10.3" stroke="#e0633f" stroke-width="2.4"></line>
+          <line x1="7" y1="14.2" x2="11.5" y2="14.2" stroke="#cfcfcf" stroke-width="2.4"></line>
+        </svg>
+      </span>
+      <span class="topbar-title">KEYWORD COCKPIT</span>
+      <span class="topbar-badge">관리자</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost" id="refreshBtn" onclick="loadStats()">
+        <svg id="refreshIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"></path><path d="M21 4v5h-5"></path></svg>
+        새로고침
+      </button>
+      <a href="/" class="btn btn-primary" style="text-decoration:none">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5 12 5l8 6.5"></path><path d="M6.5 10v9h11v-9"></path></svg>
+        메인으로
+      </a>
+    </div>
   </div>
-  <a href="/" class="topbar-back">← 메인으로</a>
 </div>
 
 <!-- 로그인 -->
 <div class="login-wrap" id="loginWrap">
   <div class="login-card">
-    <div class="login-icon">🔐</div>
+    <div class="login-icon-wrap">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+    </div>
     <div class="login-title">관리자 로그인</div>
     <div class="login-sub">KEYWORD COCKPIT 통계 대시보드</div>
     <input class="input" type="password" id="pwInput" placeholder="비밀번호 입력"
       onkeydown="if(event.key==='Enter') doLogin()"/>
-    <button class="btn btn-primary" onclick="doLogin()">로그인</button>
+    <button class="btn btn-primary" id="loginBtn" onclick="doLogin()">로그인</button>
     <div class="login-err" id="loginErr">비밀번호가 올바르지 않습니다</div>
   </div>
 </div>
@@ -116,40 +190,77 @@ body{background:var(--bg);font-family:'Noto Sans KR','Roboto',sans-serif;color:v
 <div class="dashboard" id="dashboard">
   <div class="page">
 
-    <!-- 페이지뷰 통계 -->
-    <div class="section-title" style="justify-content:space-between">
-      <span style="display:flex;align-items:center;gap:6px"><span style="width:3px;height:14px;background:var(--blue);border-radius:2px;display:inline-block"></span>📊 방문자 통계</span>
-      <button class="refresh-btn" onclick="loadStats()">🔄 새로고침</button>
-    </div>
-    <div class="stat-grid" id="statGrid">
-      <div class="loading"><div class="spinner"></div>로딩 중...</div>
-    </div>
+    <!-- 방문자 통계 -->
+    <section>
+      <div class="section-title">
+        <span class="section-title-bar"></span>
+        <span class="section-title-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.2"></circle><path d="M5.5 19.5a6.5 6.5 0 0 1 13 0"></path></svg></span>
+        <span class="section-title-text">방문자 통계</span>
+      </div>
+      <div class="stat-grid" id="statGrid">
+        <div class="loading"><div class="spinner"></div>로딩 중...</div>
+      </div>
+    </section>
+
+    <!-- 검색 통계 -->
+    <section>
+      <div class="section-title">
+        <span class="section-title-bar"></span>
+        <span class="section-title-icon t2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6"></circle><path d="m20 20-3.8-3.8"></path></svg></span>
+        <span class="section-title-text">키워드 검색 통계</span>
+      </div>
+      <div class="stat-grid stat-grid-search" id="searchStatGrid">
+        <div class="loading"><div class="spinner"></div>로딩 중...</div>
+      </div>
+    </section>
 
     <!-- 일별 차트 -->
-    <div class="chart-card">
-      <div class="section-title">📈 최근 7일 페이지뷰</div>
-      <div class="bar-chart" id="barChart">
+    <section class="chart-card">
+      <div class="section-head-row">
+        <div class="section-title" style="margin-bottom:0">
+          <span class="section-title-bar"></span>
+          <span class="section-title-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15l5-5 4 4 7-8"></path><path d="M20 6h-4M20 6v4"></path></svg></span>
+          <span class="section-title-text">최근 30일 방문자 · 검색 추이</span>
+        </div>
+        <div class="chart-avg" id="chartAvg"></div>
+      </div>
+      <div class="chart-legend" id="chartLegend"></div>
+      <div class="line-chart-wrap" id="barChart">
         <div class="loading" style="width:100%">로딩 중...</div>
       </div>
-    </div>
+    </section>
 
     <!-- 키워드 통계 -->
-    <div class="two-col">
-      <div>
-        <div class="section-title">🔥 인기 검색 키워드 TOP 20</div>
-        <div class="kw-list" id="topKwList">
+    <section class="two-col">
+      <div class="list-card">
+        <div class="section-title" style="margin-bottom:6px">
+          <span class="section-title-bar"></span>
+          <span class="section-title-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15l5-5 4 4 7-8"></path><path d="M20 6h-4M20 6v4"></path></svg></span>
+          <span class="section-title-text">인기 검색 키워드</span>
+          <span class="section-title-tag">TOP 20</span>
+        </div>
+        <div id="topKwList">
           <div class="loading">로딩 중...</div>
         </div>
       </div>
-      <div>
-        <div class="section-title">🕒 최근 검색 키워드</div>
-        <div class="recent-list" id="recentKwList">
+
+      <div class="list-card">
+        <div class="section-title" style="margin-bottom:6px">
+          <span class="section-title-bar"></span>
+          <span class="section-title-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 8v4.2l2.8 1.8"></path></svg></span>
+          <span class="section-title-text">최근 검색 키워드</span>
+        </div>
+        <div id="recentKwList">
           <div class="loading">로딩 중...</div>
         </div>
       </div>
+    </section>
+
+    <div class="footer-row">
+      <span>Keyword Cockpit · Admin Console</span>
+      <span class="mono" id="lastUpdated"></span>
     </div>
 
-    <div class="last-updated" id="lastUpdated"></div>
   </div>
 </div>
 
@@ -160,10 +271,24 @@ function doLogin() {
   const pw = document.getElementById('pwInput').value;
   if (!pw) return;
   adminToken = pw;
-  loadStats();
+  const btn = document.getElementById('loginBtn');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '🔐 로그인 중...';
+  }
+  loadStats().finally(() => {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '로그인';
+    }
+  });
 }
 
 async function loadStats() {
+  const btn = document.getElementById('refreshBtn');
+  const icon = document.getElementById('refreshIcon');
+  if (btn) btn.disabled = true;
+  if (icon) icon.classList.add('spin');
   try {
     const res  = await fetch('/api/stats', {
       headers: { 'Authorization': `Bearer ${adminToken}` }
@@ -183,59 +308,163 @@ async function loadStats() {
     renderStats(json);
   } catch(e) {
     alert('데이터 로드 실패: ' + e.message);
+  } finally {
+    if (btn) btn.disabled = false;
+    if (icon) icon.classList.remove('spin');
   }
+}
+
+// 통계 카드 아이콘
+const ICONS = {
+  today: '<circle cx="12" cy="8" r="3.2"></circle><path d="M5.5 19.5a6.5 6.5 0 0 1 13 0"></path>',
+  search: '<circle cx="11" cy="11" r="6"></circle><path d="m20 20-3.8-3.8"></path>',
+  cal: '<rect x="4" y="5" width="16" height="16" rx="2.5"></rect><path d="M4 9.5h16M8.5 3.5v3M15.5 3.5v3"></path>',
+  total: '<path d="M3 21V9l9-6 9 6v12"></path><path d="M3 21h18"></path><path d="M9 21v-6h6v6"></path>'
+};
+function iconSvg(name) {
+  return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]}</svg>`;
+}
+function statCard(iconName, label, value, caption) {
+  return `<div class="stat-card">
+    <div class="stat-icon-row">
+      <span class="stat-icon-wrap">${iconSvg(iconName)}</span>
+      <span class="stat-lbl">${label}</span>
+    </div>
+    <div class="stat-num">${Number(value||0).toLocaleString()}</div>
+    <div class="stat-cap">${caption}</div>
+  </div>`;
 }
 
 function renderStats(data) {
   const pv = data.pageviews || {};
+  const sr = data.searches || {};
 
-  // 통계 카드
-  document.getElementById('statGrid').innerHTML = `
-    <div class="stat-card">
-      <div class="stat-num">${Number(pv.today||0).toLocaleString()}</div>
-      <div class="stat-lbl">오늘 방문</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num">${Number(pv.week||0).toLocaleString()}</div>
-      <div class="stat-lbl">7일 방문</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num">${Number(pv.month||0).toLocaleString()}</div>
-      <div class="stat-lbl">30일 방문</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num">${Number(pv.total||0).toLocaleString()}</div>
-      <div class="stat-lbl">누적 방문</div>
-    </div>`;
+  // 방문자 통계 카드
+  document.getElementById('statGrid').innerHTML =
+    statCard('today', '오늘 방문', pv.today, `최근 7일 ${Number(pv.week||0).toLocaleString()}회`) +
+    statCard('today', '7일 방문', pv.week, '최근 7일 합계') +
+    statCard('cal', '30일 방문', pv.month, `일 평균 ${(Number(pv.month||0)/30).toFixed(1)}회`) +
+    statCard('total', '누적 방문', pv.total, '전체 기간');
 
-  // 일별 차트
+  // 검색 통계 카드
+  document.getElementById('searchStatGrid').innerHTML =
+    statCard('search', '오늘 검색', sr.today, `최근 7일 ${Number(sr.week||0).toLocaleString()}회`) +
+    statCard('search', '7일 검색', sr.week, '최근 7일 합계') +
+    statCard('cal', '30일 검색', sr.month, `일 평균 ${(Number(sr.month||0)/30).toFixed(1)}회`) +
+    statCard('total', '누적 검색', sr.total, '전체 기간');
+
+  // 일별 차트 (30일 방문자+검색 라인 차트 + 방문자 평균선)
   const daily = data.dailyViews || [];
-  const maxVal = Math.max(...daily.map(d => d.count), 1);
-  document.getElementById('barChart').innerHTML = daily.map(d => {
-    const h = Math.max(Math.round((d.count / maxVal) * 100), 2);
-    const mon = d.date.slice(5,7) + '/' + d.date.slice(8,10);
-    return `<div class="bar-wrap">
-      <div class="bar-val">${d.count}</div>
-      <div class="bar" style="height:${h}px" title="${d.date}: ${d.count}건"></div>
-      <div class="bar-lbl">${mon}</div>
-    </div>`;
-  }).join('');
+  const dailyKw = data.dailySearches || [];
+  const avg = Number(data.monthAvg || 0);
+  const kwAvg = Number(data.monthSearchAvg || 0);
+
+  document.getElementById('chartAvg').innerHTML = daily.length
+    ? `30일 평균 · 방문 <b>${avg.toLocaleString()}</b>회 · 검색 <b>${kwAvg.toLocaleString()}</b>회`
+    : '';
+
+  document.getElementById('chartLegend').innerHTML = daily.length ? `
+    <span class="chart-legend-item"><span class="chart-legend-swatch" style="background:var(--accent)"></span>방문자</span>
+    <span class="chart-legend-item"><span class="chart-legend-swatch" style="background:var(--accent2)"></span>검색</span>
+    <span class="chart-legend-item"><span class="chart-legend-swatch dashed"></span>방문자 평균</span>
+  ` : '';
+
+  document.getElementById('barChart').innerHTML = renderLineChart(daily, dailyKw, avg);
+
+  function renderLineChart(daily, dailyKw, avg) {
+    if (!daily.length) return '<div class="loading" style="width:100%">데이터가 없습니다</div>';
+
+    const containerEl = document.getElementById('barChart');
+    const renderWidthPx = (containerEl && containerEl.clientWidth) || 700;
+
+    const W = renderWidthPx, H = 200;  // viewBox를 실제 렌더링 폭에 맞춰 1:1로 — 폰트가 화면에서 항상 같은 픽셀 크기로 보임
+    const padL = 12, padR = 12, padT = 14, padB = 26;
+    const innerW = W - padL - padR;
+    const innerH = H - padT - padB;
+
+    // 두 시리즈(방문자/검색)를 같은 스케일로 그리기 위해 전체 최댓값 기준으로 정규화
+    const kwVals = dailyKw.map(d => d.count);
+    const maxVal = Math.max(...daily.map(d => d.count), ...kwVals, avg, 1) * 1.12;
+    const n = daily.length;
+    const stepX = n > 1 ? innerW / (n - 1) : 0;
+
+    const toPoints = (arr) => arr.map((d, i) => {
+      const x = padL + i * stepX;
+      const y = padT + innerH - (d.count / maxVal) * innerH;
+      return { x, y, date: d.date, count: d.count };
+    });
+
+    const points = toPoints(daily);
+    const kwPoints = dailyKw.length === n ? toPoints(dailyKw) : [];
+
+    const toLinePath = (pts) => pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+    const linePath = toLinePath(points);
+    const kwLinePath = kwPoints.length ? toLinePath(kwPoints) : '';
+    const baseY = padT + innerH;
+    const areaPath = `${linePath} L ${points[n-1].x.toFixed(1)} ${baseY.toFixed(1)} L ${points[0].x.toFixed(1)} ${baseY.toFixed(1)} Z`;
+
+    const avgY = padT + innerH - (avg / maxVal) * innerH;
+
+    // x축 라벨: 컨테이너 실제 너비 기준으로 라벨 하나당 최소 폭을 확보 (모바일에서 겹침 방지)
+    const minLabelPx = 38;
+    const maxLabels = Math.max(Math.floor(renderWidthPx / minLabelPx), 2);
+    const labelEvery = Math.max(Math.ceil((n - 1) / (maxLabels - 1)), 1);
+    const fontSize = renderWidthPx < 420 ? 10 : 12;
+    const labels = points.map((p, i) => {
+      const show = i === 0 || i === n - 1 || i % labelEvery === 0;
+      if (!show) return '';
+      const mon = p.date.slice(5,7) + '/' + p.date.slice(8,10);
+      const anchor = i === 0 ? 'start' : (i === n - 1 ? 'end' : 'middle');
+      return `<text x="${p.x.toFixed(1)}" y="${H - 8}" font-size="${fontSize}" fill="#9aa3b0" text-anchor="${anchor}" font-family="JetBrains Mono,monospace">${mon}</text>`;
+    }).join('');
+
+    const hitR = Math.max(Math.min(stepX / 2 - 1, 9), 6);
+    const makeDots = (pts, color, labelSuffix) => pts.map((p, i) => `
+      ${i >= n - 11 ? `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2.7" fill="#fff" stroke="${color}" stroke-width="1.6"></circle>` : ''}
+      <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${hitR.toFixed(1)}" fill="transparent" stroke="none">
+        <title>${p.date}: ${p.count}${labelSuffix}</title>
+      </circle>`
+    ).join('');
+
+    const dots = makeDots(points, '#2f5fd0', '건 방문');
+    const kwDots = kwPoints.length ? makeDots(kwPoints, '#1f9e8f', '건 검색') : '';
+
+    return `
+      <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="kcArea" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#2f5fd0" stop-opacity="0.15"></stop>
+            <stop offset="100%" stop-color="#2f5fd0" stop-opacity="0"></stop>
+          </linearGradient>
+        </defs>
+        ${[0,0.25,0.5,0.75,1].map(g => `<line x1="${padL}" x2="${W-padR}" y1="${(padT+g*innerH).toFixed(1)}" y2="${(padT+g*innerH).toFixed(1)}" stroke="#eef0f4" stroke-width="1"></line>`).join('')}
+        <path d="${areaPath}" fill="url(#kcArea)" stroke="none"></path>
+        <line x1="${padL}" y1="${avgY.toFixed(1)}" x2="${W - padR}" y2="${avgY.toFixed(1)}"
+              stroke="#b9c0cc" stroke-width="1.4" stroke-dasharray="6 6"></line>
+        ${kwLinePath ? `<path d="${kwLinePath}" fill="none" stroke="#1f9e8f" stroke-width="2"
+              stroke-linejoin="round" stroke-linecap="round"></path>` : ''}
+        <path d="${linePath}" fill="none" stroke="#2f5fd0" stroke-width="2.4"
+              stroke-linejoin="round" stroke-linecap="round"></path>
+        ${dots}
+        ${kwDots}
+        ${labels}
+      </svg>`;
+  }
 
   // 인기 키워드
   const topKw = data.topKeywords || [];
   const maxCnt = topKw[0]?.count || 1;
   document.getElementById('topKwList').innerHTML = topKw.length
     ? topKw.map((k, i) => {
-        const rankCls = i===0?'gold':i===1?'silver':i===2?'bronze':'';
-        const pct = Math.round(k.count/maxCnt*100);
+        const pct = Math.max(7, Math.round(k.count/maxCnt*100));
         return `<div class="kw-item">
-          <div class="kw-rank ${rankCls}">${i+1}</div>
+          <div class="kw-rank ${i<3?'top':''}">${i+1}</div>
           <div class="kw-text">${k.keyword}</div>
-          <div class="kw-bar-wrap"><div class="kw-bar-fill" style="width:${pct}%"></div></div>
-          <div class="kw-count">${k.count}회</div>
+          <div class="kw-bar-wrap"><span class="kw-bar-fill" style="width:${pct}%"></span></div>
+          <div class="kw-count">${k.count}<span>회</span></div>
         </div>`;
       }).join('')
-    : '<div style="font-size:13px;color:var(--text3);padding:12px">검색 기록이 없습니다</div>';
+    : '<div class="empty-msg">검색 기록이 없습니다</div>';
 
   // 최근 키워드
   const recentKw = data.recentKeywords || [];
@@ -245,15 +474,18 @@ function renderStats(data) {
         const timeStr = t.toLocaleDateString('ko-KR',{month:'short',day:'numeric'}) + ' ' +
           t.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
         return `<div class="recent-item">
-          <span class="recent-kw">${k.keyword}</span>
+          <span class="recent-kw-wrap">
+            <span class="recent-dot"></span>
+            <span class="recent-kw">${k.keyword}</span>
+          </span>
           <span class="recent-time">${timeStr}</span>
         </div>`;
       }).join('')
-    : '<div style="font-size:13px;color:var(--text3);padding:12px">검색 기록이 없습니다</div>';
+    : '<div class="empty-msg">검색 기록이 없습니다</div>';
 
   const now = new Date();
   document.getElementById('lastUpdated').textContent =
-    `마지막 업데이트: ${now.toLocaleTimeString('ko-KR')}`;
+    `마지막 업데이트 ${now.toLocaleTimeString('ko-KR')}`;
 }
 </script>
 </body>
