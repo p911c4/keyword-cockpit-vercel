@@ -53,9 +53,7 @@ function parseRSS(xml) {
     const link        = get('link');
     const description = get('description').replace(/<[^>]+>/g,'').slice(0, 80);
     const pubDate     = get('pubDate');
-    const tagRaw      = get('tag'); // 콤마로 구분된 글쓴이 직접 입력 해시태그
-    const tags        = tagRaw ? tagRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
-    if (title && link) items.push({ title, link, description, pubDate, tags });
+    if (title && link) items.push({ title, link, description, pubDate });
   }
   items.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
   return items;

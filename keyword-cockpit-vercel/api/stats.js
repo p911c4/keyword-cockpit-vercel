@@ -2,6 +2,36 @@ const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+
+// UTC ISO 문자열 → KST 기준 YYYY-MM-DD
+function toKSTDateString(isoString) {
+  const utcDate = new Date(isoString);
+  const kstDate = new Date(utcDate.getTime() + KST_OFFSET_MS);
+  return kstDate.toISOString().slice(0, 10);
+}
+
+// "KST 기준 오늘 00:00"을 UTC ISO 문자열로 변환
+function kstTodayStartUTC() {
+  const now = new Date();
+  const kstNow = new Date(now.getTime() + KST_OFFSET_MS);
+  const y = kstNow.getUTCFullYear();
+  const m = kstNow.getUTCMonth();
+  const d = kstNow.getUTCDate();
+  // KST 00:00 = UTC 전날 15:00 이므로, UTC 기준 날짜로 만든 뒤 9시간을 다시 빼준다
+  return new Date(Date.UTC(y, m, d) - KST_OFFSET_MS).toISOString();
+}
+
+// "KST 기준 N일 전 00:00"을 UTC ISO 문자열로 변환
+function kstDaysAgoStartUTC(daysAgo) {
+  const now = new Date();
+  const kstNow = new Date(now.getTime() + KST_OFFSET_MS);
+  const y = kstNow.getUTCFullYear();
+  const m = kstNow.getUTCMonth();
+  const d = kstNow.getUTCDate() - daysAgo;
+  return new Date(Date.UTC(y, m, d) - KST_OFFSET_MS).toISOString();
+}
+
 async function supabaseQuery(path) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     headers: {
@@ -26,14 +56,12 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const now = new Date();
-
-    // 오늘 날짜 범위
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-    // 7일 전
-    const week = new Date(now - 7*24*60*60*1000).toISOString();
-    // 30일 전
-    const month = new Date(now - 30*24*60*60*1000).toISOString();
+    // 오늘 날짜 범위 (KST 기준 00:00)
+    const todayStart = kstTodayStartUTC();
+    // 7일 전 (KST 기준 00:00, 오늘 포함 7일 구간)
+    const week = kstDaysAgoStartUTC(6);
+    // 30일 전 (KST 기준 00:00, 오늘 포함 30일 구간)
+    const month = kstDaysAgoStartUTC(29);
 
     // 전체 페이지뷰
     const [pvTotal, pvToday, pvWeek, pvMonth] = await Promise.all([
@@ -41,6 +69,14 @@ module.exports = async (req, res) => {
       supabaseQuery(`page_views?select=count&created_at=gte.${todayStart}`),
       supabaseQuery(`page_views?select=count&created_at=gte.${week}`),
       supabaseQuery(`page_views?select=count&created_at=gte.${month}`),
+    ]);
+
+    // 키워드 검색 횟수 (오늘/7일/30일/누적) — page_views와 동일한 방식으로 search_logs 집계
+    const [kwTotal, kwToday, kwWeek, kwMonth] = await Promise.all([
+      supabaseQuery('search_logs?select=count'),
+      supabaseQuery(`search_logs?select=count&created_at=gte.${todayStart}`),
+      supabaseQuery(`search_logs?select=count&created_at=gte.${week}`),
+      supabaseQuery(`search_logs?select=count&created_at=gte.${month}`),
     ]);
 
     // 인기 키워드 TOP 20 (전체)
@@ -58,21 +94,45 @@ module.exports = async (req, res) => {
       .slice(0, 20)
       .map(([keyword, count]) => ({ keyword, count }));
 
-    // 최근 7일 일별 페이지뷰
+    // 최근 30일 일별 페이지뷰 (KST 기준 날짜로 집계)
     const pvDaily = await supabaseQuery(
-      `page_views?select=created_at&created_at=gte.${week}&order=created_at.asc`
+      `page_views?select=created_at&created_at=gte.${month}&order=created_at.asc`
     );
     const dailyMap = {};
-    for (let i=6; i>=0; i--) {
-      const d = new Date(now - i*24*60*60*1000);
-      const key = d.toISOString().slice(0,10);
+    for (let i = 29; i >= 0; i--) {
+      const key = toKSTDateString(kstDaysAgoStartUTC(i));
       dailyMap[key] = 0;
     }
     (pvDaily || []).forEach(r => {
-      const key = r.created_at.slice(0,10);
+      const key = toKSTDateString(r.created_at);
       if (dailyMap[key] !== undefined) dailyMap[key]++;
     });
     const dailyViews = Object.entries(dailyMap).map(([date, count]) => ({ date, count }));
+
+    // 30일 평균 (일별 합 ÷ 30)
+    const monthAvg = dailyViews.length
+      ? Math.round((dailyViews.reduce((sum, d) => sum + d.count, 0) / dailyViews.length) * 10) / 10
+      : 0;
+
+    // 최근 30일 일별 검색 횟수 (KST 기준 날짜로 집계, 페이지뷰와 동일 구조)
+    const kwDaily = await supabaseQuery(
+      `search_logs?select=created_at&created_at=gte.${month}&order=created_at.asc`
+    );
+    const kwDailyMap = {};
+    for (let i = 29; i >= 0; i--) {
+      const key = toKSTDateString(kstDaysAgoStartUTC(i));
+      kwDailyMap[key] = 0;
+    }
+    (kwDaily || []).forEach(r => {
+      const key = toKSTDateString(r.created_at);
+      if (kwDailyMap[key] !== undefined) kwDailyMap[key]++;
+    });
+    const dailySearches = Object.entries(kwDailyMap).map(([date, count]) => ({ date, count }));
+
+    // 30일 검색 평균
+    const monthSearchAvg = dailySearches.length
+      ? Math.round((dailySearches.reduce((sum, d) => sum + d.count, 0) / dailySearches.length) * 10) / 10
+      : 0;
 
     // 최근 검색 키워드 20개
     const recentKw = await supabaseQuery(
@@ -86,8 +146,17 @@ module.exports = async (req, res) => {
         week:   pvWeek?.[0]?.count   || 0,
         month:  pvMonth?.[0]?.count  || 0,
       },
+      searches: {
+        total:  kwTotal?.[0]?.count  || 0,
+        today:  kwToday?.[0]?.count  || 0,
+        week:   kwWeek?.[0]?.count   || 0,
+        month:  kwMonth?.[0]?.count  || 0,
+      },
       topKeywords,
       dailyViews,
+      monthAvg,
+      dailySearches,
+      monthSearchAvg,
       recentKeywords: recentKw || [],
     });
 
