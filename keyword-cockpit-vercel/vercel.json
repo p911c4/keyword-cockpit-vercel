@@ -1,10 +1,22 @@
 {
-  "rewrites": [
-    { "source": "/api/keyword", "destination": "/api/keyword.js" },
-    { "source": "/api/blog",    "destination": "/api/blog.js"    },
-    { "source": "/api/trend",   "destination": "/api/trend.js"   },
-    { "source": "/api/log",     "destination": "/api/log.js"     },
-    { "source": "/api/stats",   "destination": "/api/stats.js"   },
-    { "source": "/admin",       "destination": "/admin.html" }
+  "version": 2,
+  "builds": [
+    { "src": "api/*.js", "use": "@vercel/node" },
+    { "src": "public/**", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/api/keyword",   "dest": "/api/keyword.js"   },
+    { "src": "/api/blog",      "dest": "/api/blog.js"      },
+    { "src": "/api/trend",     "dest": "/api/trend.js"     },
+    { "src": "/api/myposts",   "dest": "/api/myposts.js"   },
+    { "src": "/api/blogstats", "dest": "/api/blogstats.js" },
+    { "src": "/api/log",       "dest": "/api/log.js"       },
+    { "src": "/api/stats",     "dest": "/api/stats.js"     },
+    { "src": "/api/cleanup",   "dest": "/api/cleanup.js"   },
+    { "src": "/admin",         "dest": "/public/admin.html" },
+    { "src": "/",              "dest": "/public/index.html" }
+  ],
+  "crons": [
+    { "path": "/api/cleanup", "schedule": "0 19 * * *" }
   ]
 }
