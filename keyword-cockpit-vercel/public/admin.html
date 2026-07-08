@@ -415,9 +415,32 @@ function renderStats(data) {
     const maxLabels = Math.max(Math.floor(renderWidthPx / minLabelPx), 2);
     const labelEvery = Math.max(Math.ceil((n - 1) / (maxLabels - 1)), 1);
     const fontSize = renderWidthPx < 420 ? 10 : 12;
+    // 라벨 하나가 실제로 차지하는 대략적 폭(문자 5개, "MM/DD") — 이 폭의 70% 안으로 다음 라벨이 들어오면 겹침으로 간주
+    const approxLabelWidth = fontSize * 3.1;
+    const minGap = approxLabelWidth * 0.75;
+
+    const showIdx = [];
+    for (let i = 0; i < n; i++) {
+      const isEdge = i === 0 || i === n - 1;
+      const isTick = i % labelEvery === 0;
+      if (!isEdge && !isTick) continue;
+      const x = points[i].x;
+      // 이미 채택된 마지막 라벨과 너무 가까우면 건너뜀 (단, 맨 처음이거나 마지막 인덱스 자체는 아래에서 별도 보정)
+      const prev = showIdx[showIdx.length - 1];
+      if (prev !== undefined && (x - points[prev].x) < minGap) {
+        // 마지막 인덱스(i === n-1)는 반드시 보여야 하므로, 대신 직전에 채택된 라벨을 취소
+        if (i === n - 1) {
+          showIdx.pop();
+        } else {
+          continue;
+        }
+      }
+      showIdx.push(i);
+    }
+    const showSet = new Set(showIdx);
+
     const labels = points.map((p, i) => {
-      const show = i === 0 || i === n - 1 || i % labelEvery === 0;
-      if (!show) return '';
+      if (!showSet.has(i)) return '';
       const mon = p.date.slice(5,7) + '/' + p.date.slice(8,10);
       const anchor = i === 0 ? 'start' : (i === n - 1 ? 'end' : 'middle');
       return `<text x="${p.x.toFixed(1)}" y="${H - 8}" font-size="${fontSize}" fill="#9aa3b0" text-anchor="${anchor}" font-family="JetBrains Mono,monospace">${mon}</text>`;
