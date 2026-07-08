@@ -42,6 +42,26 @@ async function supabaseQuery(path) {
   return res.json();
 }
 
+// 정확한 행 개수 조회 전용 — PostgREST의 count=exact 방식.
+// select=count 만으로는 응답 페이지네이션(기본 최대 1000행) 안에서 집계될 수 있어
+// 실제 총량과 어긋날 수 있으므로, HEAD 요청 + Content-Range 헤더로 정확한 카운트를 받는다.
+async function supabaseCount(pathWithoutSelect) {
+  const url = `${SUPABASE_URL}/rest/v1/${pathWithoutSelect}`;
+  const res = await fetch(url, {
+    method: 'HEAD',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Prefer': 'count=exact',
+    }
+  });
+  // Content-Range: 0-24/1276  ← 마지막 숫자가 전체 개수
+  const range = res.headers.get('content-range');
+  if (!range) return 0;
+  const total = range.split('/')[1];
+  return total === '*' ? 0 : parseInt(total, 10) || 0;
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -65,23 +85,23 @@ module.exports = async (req, res) => {
 
     // 전체 페이지뷰
     const [pvTotal, pvToday, pvWeek, pvMonth] = await Promise.all([
-      supabaseQuery('page_views?select=count'),
-      supabaseQuery(`page_views?select=count&created_at=gte.${todayStart}`),
-      supabaseQuery(`page_views?select=count&created_at=gte.${week}`),
-      supabaseQuery(`page_views?select=count&created_at=gte.${month}`),
+      supabaseCount('page_views?select=created_at'),
+      supabaseCount(`page_views?select=created_at&created_at=gte.${todayStart}`),
+      supabaseCount(`page_views?select=created_at&created_at=gte.${week}`),
+      supabaseCount(`page_views?select=created_at&created_at=gte.${month}`),
     ]);
 
     // 키워드 검색 횟수 (오늘/7일/30일/누적) — page_views와 동일한 방식으로 search_logs 집계
     const [kwTotal, kwToday, kwWeek, kwMonth] = await Promise.all([
-      supabaseQuery('search_logs?select=count'),
-      supabaseQuery(`search_logs?select=count&created_at=gte.${todayStart}`),
-      supabaseQuery(`search_logs?select=count&created_at=gte.${week}`),
-      supabaseQuery(`search_logs?select=count&created_at=gte.${month}`),
+      supabaseCount('search_logs?select=created_at'),
+      supabaseCount(`search_logs?select=created_at&created_at=gte.${todayStart}`),
+      supabaseCount(`search_logs?select=created_at&created_at=gte.${week}`),
+      supabaseCount(`search_logs?select=created_at&created_at=gte.${month}`),
     ]);
 
-    // 인기 키워드 TOP 20 (전체)
+    // 인기 키워드 TOP 20 (전체) — limit을 넉넉히 잡아 누적 검색량이 많아도 전체 기간을 반영
     const kwAll = await supabaseQuery(
-      'search_logs?select=keyword&order=created_at.desc&limit=1000'
+      'search_logs?select=keyword&order=created_at.desc&limit=20000'
     );
 
     // 키워드 집계
@@ -95,8 +115,10 @@ module.exports = async (req, res) => {
       .map(([keyword, count]) => ({ keyword, count }));
 
     // 최근 30일 일별 페이지뷰 (KST 기준 날짜로 집계)
+    // limit을 넉넉히 명시 — Supabase REST 기본 응답 제한(보통 1000행)에 걸려
+    // 방문/검색이 많은 달에는 뒷부분 데이터가 잘려 카드 합계와 어긋날 수 있음
     const pvDaily = await supabaseQuery(
-      `page_views?select=created_at&created_at=gte.${month}&order=created_at.asc`
+      `page_views?select=created_at&created_at=gte.${month}&order=created_at.asc&limit=20000`
     );
     const dailyMap = {};
     for (let i = 29; i >= 0; i--) {
@@ -116,7 +138,7 @@ module.exports = async (req, res) => {
 
     // 최근 30일 일별 검색 횟수 (KST 기준 날짜로 집계, 페이지뷰와 동일 구조)
     const kwDaily = await supabaseQuery(
-      `search_logs?select=created_at&created_at=gte.${month}&order=created_at.asc`
+      `search_logs?select=created_at&created_at=gte.${month}&order=created_at.asc&limit=20000`
     );
     const kwDailyMap = {};
     for (let i = 29; i >= 0; i--) {
@@ -141,16 +163,16 @@ module.exports = async (req, res) => {
 
     return res.status(200).json({
       pageviews: {
-        total:  pvTotal?.[0]?.count  || 0,
-        today:  pvToday?.[0]?.count  || 0,
-        week:   pvWeek?.[0]?.count   || 0,
-        month:  pvMonth?.[0]?.count  || 0,
+        total:  pvTotal  || 0,
+        today:  pvToday  || 0,
+        week:   pvWeek   || 0,
+        month:  pvMonth  || 0,
       },
       searches: {
-        total:  kwTotal?.[0]?.count  || 0,
-        today:  kwToday?.[0]?.count  || 0,
-        week:   kwWeek?.[0]?.count   || 0,
-        month:  kwMonth?.[0]?.count  || 0,
+        total:  kwTotal  || 0,
+        today:  kwToday  || 0,
+        week:   kwWeek   || 0,
+        month:  kwMonth  || 0,
       },
       topKeywords,
       dailyViews,
