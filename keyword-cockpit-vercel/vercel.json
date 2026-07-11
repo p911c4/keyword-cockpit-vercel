@@ -14,8 +14,10 @@
     { "src": "/api/stats",     "dest": "/api/stats.js"     },
     { "src": "/api/cleanup",   "dest": "/api/cleanup.js"   },
     { "src": "/admin",         "dest": "/public/admin.html" },
+    { "src": "/blog",          "dest": "/public/blog-index.html" },
+    { "src": "/radar",         "dest": "/public/radar.html" },
     { "src": "/",              "dest": "/public/index.html" },
-    { "src": "/(.*\\.(png|svg|jpg|jpeg|ico|webp|txt|xml|json))", "dest": "/public/$1" }
+    { "src": "/(.*\\.(png|svg|jpg|jpeg|ico|webp|txt|xml|json|css|js))", "dest": "/public/$1" }
   ],
   "crons": [
     { "path": "/api/cleanup", "schedule": "0 19 * * *" }
