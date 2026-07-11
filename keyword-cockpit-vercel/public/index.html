@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KEYWORD COCKPIT — 네이버 키워드 분석 v1.6</title>
+<title>KEYWORD COCKPIT — 네이버 키워드 분석 v1.7</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 <meta name="description" content="Keyword Cockpit — 네이버 검색 데이터 기반 키워드 검색량·경쟁도를 한눈에 보는 무료 분석 도구. 블로그 지수 분석과 노출 순위 추적까지 지원합니다.">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -495,7 +495,7 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
 
   <div class="hero">
     <div class="hero-eyebrow">Naver Search Advertising API</div>
-    <div class="hero-title">네이버 키워드 검색량 분석 v1.6</div>
+    <div class="hero-title">네이버 키워드 검색량 분석 v1.7</div>
     <div class="hero-sub">키워드를 입력하면 월간 PC·모바일 검색량과 연관 키워드를 즉시 조회합니다.</div>
   </div>
 
@@ -632,7 +632,7 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
 
   <div class="radar-hero">
     <div class="radar-hero-title">📡 노출 레이더</div>
-    <div class="radar-hero-sub">최근 포스팅 10개의 핵심 키워드를 자동 추출하고 네이버 상위 100개 결과에서 노출 순위를 스캔합니다</div>
+    <div class="radar-hero-sub">최근 포스팅 15개의 해시태그(의도 키워드)를 자동 추출하고, 검색량 상위 3개 키워드로 네이버 상위 100개 결과 노출 순위를 스캔합니다</div>
   </div>
 
   <!-- 현재 블로그 ID 표시 -->
@@ -1250,15 +1250,6 @@ function copyJSON() {
 /* ═══════════════════════════════
    탭 3: 노출 레이더
 ═══════════════════════════════ */
-
-// 탭 전환 시 블로그 ID 표시 업데이트
-function updateRadarBlogId() {
-  const blogId = getMyBlogId();
-  const el = document.getElementById('radarBlogId');
-  if (el) el.textContent = `blog.naver.com/${blogId}`;
-}
-
-// 포스팅 제목에서 핵심 키워드 추출
 let radarScanning = false;
 let radarAllPosts = [];
 let radarScores   = {};
@@ -1283,6 +1274,17 @@ function extractKeywords(title) {
   return filtered.sort((a,b) => b.length - a.length).slice(0, 5);
 }
 
+// 포스팅의 의도 키워드 후보 추출 — RSS <tag> 해시태그 우선, 없으면 제목에서 추출 (폴백)
+// ※ RSS <tag> = 글쓴이가 직접 입력한 해시태그, <category> = 폴더명 (혼동 주의)
+function getPostKeywords(post) {
+  const tags = Array.isArray(post.tags) ? post.tags : [];
+  const cleanedTags = [...new Set(
+    tags.map(t => String(t).replace(/^#/,'').trim()).filter(t => t.length >= 2)
+  )].slice(0, 5);  // RelKwdStat hintKeywords 최대 5개 제한
+  if (cleanedTags.length) return { keywords: cleanedTags, source: 'tag' };
+  return { keywords: extractKeywords(post.title), source: 'title' };
+}
+
 async function checkRank(keyword, blogId) {
   try {
     const res  = await fetch(`/api/blogstats?keyword=${encodeURIComponent(keyword)}&blogId=${encodeURIComponent(blogId)}`);
@@ -1300,43 +1302,46 @@ async function fetchRecentPosts(blogId) {
   } catch(e) { return []; }
 }
 
-// 검색광고 API - 여러 키워드 한번에 조회해서 각각 연관 키워드 2개씩 추출
-async function getRelatedKeywordsAll(keywords) {
+// 검색광고 API 1회 호출 — 후보 키워드의 검색량을 조회해 상위 3개만 선별
+// ※ RelKwdStat는 타 API 대비 1/5~1/6 속도 제한 → "1회 호출" 구조 절대 유지
+async function getTopKeywordsByVolume(keywords) {
+  if (!keywords.length) return [];
   try {
     const res  = await fetch('/api/keyword', {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ keywords })
+      body: JSON.stringify({ keywords: keywords.map(k => k.replace(/\s+/g,'')).slice(0,5) })
     });
     const json = await res.json();
     const list = json.keywordList || [];
 
-    // 각 기본 키워드별로 연관 키워드 2개씩 추출
-    const result = [];
-    for (const baseKw of keywords) {
-      const related = list
-        .filter(d => d.relKeyword !== baseKw)
-        .sort((a,b) => {
-          const va = (parseInt(a.monthlyPcQcCnt)||0)+(parseInt(a.monthlyMobileQcCnt)||0);
-          const vb = (parseInt(b.monthlyPcQcCnt)||0)+(parseInt(b.monthlyMobileQcCnt)||0);
-          return vb - va;
-        })
-        .slice(0,2)
-        .map(d => d.relKeyword);
-      related.forEach(kw => { if (!result.includes(kw) && !keywords.includes(kw)) result.push(kw); });
-    }
-    return result;
-  } catch(e) { return []; }
+    // 후보 키워드 자신의 검색량만 매칭 (연관 키워드로 확장하지 않음)
+    const withVol = keywords.map(kw => {
+      const hit = list.find(d => d.relKeyword === kw.replace(/\s+/g,''));
+      const pc  = hit ? (hit.monthlyPcQcCnt     === '< 10' ? 5 : (parseInt(hit.monthlyPcQcCnt)     || 0)) : 0;
+      const mo  = hit ? (hit.monthlyMobileQcCnt === '< 10' ? 5 : (parseInt(hit.monthlyMobileQcCnt) || 0)) : 0;
+      return { kw, vol: pc + mo };
+    });
+    // 검색량 상위 3개 선별 (검색량 0이어도 후보가 3개 이하면 전부 스캔)
+    return withVol.sort((a,b) => b.vol - a.vol).slice(0, 3).map(d => d.kw);
+  } catch(e) {
+    // API 실패 시 앞 3개로 폴백
+    return keywords.slice(0, 3);
+  }
 }
 
+// 포스팅 지수 산정 (v3) — 순위 30 / 최신성 25 / 키워드 적합도 30 / 매칭폭 15 = 100점 → ÷100
 function calcPostScore(ranks, pubDate, title, keywords) {
+  // ① 검색 노출 순위 (30점) — 스캔 키워드 중 최고 순위 기준
   let rankScore = 0;
-  const bestRank = ranks.filter(r => r !== null).sort((a,b) => a-b)[0] ?? null;
+  const validRanks = ranks.filter(r => r !== null);
+  const bestRank = validRanks.sort((a,b) => a-b)[0] ?? null;
   if      (bestRank === null) rankScore = 0;
-  else if (bestRank <= 3)     rankScore = 50;
-  else if (bestRank <= 10)    rankScore = 38;
-  else if (bestRank <= 30)    rankScore = 25;
-  else                        rankScore = 12;
+  else if (bestRank <= 3)     rankScore = 30;
+  else if (bestRank <= 10)    rankScore = 23;
+  else if (bestRank <= 30)    rankScore = 15;
+  else                        rankScore = 7;
 
+  // ② 최신성 (25점)
   let freshScore = 0;
   if (pubDate) {
     const days = (Date.now() - new Date(pubDate)) / (1000*60*60*24);
@@ -1347,15 +1352,28 @@ function calcPostScore(ranks, pubDate, title, keywords) {
     else                  freshScore = 2;
   }
 
-  let kwScore = 5;
+  // ③ 키워드 적합도 (30점) — 의도 키워드(태그)의 제목 내 위치
+  let kwScore = 6;
   const cleanTitle = title.replace(/<[^>]+>/g,'').toLowerCase();
   const first15 = cleanTitle.slice(0,15);
   for (const kw of keywords) {
-    const kwLower = kw.toLowerCase();
-    if      (first15.includes(kwLower))    { kwScore = 25; break; }
-    else if (cleanTitle.includes(kwLower)) { kwScore = Math.max(kwScore, 15); }
+    const kwLower = kw.toLowerCase().replace(/\s+/g,'');
+    const titleNoSpace  = cleanTitle.replace(/\s+/g,'');
+    const first15NoSpace = first15.replace(/\s+/g,'');
+    if      (first15NoSpace.includes(kwLower)) { kwScore = 30; break; }
+    else if (titleNoSpace.includes(kwLower))   { kwScore = Math.max(kwScore, 18); }
   }
-  return ((rankScore + freshScore + kwScore) / 100).toFixed(2);
+
+  // ④ 매칭폭 (15점) — 스캔 키워드 중 100위 내 노출 비율
+  let coverScore = 0;
+  if (ranks.length > 0) {
+    const ratio = validRanks.length / ranks.length;
+    if      (ratio >= 1)     coverScore = 15;
+    else if (ratio >= 0.67)  coverScore = 10;
+    else if (ratio > 0)      coverScore = 5;
+  }
+
+  return ((rankScore + freshScore + kwScore + coverScore) / 100).toFixed(2);
 }
 
 function scoreColor(score) {
@@ -1470,25 +1488,25 @@ async function startRadarScan() {
         if (scoreEl) scoreEl.innerHTML = `<span style="font-size:11px;color:var(--text3)">분석 중...</span>`;
       }
 
-      const baseKws = extractKeywords(post.title);
+      // 1단계: RSS 태그(해시태그) 우선 키워드 추출, 없으면 제목에서 폴백
+      const { keywords: candidateKws, source: kwSource } = getPostKeywords(post);
 
-      // 1단계: 5개 키워드 한번에 연관 키워드 조회 (1회 API 호출)
-      progTxt.textContent = `[${i+1}/${total}] 연관 키워드 조회 중...`;
-      const related = await getRelatedKeywordsAll(baseKws);
-      const allKws  = [...baseKws, ...related];
+      // 2단계: 검색광고 API 1회 호출로 검색량 조회 → 상위 3개만 선별
+      progTxt.textContent = `[${i+1}/${total}] ${kwSource === 'tag' ? '태그' : '제목'} 키워드 검색량 조회 중...`;
+      const scanKws = await getTopKeywordsByVolume(candidateKws);
 
-      // 2단계: 순위 조회 (3개씩 묶어서, 딜레이 80ms)
-      progTxt.textContent = `[${i+1}/${total}] 순위 스캔 중... (${allKws.length}개)`;
+      // 3단계: 순위 조회 (3개씩 묶어서, 딜레이 80ms)
+      progTxt.textContent = `[${i+1}/${total}] 순위 스캔 중... (${scanKws.length}개)`;
       const rankResults = [];
-      for (let j = 0; j < allKws.length; j += 3) {
+      for (let j = 0; j < scanKws.length; j += 3) {
         if (!radarScanning) break;
-        const chunk = allKws.slice(j, j+3);
+        const chunk = scanKws.slice(j, j+3);
         const ranks = await Promise.all(chunk.map(kw => checkRank(kw, blogId)));
         chunk.forEach((kw, k) => rankResults.push({ kw, rank: ranks[k] }));
-        if (j+3 < allKws.length) await new Promise(r => setTimeout(r, 80));
+        if (j+3 < scanKws.length) await new Promise(r => setTimeout(r, 80));
       }
 
-      const score = calcPostScore(rankResults.map(r=>r.rank), post.pubDate, post.title, baseKws);
+      const score = calcPostScore(rankResults.map(r=>r.rank), post.pubDate, post.title, scanKws);
       radarScores[i] = score;
 
       if (page === radarPage) {
