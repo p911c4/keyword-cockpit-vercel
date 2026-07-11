@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>블로그 지수 분석 — KEYWORD COCKPIT</title>
+<meta name="description" content="네이버 블로그 ID만 입력하면 활동 지수(LV.1~9)와 최근 30일 발행량, 키워드별 상위 100위 내 노출 순위를 무료로 조회합니다.">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon48.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/appletouchicon180.png">
+<link rel="stylesheet" href="/common.css">
+</head>
+<body>
+<!-- ── Topbar ── -->
+<div class="topbar">
+  <div class="topbar-brand" onclick="resetApp()" title="처음으로">
+    <img src="/logo.png" alt="KEYWORD COCKPIT" style="height:26px;width:auto;display:block">
+  </div>
+  <div class="topbar-status">
+    <div class="status-dot live" id="apiDot"></div>
+    <span id="apiTxt">서버 연결됨</span>
+    &nbsp;·&nbsp;
+    <span id="clock">--:--</span>
+    &nbsp;&nbsp;
+    <button class="topbar-settings" onclick="openSettings()">⚙️ <span class="topbar-settings-txt">설정</span></button>
+  </div>
+</div>
+
+<!-- ── 설정 모달 ── -->
+<div class="modal-overlay" id="settingsModal" onclick="if(event.target===this)closeSettings()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">⚙️ 블로그 설정</div>
+      <button class="modal-close" onclick="closeSettings()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-label">📌 내 블로그 ID</div>
+      <div class="modal-desc">키워드 분석 결과에서 <strong>내 포스팅</strong>을 자동으로 찾아 보여줍니다.<br>네이버 블로그 주소에서 ID 부분만 입력하세요.</div>
+      <div class="modal-current" id="modalCurrentBlog">
+        현재 설정: <strong id="modalCurrentId">미설정 (기본값 사용)</strong>
+      </div>
+      <div class="modal-input-row">
+        <span class="modal-prefix">blog.naver.com/</span>
+        <input class="input" type="text" id="settingsBlogId"
+          placeholder="블로그 ID 입력 (예: p911c4)"
+          autocomplete="off"
+          onkeydown="if(event.key==='Enter'){saveBlogSetting();}"/>
+      </div>
+      <div class="modal-saved" id="modalSaved">✅ 저장되었습니다!</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="resetBlogSetting()">초기화</button>
+      <button class="btn btn-primary btn-sm" onclick="saveBlogSetting()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 탭 네비게이션 (페이지 링크) ── -->
+<nav class="tab-nav">
+  <div class="tab-nav-inner">
+    <a class="tab-btn" href="/">
+      <span class="tab-icon">🔍</span> 키워드 분석
+    </a>
+    <a class="tab-btn active" href="/blog">
+      <span class="tab-icon">📊</span> 블로그 지수
+    </a>
+    <a class="tab-btn" href="/radar">
+      <span class="tab-icon">📡</span> 노출 레이더
+    </a>
+  </div>
+</nav>
+
+<div class="page-panel">
+<div class="page">
+
+  <div class="bi-hero">
+    <div class="bi-hero-title">📊 블로그 지수 분석</div>
+    <div class="bi-hero-sub">네이버 블로그 ID를 입력하면 활동 지표와 키워드 노출 순위를 조회합니다</div>
+  </div>
+
+  <!-- 블로그 ID 입력 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">블로그 ID 입력</div>
+    </div>
+    <div class="card-body">
+      <div class="bi-id-row">
+        <span class="bi-id-prefix">blog.naver.com/</span>
+        <div class="input-wrap">
+          <input class="input" type="text" id="biIdInp"
+            placeholder="블로그 ID 입력 (예: p911c4)"
+            autocomplete="off"
+            oninput="toggleClear('biIdInp','biIdClear')"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();loadBlogStats();}"/>
+          <button class="input-clear" id="biIdClear" onclick="clearInput('biIdInp','biIdClear')" tabindex="-1">✕</button>
+        </div>
+        <button class="btn btn-primary" onclick="loadBlogStats()">조회</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 활동 지표 카드 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title" id="biStatsTitle">블로그 활동 지표</div>
+      <button class="rank-load-btn" onclick="loadBlogStats()">새로고침</button>
+    </div>
+    <div class="card-body" id="biStatsBody">
+      <div class="bi-rank-empty" style="color:var(--text3);font-size:13px">블로그 ID를 입력하고 조회하세요</div>
+    </div>
+  </div>
+
+  <!-- 키워드 순위 조회 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">키워드 노출 현황</div>
+    </div>
+    <div class="card-body">
+      <div class="bi-kw-input-row">
+        <div class="input-wrap">
+          <input class="input" type="text" id="biKwInp"
+            placeholder="키워드 입력 (예: 발리여행)"
+            inputmode="search" enterkeyhint="search"
+            autocomplete="off"
+            oninput="toggleClear('biKwInp','biKwClear')"
+            onkeydown="if(event.key==='Enter'||event.keyCode===13){event.preventDefault();loadRanking();}"/>
+          <button class="input-clear" id="biKwClear" onclick="clearInput('biKwInp','biKwClear')" tabindex="-1">✕</button>
+        </div>
+        <button class="btn btn-primary" onclick="loadRanking()">100위 내 노출 조회</button>
+      </div>
+      <div id="biRankResult">
+        <div class="bi-rank-empty">키워드를 입력하면 상위 100개 결과 중<br>포스팅 포함 여부를 확인합니다</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ── 정보 섹션: 사용법 · 지표 해설 · FAQ ── -->
+<section class="seo-sec">
+  <div class="seo-card">
+    <h2>블로그 지수 분석 사용법</h2>
+    <ol>
+      <li><strong>블로그 ID 입력</strong> — blog.naver.com/ 뒤에 오는 아이디만 입력하고 조회 버튼을 누릅니다. 전체 URL을 붙여넣어도 자동으로 ID만 추출됩니다.</li>
+      <li><strong>활동 지표 확인</strong> — 총 포스팅 수(추정), 최근 30일 발행 수, 활동 지수(100점 만점)와 LV.1~9 등급이 게이지와 함께 표시됩니다.</li>
+      <li><strong>키워드 노출 확인</strong> — 하단에 키워드를 입력하면 해당 키워드의 네이버 블로그 검색 상위 100개 결과 중 이 블로그의 포스팅이 몇 위에 노출되는지 확인할 수 있습니다.</li>
+    </ol>
+    <p>내 블로그뿐 아니라 벤치마킹하고 싶은 다른 블로그의 ID를 입력해 활동량을 비교 분석하는 용도로도 활용할 수 있습니다.</p>
+  </div>
+
+  <div class="seo-card">
+    <h2>지표 해설 — 활동 지수와 레벨의 의미</h2>
+    <h3>활동 지수 (0~100점)</h3>
+    <p>최근 30일간 발행한 포스팅 수를 기준으로 산출합니다. 월 30개(하루 1개꼴) 발행 시 100점 만점이 되는 구조로, <strong>활동 지수 = min(최근 30일 발행 수 ÷ 30 × 100, 100)</strong>입니다. 네이버가 블로그 품질 평가에서 꾸준한 발행 빈도를 중요하게 본다는 점에 착안한 지표입니다.</p>
+    <h3>레벨 (LV.1 씨앗 ~ LV.9 다이아)</h3>
+    <table class="seo-table">
+      <tr><th>레벨</th><th>지수 구간</th><th>단계</th></tr>
+      <tr><td>LV.1~3</td><td>0~35점</td><td>씨앗 · 새싹 · 나무 — 시작과 정착 단계</td></tr>
+      <tr><td>LV.4~6</td><td>36~75점</td><td>꽃 · 열매 · 숲 — 꾸준한 성장 단계</td></tr>
+      <tr><td>LV.7~9</td><td>76~100점</td><td>별 · 왕관 · 다이아 — 최상위 활동 단계</td></tr>
+    </table>
+    <h3>키워드 노출 순위</h3>
+    <p>네이버 블로그 검색 결과 상위 100개를 스캔해 해당 블로그의 포스팅이 포함되어 있는지, 있다면 몇 번째인지 보여줍니다. 1~3위는 파랑, 4~10위는 하늘색 배지로 구분됩니다. 다만 API가 제공하는 정확도순(sim) 정렬은 실제 네이버 검색 화면의 노출 순서와 완전히 일치하지 않을 수 있다는 구조적 한계가 있으므로, 절대 순위보다는 <strong>노출 여부와 대략적 위치</strong>를 파악하는 참고 지표로 활용하세요.</p>
+  </div>
+
+  <div class="seo-card">
+    <h2>자주 묻는 질문 (FAQ)</h2>
+    <div class="seo-faq-q">활동 지수는 네이버 공식 블로그 지수인가요?</div>
+    <div class="seo-faq-a">아니요. 네이버는 공식 블로그 지수를 공개하지 않습니다. 본 지표는 공개 RSS와 검색 API 데이터만으로 산출한 자체 추정 지표이며, 흔히 말하는 최적화 블로그 판별 지수와는 다릅니다.</div>
+    <div class="seo-faq-q">총 포스팅 수가 실제와 다르게 나옵니다.</div>
+    <div class="seo-faq-a">총 포스팅 수는 공개 데이터 기반 추정값이라 "+"를 붙여 표시합니다. 비공개·서로이웃공개 글은 집계되지 않습니다.</div>
+    <div class="seo-faq-q">노출 순위가 실제 검색 화면과 다른 이유는?</div>
+    <div class="seo-faq-a">네이버 블로그 검색 API의 정렬 방식이 실제 통합검색·VIEW 영역의 노출 로직과 다르기 때문입니다. 이는 API 자체의 구조적 한계로, 노출 여부 확인용 참고 지표로 활용하시길 권장합니다.</div>
+    <div class="seo-faq-q">다른 사람 블로그도 조회할 수 있나요?</div>
+    <div class="seo-faq-a">네. 공개된 RSS와 검색 데이터만 사용하므로 어떤 네이버 블로그든 ID만 알면 조회할 수 있습니다.</div>
+    <div class="seo-faq-q">활동 지수를 올리려면 어떻게 해야 하나요?</div>
+    <div class="seo-faq-a">산식 특성상 최근 30일 발행 수가 유일한 변수입니다. 다만 실제 블로그 성장에는 발행량 못지않게 체류 시간을 만드는 글 품질과 검색 의도에 맞는 키워드 선정이 중요합니다. 키워드 분석 탭과 노출 레이더 탭을 함께 활용해 보세요.</div>
+  </div>
+</section>
+
+<!-- ── Console ── -->
+<div class="console">
+  <div class="cdot ok" id="cdot"></div>
+  <span id="ctxt">준비 완료</span>
+</div>
+
+<!-- ── Site Footer ── -->
+<footer style="max-width:780px;margin:0 auto;padding:8px 16px 96px;text-align:center">
+  <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:10px">
+    <strong>Keyword Cockpit</strong>은 네이버 검색 데이터 기반 키워드 검색량·경쟁도를
+    한눈에 보여주는 무료 분석 도구입니다.<br>
+    키워드 분석 방법과 도구 제작 과정은 블로그에서 확인하실 수 있습니다.
+  </p>
+  <p style="margin-bottom:14px">
+    <a href="https://keywordcockpit.com" target="_blank" rel="noopener"
+       style="font-size:13px;font-weight:700;color:var(--blue);text-decoration:none">
+      키워드 분석 노하우 보러 가기 → keywordcockpit.com
+    </a>
+  </p>
+  <p style="font-size:12px;color:var(--text3)">
+    © 2026 Keyword Cockpit ·
+    <a href="https://keywordcockpit.com/privacy-policy/" target="_blank" rel="noopener"
+       style="color:var(--text3);text-decoration:underline">개인정보처리방침</a>
+  </p>
+</footer>
+
+<script src="/common.js"></script>
+<script>
+let biStatsLoaded = false;
+let currentBlogId = '';
+
+// LEVEL 1~9 정의
+const LEVELS = [
+  { lv:1, min:0,   max:10,  name:'씨앗',     desc:'이제 막 시작한 블로거',         color:'lv1' },
+  { lv:2, min:11,  max:20,  name:'새싹',     desc:'꾸준히 글을 쓰기 시작했어요',    color:'lv2' },
+  { lv:3, min:21,  max:35,  name:'나무',     desc:'블로그가 자리를 잡아가고 있어요', color:'lv3' },
+  { lv:4, min:36,  max:50,  name:'꽃',       desc:'활발하게 활동 중인 블로거',      color:'lv4' },
+  { lv:5, min:51,  max:65,  name:'열매',     desc:'꾸준한 활동으로 성장 중',        color:'lv5' },
+  { lv:6, min:66,  max:75,  name:'숲',       desc:'탄탄한 콘텐츠를 쌓고 있어요',   color:'lv6' },
+  { lv:7, min:76,  max:85,  name:'별',       desc:'높은 활동성의 파워 블로거',      color:'lv7' },
+  { lv:8, min:86,  max:94,  name:'왕관',     desc:'최상위 활동 블로거',             color:'lv8' },
+  { lv:9, min:95,  max:100, name:'다이아',   desc:'전설적인 블로거',                color:'lv9' },
+];
+
+function getLevel(score) {
+  return LEVELS.find(l => score >= l.min && score <= l.max) || LEVELS[0];
+}
+
+// 활동 지수 계산 — 최근 30일 발행 수 기반 (월 30개 = 만점)
+function calcScore(recent30) {
+  return Math.min(Math.round((recent30 / 30) * 100), 100);
+}
+
+async function loadBlogStats() {
+  const idInp = document.getElementById('biIdInp');
+  const blogId = (idInp?.value || 'p911c4').trim().toLowerCase().replace(/^https?:\/\/[^/]+\//, '');
+  if (!blogId) return;
+  currentBlogId = blogId;
+  biStatsLoaded = true;
+
+  const body      = document.getElementById('biStatsBody');
+  const titleEl   = document.getElementById('biStatsTitle');
+  if (titleEl) titleEl.textContent = `블로그 활동 지표 — ${blogId}`;
+  body.innerHTML = '<div class="bi-loading"><div class="rank-spinner"></div>블로그 데이터 불러오는 중...</div>';
+  log('busy', `"${blogId}" 블로그 지수 로딩 중...`);
+
+  try {
+    const res  = await fetch(`/api/blogstats?blogId=${encodeURIComponent(blogId)}`);
+    const json = await res.json();
+    const stats = json.stats || {};
+
+    const lastDateStr = stats.lastDate
+      ? new Date(stats.lastDate).toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'})
+      : '-';
+
+    const actScore   = calcScore(stats.recent30 || 0);
+    const level      = getLevel(actScore);
+    const gaugeColor = actScore >= 66 ? 'var(--blue)' : actScore >= 36 ? 'var(--amber)' : actScore >= 11 ? 'var(--green)' : '#aaa';
+
+    body.innerHTML = `
+      <!-- 레벨 배지 -->
+      <div class="bi-level-wrap">
+        <div class="bi-level-badge ${level.color}">LV.${level.lv} ${level.name}</div>
+        <div class="bi-level-info">
+          <div class="bi-level-name">${level.desc}</div>
+          <div class="bi-level-desc">활동 지수 ${actScore}점 · ${LEVELS.map(l=>`<span style="opacity:${actScore>=l.min?'1':'0.25'};font-weight:${level.lv===l.lv?'700':'400'}">${l.lv}</span>`).join(' → ')}</div>
+        </div>
+      </div>
+
+      <!-- 통계 그리드 -->
+      <div class="bi-stat-grid">
+        <div class="bi-stat-cell">
+          <div class="bi-stat-num" style="color:var(--blue)">${(stats.total||0).toLocaleString()}+</div>
+          <div class="bi-stat-lbl">총 포스팅 수</div>
+          <div class="bi-stat-sub">추정값</div>
+        </div>
+        <div class="bi-stat-cell">
+          <div class="bi-stat-num" style="color:var(--green)">${stats.recent30||0}</div>
+          <div class="bi-stat-lbl">최근 30일 발행</div>
+          <div class="bi-stat-sub">최근 활동량</div>
+        </div>
+        <div class="bi-stat-cell">
+          <div class="bi-stat-num" style="color:${gaugeColor}">${actScore}</div>
+          <div class="bi-stat-lbl">활동 지수</div>
+          <div class="bi-stat-sub">100점 만점</div>
+        </div>
+      </div>
+
+      <!-- 게이지 -->
+      <div class="bi-gauge-wrap">
+        <div class="bi-gauge-title">
+          <span>활동 지수 게이지</span>
+          <span style="color:${gaugeColor};font-weight:700">${actScore}점 · LV.${level.lv} ${level.name}</span>
+        </div>
+        <div class="bi-gauge-bar">
+          <div class="bi-gauge-fill" style="width:${actScore}%;background:${gaugeColor}"></div>
+        </div>
+        <div class="bi-gauge-labels">
+          ${LEVELS.map(l=>`<span style="font-size:9px;color:${actScore>=l.min?'var(--blue)':'#ccc'}">LV${l.lv}</span>`).join('')}
+        </div>
+      </div>
+      <div class="bi-last-date">📅 마지막 포스팅: <strong>${lastDateStr}</strong></div>`;
+
+    log('ok', `"${blogId}" 블로그 지수 로드 완료 — LV.${level.lv} ${level.name} (${actScore}점)`);
+  } catch(e) {
+    body.innerHTML = `<div class="bi-rank-empty" style="color:var(--red)">데이터 로드 실패: ${e.message}</div>`;
+    log('fail', '블로그 지수 로드 실패');
+  }
+}
+
+async function loadRanking() {
+  const kw     = document.getElementById('biKwInp').value.trim().replace(/\s+/g,'');
+  const result = document.getElementById('biRankResult');
+  const blogId = currentBlogId || 'p911c4';
+  if (!kw) return;
+  result.innerHTML = '<div class="bi-loading"><div class="rank-spinner"></div>순위 조회 중...</div>';
+  log('busy', `"${kw}" 노출 순위 조회 중...`);
+  try {
+    const res  = await fetch(`/api/blogstats?keyword=${encodeURIComponent(kw)}&blogId=${encodeURIComponent(blogId)}`);
+    const json = await res.json();
+    const ranks = json.ranking?.ranks || [];
+    if (!ranks.length) {
+      result.innerHTML = `<div class="bi-rank-empty">상위 100개 결과에 <strong>"${kw}"</strong> 관련<br><strong>${blogId}</strong> 블로그 포스팅이 없습니다</div>`;
+      log('ok', `"${kw}" — 상위 100개 내 노출 없음`);
+      return;
+    }
+    result.innerHTML = `
+      <div style="font-size:12px;color:var(--text3);margin-bottom:10px">
+        <strong>${blogId}</strong> · "${kw}" 검색 상위 100개 중 <strong style="color:var(--blue)">${ranks.length}개</strong> 노출
+      </div>
+      <div class="bi-rank-result">
+        ${ranks.map(r => {
+          const cls = r.rank <= 3 ? 'top3' : r.rank <= 10 ? 'top10' : 'other';
+          return `<a class="bi-rank-item" href="${r.link}" target="_blank" rel="noopener">
+            <span class="bi-rank-badge ${cls}">${r.rank}위</span>
+            <div class="bi-rank-info">
+              <div class="bi-rank-title">${r.title}</div>
+              <div class="bi-rank-desc">${r.description}</div>
+            </div>
+          </a>`;
+        }).join('')}
+      </div>`;
+    log('ok', `"${kw}" 순위 조회 완료 — ${ranks.length}개 노출`);
+  } catch(e) {
+    result.innerHTML = `<div class="bi-rank-empty" style="color:var(--red)">순위 조회 실패: ${e.message}</div>`;
+    log('fail', '순위 조회 실패');
+  }
+}
+
+/* ── 페이지 훅 (공통 common.js에서 호출) ── */
+function biPrefill() {
+  const savedId = localStorage.getItem(BLOG_SETTING_KEY) || '';
+  const biIdInp = document.getElementById('biIdInp');
+  if (biIdInp && savedId && !biIdInp.value) {
+    biIdInp.value = savedId;
+    toggleClear('biIdInp', 'biIdClear');
+  }
+}
+window.pageReset = function() {
+  const savedId = localStorage.getItem(BLOG_SETTING_KEY) || '';
+  const biIdInp = document.getElementById('biIdInp');
+  if (biIdInp) { biIdInp.value = savedId; toggleClear('biIdInp', 'biIdClear'); }
+  const t = document.getElementById('biStatsTitle');
+  if (t) t.textContent = '블로그 활동 지표';
+  const b = document.getElementById('biStatsBody');
+  if (b) b.innerHTML = '<div class="bi-rank-empty" style="color:var(--text3);font-size:13px">블로그 ID를 입력하고 조회하세요</div>';
+  const k = document.getElementById('biKwInp');
+  if (k) k.value = '';
+  document.getElementById('biKwClear')?.classList.remove('show');
+  const r = document.getElementById('biRankResult');
+  if (r) r.innerHTML = '<div class="bi-rank-empty">키워드를 입력하면 상위 100개 결과 중<br>포스팅 포함 여부를 확인합니다</div>';
+  biStatsLoaded = false;
+  currentBlogId = savedId;
+  log('ok', '준비 완료 — 블로그 ID를 입력하고 조회하세요');
+};
+window.onBlogSettingChanged = function() {
+  window.pageReset();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+biPrefill();
+log('ok', '준비 완료 — 블로그 ID를 입력하고 조회하세요');
+
+</script>
+</body>
+</html>

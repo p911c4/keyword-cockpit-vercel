@@ -3,435 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KEYWORD COCKPIT — 네이버 키워드 분석 v1.7</title>
+<title>KEYWORD COCKPIT — 네이버 키워드 검색량 분석 v1.7</title>
+<meta name="description" content="Keyword Cockpit — 네이버 검색 데이터 기반 키워드 검색량·경쟁도·12개월 트렌드를 한눈에 보는 무료 분석 도구. 연관 키워드 확장과 내 블로그 포스팅 대조까지 지원합니다.">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-<meta name="description" content="Keyword Cockpit — 네이버 검색 데이터 기반 키워드 검색량·경쟁도를 한눈에 보는 무료 분석 도구. 블로그 지수 분석과 노출 순위 추적까지 지원합니다.">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="icon" type="image/png" sizes="48x48" href="/favicon48.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/appletouchicon180.png">
-<style>
-:root {
-  --bg: #ffffff;
-  --bg2: #f4f4f4;
-  --bg3: #fafafa;
-  --border: #e5e5e5;
-  --border2: #d0d0d0;
-  --blue: #1428a0;
-  --blue2: #1a34c8;
-  --blue-light: #e8ebfc;
-  --blue-pale: #f0f2fd;
-  --text: #1a1a1a;
-  --text2: #444444;
-  --text3: #888888;
-  --green: #00b200;
-  --green-bg: #e6f7e6;
-  --red: #c00;
-  --red-bg: #fff0f0;
-  --amber: #b06000;
-  --amber-bg: #fff8e6;
-  --shadow-sm: 0 1px 4px rgba(0,0,0,0.08);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.10);
-  --radius: 8px;
-}
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-html{font-size:15px}
-body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
-
-/* ── Topbar ── */
-.topbar{background:var(--blue);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,0.15)}
-.topbar-brand{display:flex;align-items:center;gap:10px;cursor:pointer}
-.topbar-logo{width:28px;height:28px;display:flex;align-items:center;justify-content:center}
-.topbar-name{color:#fff;font-size:16px;font-weight:700;letter-spacing:-0.3px}
-.topbar-status{display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.75);font-weight:300}
-.status-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.3);flex-shrink:0}
-.status-dot.live{background:#4cff8f;animation:blink 2.5s infinite}
-
-/* ── 탭 네비게이션 ── */
-.tab-nav{background:var(--bg);border-bottom:2px solid var(--border);position:sticky;top:56px;z-index:49;box-shadow:var(--shadow-sm)}
-.tab-nav-inner{max-width:780px;margin:0 auto;display:flex;padding:0 16px}
-.tab-btn{font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:600;color:var(--text3);background:none;border:none;border-bottom:3px solid transparent;padding:14px 16px;cursor:pointer;transition:color 0.2s,border-color 0.2s;display:flex;align-items:center;gap:6px;letter-spacing:0.1px;margin-bottom:-2px;white-space:nowrap}
-.tab-btn:hover{color:var(--text)}
-.tab-btn.active{color:var(--blue);border-bottom-color:var(--blue)}
-.tab-icon{font-size:15px}
-
-/* ── 탭 패널 ── */
-.tab-panel{display:none}
-.tab-panel.active{display:block}
-
-/* ── Layout ── */
-.page{max-width:780px;margin:0 auto;padding:28px 16px 80px}
-
-/* ── Hero ── */
-.hero{background:var(--blue);border-radius:var(--radius);padding:28px 28px 24px;margin-bottom:16px;color:#fff;animation:fadeUp 0.4s ease both}
-.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:8px}
-.hero-title{font-size:clamp(22px,4vw,30px);font-weight:700;line-height:1.2;letter-spacing:-0.5px;margin-bottom:6px}
-.hero-sub{font-size:13px;color:rgba(255,255,255,0.7);font-weight:300;line-height:1.6}
-
-/* ── Card ── */
-.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;box-shadow:var(--shadow-sm);overflow:hidden;animation:fadeUp 0.4s ease both}
-.card-header{padding:14px 20px;border-bottom:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;justify-content:space-between}
-.card-title{font-size:13px;font-weight:700;color:var(--text);letter-spacing:0.2px;display:flex;align-items:center;gap:8px}
-.card-title::before{content:'';width:3px;height:14px;background:var(--blue);border-radius:2px;flex-shrink:0}
-.card-body{padding:20px}
-
-/* ── Input ── */
-.kw-row{display:flex;gap:8px}
-.input{background:var(--bg);border:1.5px solid var(--border2);border-radius:6px;padding:11px 14px;font-family:'Noto Sans KR',sans-serif;font-size:14px;color:var(--text);outline:none;transition:border-color 0.15s,box-shadow 0.15s;width:100%}
-.input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(20,40,160,0.1)}
-.input::placeholder{color:#bbb}
-
-/* ── Buttons ── */
-.btn{font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:600;border:none;border-radius:6px;cursor:pointer;padding:10px 20px;transition:all 0.15s;white-space:nowrap;letter-spacing:0.2px}
-.btn-primary{background:var(--blue);color:#fff}
-.btn-primary:hover{background:var(--blue2);box-shadow:var(--shadow-md);transform:translateY(-1px)}
-.btn-primary:active{transform:translateY(0)}
-.btn-outline{background:transparent;color:var(--text2);border:1.5px solid var(--border2)}
-.btn-outline:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-pale)}
-.btn-sm{padding:7px 14px;font-size:12px}
-
-/* ── Loading ── */
-.loading-wrap{display:none;padding:48px 20px;flex-direction:column;align-items:center;gap:16px}
-.loading-wrap.show{display:flex}
-.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite}
-.loading-txt{font-size:13px;color:var(--text3);font-weight:300}
-
-/* ── Error ── */
-.errbox{background:var(--red-bg);border:1px solid rgba(200,0,0,0.2);border-radius:var(--radius);padding:16px 20px;margin-bottom:14px;font-size:13px;line-height:1.7;color:var(--red);display:none}
-.errbox.show{display:block}
-.errbox code{background:rgba(200,0,0,0.08);padding:1px 6px;border-radius:3px;font-size:12px;font-family:monospace}
-
-/* ── Results ── */
-.results-panel{display:none}
-.results-panel.show{display:block}
-.results-topbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:2px}
-.results-meta{font-size:12px;color:var(--text3)}
-.exp-row{display:flex;gap:6px}
-
-/* ── KW card ── */
-.kwcard{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);margin-top:12px;overflow:hidden;box-shadow:var(--shadow-sm);animation:fadeUp 0.35s ease both;transition:box-shadow 0.2s}
-.kwcard:hover{box-shadow:var(--shadow-md)}
-.kwcard-head{padding:14px 20px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
-.kwname{font-size:18px;font-weight:700;color:var(--text);letter-spacing:-0.3px}
-.comp-pill{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;letter-spacing:0.3px}
-.c-low{background:var(--green-bg);color:var(--green)}
-.c-mid{background:var(--amber-bg);color:var(--amber)}
-.c-high{background:var(--red-bg);color:var(--red)}
-.kwcard-body{padding:18px 20px}
-
-/* ── Stat grid ── */
-.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
-.scell{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px 12px;text-align:center;position:relative;overflow:hidden}
-.scell::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px}
-.scell.pc-cell::after{background:var(--blue)}
-.scell.mo-cell::after{background:#0099cc}
-.scell.tot-cell::after{background:#555}
-.slbl{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:4px}
-.slbl-icon{font-size:12px}
-.snum{font-size:28px;font-weight:700;letter-spacing:-1px;line-height:1;font-family:'Roboto',sans-serif}
-.snum.pc{color:var(--blue)}
-.snum.mo{color:#0099cc}
-.snum.tot{color:var(--text)}
-.sunit{font-size:10px;color:var(--text3);margin-top:5px}
-.ratio-bar-wrap{margin:12px 0 4px;background:var(--border);border-radius:4px;height:5px;overflow:hidden}
-.ratio-bar-inner{height:100%;border-radius:4px;transition:width 0.6s ease}
-.ratio-bar-inner.pc{background:var(--blue)}
-.ratio-bar-inner.mo{background:#0099cc}
-.ratio-summary{display:flex;align-items:center;gap:6px;margin-bottom:14px;font-size:12px;color:var(--text2);background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 12px}
-.ratio-bar-h{flex:1;height:8px;border-radius:4px;overflow:hidden;background:var(--border);display:flex}
-.ratio-pc{height:100%;background:var(--blue);border-radius:4px 0 0 4px;transition:width 0.6s ease}
-.ratio-mo{height:100%;background:#0099cc;border-radius:0 4px 4px 0;transition:width 0.6s ease}
-.ratio-legend{display:flex;gap:8px;flex-shrink:0}
-.ratio-dot{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--text3);font-weight:500}
-.ratio-dot::before{content:'';width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.ratio-dot.pc::before{background:var(--blue)}
-.ratio-dot.mo::before{background:#0099cc}
-
-/* ── Related ── */
-.rel-sec{border-top:1px solid var(--border);padding-top:14px}
-.rel-lbl{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px}
-.rel-list{display:flex;flex-wrap:wrap;gap:7px}
-.rtag{display:inline-flex;align-items:center;gap:5px;background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--text2);cursor:pointer;transition:all 0.15s;font-weight:400}
-.rtag:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-pale)}
-.rvol{font-size:10px;color:var(--text3)}
-
-/* ── 뉴카 포스팅 (접힌 형태) ── */
-.mypost-sec{border:1.5px solid rgba(20,40,160,0.2);background:var(--blue-pale);border-radius:8px;margin-top:14px;margin-bottom:10px;overflow:hidden}
-.mypost-toggle{width:100%;background:none;border:none;cursor:pointer;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;font-family:'Noto Sans KR',sans-serif;transition:background 0.15s}
-.mypost-toggle:hover{background:rgba(20,40,160,0.06)}
-.mypost-lbl{font-size:12px;font-weight:700;color:var(--blue);letter-spacing:0.3px;display:flex;align-items:center;gap:6px}
-.mypost-lbl-sub{font-size:10px;font-weight:400;color:rgba(20,40,160,0.5);letter-spacing:0;margin-left:2px}
-.mypost-chevron{font-size:12px;color:var(--blue);transition:transform 0.25s;flex-shrink:0}
-.mypost-chevron.open{transform:rotate(180deg)}
-.mypost-body{display:none;padding:0 16px 14px;border-top:1px solid rgba(20,40,160,0.12)}
-.mypost-body.open{display:block}
-.mypost-list{display:flex;flex-direction:column;gap:6px;margin-top:12px}
-.mypost-item{display:flex;align-items:flex-start;gap:8px;padding:9px 10px;background:#fff;border:1px solid rgba(20,40,160,0.12);border-radius:6px;text-decoration:none;transition:all 0.15s}
-.mypost-item:hover{border-color:var(--blue);box-shadow:0 2px 8px rgba(20,40,160,0.1)}
-.mypost-icon{font-size:14px;flex-shrink:0;margin-top:1px}
-.mypost-info{flex:1;min-width:0}
-.mypost-title{font-size:13px;font-weight:500;color:var(--text);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.mypost-item:hover .mypost-title{color:var(--blue)}
-.mypost-desc{font-size:11px;color:var(--text3);margin-top:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.mypost-empty{font-size:12px;color:var(--text3);padding:8px 0}
-.mypost-more{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;margin-top:8px;background:var(--blue);color:#fff;border-radius:6px;text-decoration:none;font-size:12px;font-weight:600;transition:all 0.15s}
-.mypost-more:hover{background:var(--blue2);box-shadow:0 2px 8px rgba(20,40,160,0.2)}
-.mypost-loading{font-size:12px;color:var(--text3);display:flex;align-items:center;gap:6px;margin-top:10px}
-.mypost-count-badge{font-size:10px;font-weight:600;background:var(--blue);color:#fff;border-radius:20px;padding:1px 8px;margin-left:4px}
-.mypost-count-badge.zero{background:var(--text3)}
-
-/* ── Rank ── */
-.rank-sec{border-top:1px solid var(--border);padding-top:14px;margin-top:14px}
-.rank-lbl{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
-.rank-load-btn{font-family:'Noto Sans KR',sans-serif;font-size:11px;font-weight:600;color:var(--blue);background:var(--blue-pale);border:1px solid rgba(20,40,160,0.2);border-radius:4px;padding:3px 10px;cursor:pointer;transition:all 0.15s}
-.rank-load-btn:hover{background:var(--blue);color:#fff}
-.rank-load-btn:disabled{opacity:0.5;cursor:not-allowed}
-.rank-list{display:flex;flex-direction:column;gap:6px}
-.rank-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;text-decoration:none;transition:all 0.15s}
-.rank-item:hover{border-color:var(--blue);background:var(--blue-pale)}
-.rank-num{font-size:12px;font-weight:700;color:#fff;background:var(--blue);border-radius:4px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Roboto',sans-serif}
-.rank-info{flex:1;min-width:0}
-.rank-title{font-size:13px;font-weight:500;color:var(--text);line-height:1.4;margin-bottom:3px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.rank-item:hover .rank-title{color:var(--blue)}
-.rank-desc{font-size:11px;color:var(--text3);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.rank-blogger{font-size:10px;color:var(--text3);margin-top:2px}
-.rank-empty{font-size:12px;color:var(--text3);padding:12px;text-align:center}
-.rank-loading{font-size:12px;color:var(--text3);padding:12px;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px}
-.rank-spinner{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0}
-
-/* ── 트렌드 ── */
-.trend-sec{border-top:1px solid var(--border);padding-top:14px;margin-bottom:16px}
-.trend-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:6px}
-.trend-lbl{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px}
-.trend-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px}
-.trend-up{background:var(--green-bg);color:var(--green)}
-.trend-down{background:var(--red-bg);color:var(--red)}
-.trend-flat{background:var(--amber-bg);color:var(--amber)}
-.trend-chart-wrap{position:relative;width:100%;height:120px}
-.trend-chart-wrap svg{width:100%;height:100%;overflow:visible}
-.trend-loading{height:120px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;color:var(--text3)}
-.trend-summary{font-size:12px;color:var(--text2);margin-top:10px;line-height:1.6}
-.trend-summary b{color:var(--blue)}
-.trend-summary .up{color:var(--green);font-weight:700}
-.trend-summary .down{color:var(--red);font-weight:700}
-.trend-tooltip{position:absolute;background:var(--text);color:#fff;font-size:11px;padding:4px 8px;border-radius:4px;pointer-events:none;white-space:nowrap;z-index:20;display:none;transform:translate(-50%,-100%);margin-top:-6px;font-family:'Roboto',monospace}
-
-/* ── 최근 검색 ── */
-.recent-wrap{margin-top:14px;display:none}
-.recent-wrap.show{display:block}
-.recent-label{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:0.3px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
-.recent-clear{font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;padding:0;font-family:'Noto Sans KR',sans-serif;transition:color 0.15s}
-.recent-clear:hover{color:var(--red)}
-.recent-list{display:flex;flex-wrap:wrap;gap:7px}
-.recent-tag{display:inline-flex;align-items:center;gap:6px;background:var(--bg2);border:1.5px solid var(--border2);border-radius:20px;padding:6px 12px;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;transition:all 0.15s}
-.recent-tag:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-pale)}
-.recent-tag .rtag-icon{font-size:11px;opacity:0.5}
-.recent-tag .rtag-del{font-size:14px;opacity:0.35;line-height:1;transition:opacity 0.15s;margin-left:2px}
-.recent-tag .rtag-del:hover{opacity:1;color:var(--red)}
-
-/* ── 블로그 지수 탭 ── */
-.bi-hero{background:linear-gradient(135deg,#1428a0 0%,#1a34c8 100%);border-radius:var(--radius);padding:24px 28px;margin-bottom:16px;color:#fff;animation:fadeUp 0.4s ease both}
-.bi-hero-title{font-size:20px;font-weight:700;letter-spacing:-0.4px;margin-bottom:4px}
-.bi-hero-sub{font-size:12px;color:rgba(255,255,255,0.7);font-weight:300}
-
-/* 활동 지표 카드 */
-.bi-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
-.bi-stat-cell{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:18px 12px;text-align:center;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
-.bi-stat-cell::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--blue)}
-.bi-stat-num{font-size:26px;font-weight:700;font-family:'Roboto',sans-serif;line-height:1;margin-bottom:5px}
-.bi-stat-lbl{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:0.5px;text-transform:uppercase}
-.bi-stat-sub{font-size:11px;color:var(--text3);margin-top:4px}
-/* 활동 지수 게이지 */
-.bi-gauge-wrap{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:14px;box-shadow:var(--shadow-sm)}
-.bi-gauge-title{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
-.bi-gauge-bar{height:12px;background:var(--bg2);border-radius:6px;overflow:hidden;margin-bottom:8px}
-.bi-gauge-fill{height:100%;border-radius:6px;transition:width 0.8s ease}
-.bi-gauge-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--text3)}
-.bi-last-date{font-size:12px;color:var(--text3);text-align:center;padding:8px;background:var(--bg3);border-radius:6px;margin-bottom:14px}
-
-/* 키워드 순위 조회 */
-.bi-kw-input-row{display:flex;gap:8px;margin-bottom:14px}
-.bi-rank-result{display:flex;flex-direction:column;gap:6px}
-.bi-rank-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:6px;text-decoration:none;box-shadow:var(--shadow-sm);transition:all 0.15s}
-.bi-rank-item:hover{border-color:var(--blue);background:var(--blue-pale)}
-.bi-rank-badge{font-size:11px;font-weight:700;color:#fff;border-radius:5px;min-width:36px;height:26px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Roboto',sans-serif}
-.bi-rank-badge.top3{background:var(--blue)}
-.bi-rank-badge.top10{background:#0099cc}
-.bi-rank-badge.other{background:var(--text3)}
-.bi-rank-info{flex:1;min-width:0}
-.bi-rank-title{font-size:13px;font-weight:500;color:var(--text);line-height:1.4;margin-bottom:2px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.bi-rank-item:hover .bi-rank-title{color:var(--blue)}
-.bi-rank-desc{font-size:11px;color:var(--text3);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.bi-rank-empty{font-size:13px;color:var(--text3);text-align:center;padding:24px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius)}
-.bi-loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:32px;font-size:13px;color:var(--text3)}
-
-/* ── 입력창 X 버튼 ── */
-.input-wrap{position:relative;flex:1;display:flex;align-items:center}
-.input-wrap .input{padding-right:36px;width:100%}
-.input-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;background:var(--border2);border:none;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:12px;color:var(--text3);line-height:1;padding:0;transition:all 0.15s;flex-shrink:0}
-.input-clear:hover{background:var(--text3);color:#fff}
-.input-clear.show{display:flex}
-
-/* ── 블로그 레벨 배지 ── */
-.bi-level-wrap{display:flex;align-items:center;gap:14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:14px;box-shadow:var(--shadow-sm)}
-.bi-level-badge{font-size:13px;font-weight:700;color:#fff;border-radius:8px;padding:6px 16px;letter-spacing:0.5px;white-space:nowrap;flex-shrink:0}
-.bi-level-info{flex:1}
-.bi-level-name{font-size:15px;font-weight:700;color:var(--text);letter-spacing:-0.2px}
-.bi-level-desc{font-size:11px;color:var(--text3);margin-top:2px}
-.lv1{background:#aaaaaa}.lv2{background:#88aa44}.lv3{background:#44aa66}
-.lv4{background:#2299aa}.lv5{background:#1177cc}.lv6{background:#1428a0}
-.lv7{background:#7733cc}.lv8{background:#cc3366}.lv9{background:#cc6600}
-
-/* ── 블로그 ID 입력 ── */
-.bi-id-row{display:flex;gap:8px;margin-bottom:16px;align-items:center}
-.bi-id-prefix{font-size:13px;color:var(--text3);white-space:nowrap;flex-shrink:0}
-
-/* ── 설정 버튼 ── */
-.topbar-settings{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:#fff;font-size:12px;font-weight:600;font-family:'Noto Sans KR',sans-serif;padding:5px 12px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:5px}
-.topbar-settings:hover{background:rgba(255,255,255,0.22)}
-.topbar-settings-txt{display:inline}
-
-/* ── 설정 모달 ── */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
-.modal-overlay.show{display:flex}
-.modal{background:#fff;border-radius:12px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,0.3);overflow:hidden;animation:fadeUp 0.25s ease both}
-.modal-header{background:var(--blue);padding:18px 22px;display:flex;align-items:center;justify-content:space-between}
-.modal-title{color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
-.modal-close{background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:28px;height:28px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s;line-height:1}
-.modal-close:hover{background:rgba(255,255,255,0.3)}
-.modal-body{padding:24px 22px}
-.modal-label{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.modal-desc{font-size:11px;color:var(--text3);margin-bottom:14px;line-height:1.6}
-.modal-input-row{display:flex;gap:8px;align-items:center;margin-bottom:6px}
-.modal-prefix{font-size:12px;color:var(--text3);white-space:nowrap;flex-shrink:0}
-.modal-saved{font-size:11px;color:var(--green);margin-top:8px;display:none}
-.modal-saved.show{display:block}
-.modal-footer{padding:16px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
-.modal-current{background:var(--blue-pale);border:1px solid rgba(20,40,160,0.2);border-radius:6px;padding:10px 14px;font-size:12px;color:var(--blue);margin-bottom:16px;display:flex;align-items:center;gap:6px}
-
-/* ── 노출 레이더 ── */
-.radar-hero{background:var(--blue);border-radius:var(--radius);padding:24px 28px;margin-bottom:16px;color:#fff;animation:fadeUp 0.4s ease both}
-.radar-hero-title{font-size:20px;font-weight:700;letter-spacing:-0.4px;margin-bottom:4px}
-.radar-hero-sub{font-size:12px;color:rgba(255,255,255,0.7);font-weight:300}
-/* 블로그 ID 상태 표시 */
-.radar-blogid-bar{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;font-size:13px;box-shadow:var(--shadow-sm)}
-.radar-blogid-val{font-weight:700;color:var(--blue)}
-.radar-blogid-hint{font-size:11px;color:var(--text3)}
-/* 스캔 컨트롤 */
-.radar-scan-wrap{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:14px;box-shadow:var(--shadow-sm)}
-.radar-scan-btn{font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;background:var(--blue);color:#fff;border:none;border-radius:8px;padding:14px 28px;cursor:pointer;width:100%;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:0.2px}
-.radar-scan-btn:hover{background:var(--blue2);transform:translateY(-1px);box-shadow:var(--shadow-md)}
-.radar-scan-btn:disabled{background:var(--text3);cursor:not-allowed;transform:none}
-.radar-progress{margin-top:14px;display:none}
-.radar-progress.show{display:block}
-.radar-progress-bar-wrap{background:var(--border);border-radius:6px;height:8px;overflow:hidden;margin-bottom:6px}
-.radar-progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),#0099cc);border-radius:6px;transition:width 0.3s ease}
-.radar-progress-txt{font-size:12px;color:var(--text3);text-align:center}
-/* 결과 리스트 */
-.radar-results{display:flex;flex-direction:column;gap:10px}
-.radar-item{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm);animation:fadeUp 0.3s ease both}
-.radar-item-head{padding:12px 16px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.radar-post-title{font-size:13px;font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.radar-post-title a{color:inherit;text-decoration:none}
-.radar-post-title a:hover{color:var(--blue)}
-.radar-kw-tags{display:flex;flex-wrap:wrap;gap:5px;padding:10px 16px 6px}
-.radar-kw-tag{display:inline-flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--text2)}
-.radar-rank-badge{font-size:11px;font-weight:700;color:#fff;border-radius:4px;padding:2px 8px;white-space:nowrap}
-.radar-rank-badge.top3{background:var(--blue)}
-.radar-rank-badge.top10{background:#0099cc}
-.radar-rank-badge.out{background:var(--text3)}
-.radar-rank-badge.scanning{background:var(--amber)}
-.radar-rank-badge.error{background:var(--red)}
-.radar-empty{font-size:13px;color:var(--text3);text-align:center;padding:32px}
-.radar-kw-row{display:flex;align-items:center;gap:8px;padding:0 16px 10px;flex-wrap:wrap}
-.radar-kw-result{font-size:12px;color:var(--text2)}
-
-.radar-page-tab{font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:600;flex:1;padding:9px;text-align:center;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--bg);color:var(--text3);cursor:pointer;transition:all 0.15s}
-.radar-page-tab:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-pale)}
-.radar-page-tab.active{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 2px 8px rgba(20,40,160,0.25)}
-.radar-page-tab.scanning{background:var(--blue-pale);color:var(--blue);border-color:var(--blue);border-style:dashed}
-.radar-page-tab.scanning .tab-spinner{display:inline-block;animation:hourglass 1.2s steps(1) infinite;margin-right:3px}
-.radar-page-tab.done{background:var(--green-bg);color:var(--green);border-color:var(--green)}
-.radar-page-tab.done.active{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 2px 8px rgba(20,40,160,0.25)}
-@keyframes hourglass{0%{content:'⏳'}50%{content:'⌛'}100%{content:'⏳'}}
-
-/* ── Console ── */
-.console{position:fixed;bottom:0;left:0;right:0;background:var(--text);padding:10px 20px;display:flex;align-items:center;gap:10px;font-size:12px;color:rgba(255,255,255,0.7);z-index:10;box-shadow:0 -2px 12px rgba(0,0,0,0.15);pointer-events:none}
-.cdot{width:6px;height:6px;border-radius:50%;background:#555;flex-shrink:0}
-.cdot.ok{background:#4cff8f}
-.cdot.busy{background:#ffc107;animation:blink 0.5s infinite}
-.cdot.fail{background:#ff6060}
-
-/* ── 태블릿 ── */
-@media(max-width:768px){
-  .page{padding:20px 12px 80px}
-  .hero{padding:22px 18px}
-  .sgrid{grid-template-columns:repeat(3,1fr)}
-  .bi-stat-grid{grid-template-columns:repeat(3,1fr)}
-}
-
-/* ── 모바일 ── */
-@media(max-width:600px){
-  html{font-size:16px}
-  .topbar{padding:0 12px;height:52px}
-  .topbar-name{font-size:13px}
-  .topbar-status{font-size:11px;gap:4px}
-  .topbar-settings{padding:5px 8px}
-  .topbar-settings-txt{display:none}
-  .tab-btn{padding:12px 10px;font-size:12px;gap:4px}
-  .tab-icon{font-size:13px}
-  .page{padding:16px 12px 70px}
-  .hero{padding:20px 16px 18px;margin-bottom:12px}
-  .hero-title{font-size:21px}
-  .hero-sub{font-size:12px}
-  .card-header{padding:12px 16px}
-  .card-body{padding:16px}
-  .kw-row{flex-direction:column;gap:10px}
-  .kw-row .btn{width:100%;padding:13px}
-  .input{padding:13px 14px;font-size:16px}
-  .bi-kw-input-row{flex-direction:column}
-  .bi-kw-input-row .btn{width:100%}
-  .bi-id-row{flex-wrap:wrap;gap:6px}
-  .bi-id-row .btn{width:100%}
-  .bi-id-prefix{font-size:11px}
-  .kwcard-head{padding:12px 14px}
-  .kwname{font-size:17px}
-  .kwcard-body{padding:14px}
-  .sgrid{grid-template-columns:repeat(3,1fr);gap:7px}
-  .scell{padding:11px 6px}
-  .slbl{font-size:9px}
-  .snum{font-size:19px}
-  .bi-stat-grid{grid-template-columns:1fr 1fr;gap:8px}
-  .bi-stat-num{font-size:22px}
-  /* 노출 레이더 모바일 */
-  .radar-kw-row{flex-direction:column;gap:6px}
-  .radar-scan-btn{width:100%;padding:13px}
-  .console{padding:9px 14px;font-size:11px}
-}
-
-@media(max-width:380px){
-  .hero-title{font-size:19px}
-  .sgrid{grid-template-columns:1fr 1fr;gap:8px}
-  .snum{font-size:22px}
-}
-
-@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-@keyframes spin{to{transform:rotate(360deg)}}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
-::-webkit-scrollbar{width:5px}
-::-webkit-scrollbar-track{background:var(--bg2)}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
-::-webkit-scrollbar-thumb:hover{background:var(--blue)}
-</style>
+<link rel="stylesheet" href="/common.css">
 </head>
 <body>
-
 <!-- ── Topbar ── -->
 <div class="topbar">
   <div class="topbar-brand" onclick="resetApp()" title="처음으로">
-    <img src="data:image/png;base64,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" alt="Keyword Cockpit"
-         style="height:26px;width:auto;display:block">
+    <img src="/logo.png" alt="KEYWORD COCKPIT" style="height:26px;width:auto;display:block">
   </div>
   <div class="topbar-status">
     <div class="status-dot live" id="apiDot"></div>
@@ -472,25 +58,22 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
   </div>
 </div>
 
-<!-- ── 탭 네비게이션 ── -->
-<div class="tab-nav">
+<!-- ── 탭 네비게이션 (페이지 링크) ── -->
+<nav class="tab-nav">
   <div class="tab-nav-inner">
-    <button class="tab-btn active" onclick="switchTab('kw', this)">
+    <a class="tab-btn active" href="/">
       <span class="tab-icon">🔍</span> 키워드 분석
-    </button>
-    <button class="tab-btn" onclick="switchTab('bi', this)">
+    </a>
+    <a class="tab-btn" href="/blog">
       <span class="tab-icon">📊</span> 블로그 지수
-    </button>
-    <button class="tab-btn" onclick="switchTab('radar', this)">
+    </a>
+    <a class="tab-btn" href="/radar">
       <span class="tab-icon">📡</span> 노출 레이더
-    </button>
+    </a>
   </div>
-</div>
+</nav>
 
-<!-- ════════════════════════════════════════
-     탭 1: 키워드 분석
-════════════════════════════════════════ -->
-<div class="tab-panel active" id="tab-kw">
+<div class="page-panel">
 <div class="page">
 
   <div class="hero">
@@ -554,131 +137,53 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
 </div>
 </div>
 
-<!-- ════════════════════════════════════════
-     탭 2: 블로그 지수
-════════════════════════════════════════ -->
-<div class="tab-panel" id="tab-bi">
-<div class="page">
-
-  <div class="bi-hero">
-    <div class="bi-hero-title">📊 블로그 지수 분석</div>
-    <div class="bi-hero-sub">네이버 블로그 ID를 입력하면 활동 지표와 키워드 노출 순위를 조회합니다</div>
+<!-- ── 정보 섹션: 사용법 · 지표 해설 · FAQ ── -->
+<section class="seo-sec">
+  <div class="seo-card">
+    <h2>키워드 검색량 조회 사용법</h2>
+    <ol>
+      <li><strong>키워드 입력</strong> — 상단 입력창에 분석하고 싶은 키워드를 입력하고 검색 버튼을 누릅니다. 띄어쓰기는 자동으로 제거되어 조회됩니다.</li>
+      <li><strong>검색량 확인</strong> — 최근 한 달 기준 PC·모바일 검색량과 그 합계, 그리고 두 기기 간 비율이 카드 형태로 표시됩니다.</li>
+      <li><strong>트렌드 분석</strong> — 최근 12개월 검색 트렌드 그래프에서 계절성과 상승·하락 흐름을 확인합니다. 전분기 대비 변화율 배지도 함께 제공됩니다.</li>
+      <li><strong>연관 키워드 탐색</strong> — 함께 표시되는 연관 키워드를 클릭하면 해당 키워드가 즉시 재분석되어, 꼬리에 꼬리를 무는 키워드 확장이 가능합니다.</li>
+      <li><strong>내 블로그 대조</strong> — 우측 상단 설정에서 블로그 ID를 저장해 두면, 검색한 키워드에 대해 내 블로그 포스팅과 네이버 상위 포스팅 10개를 함께 비교할 수 있습니다.</li>
+    </ol>
+    <p>분석 결과는 CSV 파일 저장과 JSON 복사를 지원하므로, 엑셀이나 다른 도구에서 후속 분석을 이어갈 수 있습니다.</p>
   </div>
 
-  <!-- 블로그 ID 입력 -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-title">블로그 ID 입력</div>
-    </div>
-    <div class="card-body">
-      <div class="bi-id-row">
-        <span class="bi-id-prefix">blog.naver.com/</span>
-        <div class="input-wrap">
-          <input class="input" type="text" id="biIdInp"
-            placeholder="블로그 ID 입력 (예: p911c4)"
-            autocomplete="off"
-            oninput="toggleClear('biIdInp','biIdClear')"
-            onkeydown="if(event.key==='Enter'){event.preventDefault();loadBlogStats();}"/>
-          <button class="input-clear" id="biIdClear" onclick="clearInput('biIdInp','biIdClear')" tabindex="-1">✕</button>
-        </div>
-        <button class="btn btn-primary" onclick="loadBlogStats()">조회</button>
-      </div>
-    </div>
+  <div class="seo-card">
+    <h2>지표 해설 — 숫자를 어떻게 읽어야 할까</h2>
+    <h3>월간 검색량 (PC / 모바일)</h3>
+    <p>네이버 검색광고 시스템이 집계한 최근 30일간의 검색 횟수 추정치입니다. 검색량이 10회 미만인 키워드는 정확한 수치 대신 "&lt; 10"으로 제공되며, 본 도구에서는 5로 환산해 표시합니다. 일반적으로 여행·맛집·쇼핑 등 생활 밀착형 주제는 모바일 비중이 70~90%에 달하므로, 모바일 검색 화면에서의 노출을 우선 고려하는 것이 좋습니다.</p>
+    <h3>경쟁도</h3>
+    <p>해당 키워드에 광고를 집행하는 광고주 수를 기준으로 한 낮음·중간·높음 3단계 지표입니다. 경쟁도가 높다는 것은 상업적 가치가 크다는 의미이기도 하지만, 그만큼 상위 노출 경쟁이 치열하다는 뜻입니다. 블로그 초기에는 <strong>검색량이 일정 수준 이상이면서 경쟁도가 낮은 키워드</strong>를 공략하는 전략이 효과적입니다.</p>
+    <h3>검색 트렌드 (최근 12개월)</h3>
+    <p>네이버 데이터랩 기반의 상대 지표로, 조회 기간 중 검색량이 가장 많았던 시점을 100%로 두고 각 월의 비율을 보여줍니다. 절대 검색량이 아닌 상대값이므로, 계절성 파악(예: "벚꽃 명소"는 3~4월 급등)과 키워드의 성장·쇠퇴 판단에 활용하세요.</p>
+    <h3>연관 키워드</h3>
+    <p>입력 키워드와 함께 검색되는 관련 키워드를 검색량 순으로 최대 10개 보여줍니다. 메인 키워드의 경쟁이 치열할 때 세부 연관 키워드(롱테일 키워드)로 우회 공략하는 데 유용합니다.</p>
   </div>
 
-  <!-- 활동 지표 카드 -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-title" id="biStatsTitle">블로그 활동 지표</div>
-      <button class="rank-load-btn" onclick="loadBlogStats()">새로고침</button>
-    </div>
-    <div class="card-body" id="biStatsBody">
-      <div class="bi-rank-empty" style="color:var(--text3);font-size:13px">블로그 ID를 입력하고 조회하세요</div>
-    </div>
+  <div class="seo-card">
+    <h2>자주 묻는 질문 (FAQ)</h2>
+    <div class="seo-faq-q">데이터 출처는 어디인가요?</div>
+    <div class="seo-faq-a">검색량과 경쟁도는 네이버 검색광고 API, 트렌드는 네이버 데이터랩 API, 블로그 포스팅은 네이버 검색 API에서 실시간으로 가져옵니다. 자체 추정치가 아닌 네이버 공식 데이터입니다.</div>
+    <div class="seo-faq-q">검색량은 얼마나 자주 갱신되나요?</div>
+    <div class="seo-faq-a">네이버 검색광고 시스템이 제공하는 최근 30일 누적 기준이며, 조회할 때마다 최신 데이터를 실시간으로 요청합니다. 별도의 캐시 없이 항상 현재 시점 데이터를 보여줍니다.</div>
+    <div class="seo-faq-q">검색량이 "&lt; 10"으로 나오는 이유는 뭔가요?</div>
+    <div class="seo-faq-a">네이버는 월 10회 미만 검색되는 키워드의 정확한 수치를 공개하지 않습니다. 본 도구는 이 경우 5회로 환산해 합계를 계산합니다.</div>
+    <div class="seo-faq-q">이용 요금이 있나요?</div>
+    <div class="seo-faq-a">아니요, 모든 기능을 무료로 사용할 수 있으며 회원가입도 필요 없습니다.</div>
+    <div class="seo-faq-q">검색 기록이 저장되나요?</div>
+    <div class="seo-faq-a">최근 검색 태그(최대 5개)는 사용자 브라우저의 localStorage에만 저장되며 서버에는 개인 식별 정보를 남기지 않습니다. 서비스 개선을 위한 익명 통계(검색 키워드, 방문 수)만 집계합니다.</div>
+    <div class="seo-faq-q">한 번에 여러 키워드를 조회할 수 있나요?</div>
+    <div class="seo-faq-a">현재는 정확도를 위해 1회 1키워드 조회 방식이며, 연관 키워드 클릭으로 빠르게 연속 분석할 수 있습니다.</div>
   </div>
-
-  <!-- 키워드 순위 조회 -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-title">키워드 노출 현황</div>
-    </div>
-    <div class="card-body">
-      <div class="bi-kw-input-row">
-        <div class="input-wrap">
-          <input class="input" type="text" id="biKwInp"
-            placeholder="키워드 입력 (예: 발리여행)"
-            inputmode="search" enterkeyhint="search"
-            autocomplete="off"
-            oninput="toggleClear('biKwInp','biKwClear')"
-            onkeydown="if(event.key==='Enter'||event.keyCode===13){event.preventDefault();loadRanking();}"/>
-          <button class="input-clear" id="biKwClear" onclick="clearInput('biKwInp','biKwClear')" tabindex="-1">✕</button>
-        </div>
-        <button class="btn btn-primary" onclick="loadRanking()">100위 내 노출 조회</button>
-      </div>
-      <div id="biRankResult">
-        <div class="bi-rank-empty">키워드를 입력하면 상위 100개 결과 중<br>포스팅 포함 여부를 확인합니다</div>
-      </div>
-    </div>
-  </div>
-
-</div>
-</div>
-
-<!-- ════════════════════════════════════════
-     탭 3: 노출 레이더
-════════════════════════════════════════ -->
-<div class="tab-panel" id="tab-radar">
-<div class="page">
-
-  <div class="radar-hero">
-    <div class="radar-hero-title">📡 노출 레이더</div>
-    <div class="radar-hero-sub">최근 포스팅 15개의 해시태그(의도 키워드)를 자동 추출하고, 검색량 상위 3개 키워드로 네이버 상위 100개 결과 노출 순위를 스캔합니다</div>
-  </div>
-
-  <!-- 현재 블로그 ID 표시 -->
-  <div class="radar-blogid-bar">
-    <div>
-      <span class="radar-blogid-hint">스캔 대상 블로그 · </span>
-      <span class="radar-blogid-val" id="radarBlogId">blog.naver.com/p911c4</span>
-    </div>
-    <button class="rank-load-btn" onclick="openSettings()">⚙️ 변경</button>
-  </div>
-
-  <!-- 스캔 실행 -->
-  <div class="radar-scan-wrap">
-    <button class="radar-scan-btn" id="radarScanBtn" onclick="startRadarScan()">
-      📡 노출 레이더 스캔 시작
-    </button>
-    <div class="radar-progress" id="radarProgress">
-      <div class="radar-progress-bar-wrap">
-        <div class="radar-progress-fill" id="radarProgressFill" style="width:0%"></div>
-      </div>
-      <div class="radar-progress-txt" id="radarProgressTxt">스캔 준비 중...</div>
-      <button id="radarStopBtn" style="display:none;margin-top:8px;width:100%;padding:8px;background:#fff0f0;color:var(--red);border:1px solid rgba(200,0,0,0.2);border-radius:6px;font-family:'Noto Sans KR',sans-serif;font-size:12px;cursor:pointer" onclick="radarScanning=false">⏹ 스캔 중단</button>
-    </div>
-  </div>
-
-  <!-- 페이징 탭 -->
-  <div id="radarPageTabs" style="display:none;margin-bottom:12px">
-    <div style="display:flex;gap:6px">
-      <button class="radar-page-tab active" id="radarTab0" onclick="showRadarPage(0)">1~5</button>
-      <button class="radar-page-tab" id="radarTab1" onclick="showRadarPage(1)">6~10</button>
-      <button class="radar-page-tab" id="radarTab2" onclick="showRadarPage(2)">11~15</button>
-    </div>
-  </div>
-
-  <!-- 스캔 결과 -->
-  <div id="radarResults">
-    <div class="radar-empty">스캔 버튼을 누르면 최근 포스팅 15개의<br>노출 순위를 자동으로 분석합니다</div>
-  </div>
-
-</div>
-</div>
+</section>
 
 <!-- ── Console ── -->
 <div class="console">
   <div class="cdot ok" id="cdot"></div>
-  <span id="ctxt">준비 완료 — 키워드를 입력하고 검색하세요</span>
+  <span id="ctxt">준비 완료</span>
 </div>
 
 <!-- ── Site Footer ── -->
@@ -701,195 +206,11 @@ body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto'
   </p>
 </footer>
 
+<script src="/common.js"></script>
 <script>
-/* ═══════════════════════════════
-   공통
-═══════════════════════════════ */
 let kws  = [];
 let data = [];
 
-setInterval(() => {
-  const t = new Date();
-  document.getElementById('clock').textContent =
-    t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0');
-}, 1000);
-
-function log(type, msg) {
-  document.getElementById('cdot').className = 'cdot' + (type ? ' '+type : '');
-  document.getElementById('ctxt').textContent = msg;
-}
-
-/* ═══════════════════════════════
-   블로그 설정 (localStorage)
-═══════════════════════════════ */
-const BLOG_SETTING_KEY = 'kc_my_blog_id';
-
-function getMyBlogId() {
-  return localStorage.getItem(BLOG_SETTING_KEY) || 'p911c4';
-}
-
-function openSettings() {
-  const saved = localStorage.getItem(BLOG_SETTING_KEY) || '';
-  const inp   = document.getElementById('settingsBlogId');
-  const cur   = document.getElementById('modalCurrentId');
-  const savedMsg = document.getElementById('modalSaved');
-  if (inp) inp.value = saved;
-  if (cur) cur.textContent = saved ? saved : '미설정 (기본값 사용)';
-  if (savedMsg) savedMsg.classList.remove('show');
-  document.getElementById('settingsModal').classList.add('show');
-  setTimeout(() => inp?.focus(), 100);
-}
-
-function closeSettings() {
-  document.getElementById('settingsModal').classList.remove('show');
-}
-
-function saveBlogSetting() {
-  const inp = document.getElementById('settingsBlogId');
-  const val = (inp?.value || '').trim().toLowerCase().replace(/^https?:\/\/[^/]+\//, '').replace(/\/$/, '');
-  if (!val) {
-    resetBlogSetting();
-    closeSettings();
-    resetAllResults();
-    return;
-  }
-  localStorage.setItem(BLOG_SETTING_KEY, val);
-  const cur = document.getElementById('modalCurrentId');
-  if (cur) cur.textContent = val;
-  const savedMsg = document.getElementById('modalSaved');
-  if (savedMsg) { savedMsg.classList.add('show'); setTimeout(() => savedMsg.classList.remove('show'), 1500); }
-  log('ok', `블로그 ID "${val}" 저장 완료`);
-  setTimeout(() => { closeSettings(); resetAllResults(); }, 1000);
-}
-
-function resetBlogSetting() {
-  localStorage.removeItem(BLOG_SETTING_KEY);
-  const inp = document.getElementById('settingsBlogId');
-  const cur = document.getElementById('modalCurrentId');
-  if (inp) inp.value = '';
-  if (cur) cur.textContent = '미설정 (기본값 사용)';
-  log('ok', '블로그 설정이 초기화되었습니다');
-}
-
-// 설정 변경 시 결과 초기화
-function resetAllResults() {
-  // 키워드 분석 초기화
-  kws = []; data = [];
-  document.getElementById('resultsPanel')?.classList.remove('show');
-  document.getElementById('loadingWrap')?.classList.remove('show');
-  document.getElementById('errBox')?.classList.remove('show');
-  const kwInp = document.getElementById('kwInp');
-  if (kwInp) { kwInp.value = ''; }
-  document.getElementById('kwClear')?.classList.remove('show');
-
-  // 블로그 지수 초기화
-  const biIdInp = document.getElementById('biIdInp');
-  const savedId = localStorage.getItem(BLOG_SETTING_KEY) || '';
-  if (biIdInp) {
-    biIdInp.value = savedId;
-    toggleClear('biIdInp', 'biIdClear');
-  }
-  const biStatsTitle = document.getElementById('biStatsTitle');
-  if (biStatsTitle) biStatsTitle.textContent = '블로그 활동 지표';
-  const biStatsBody = document.getElementById('biStatsBody');
-  if (biStatsBody) biStatsBody.innerHTML = '<div class="bi-rank-empty" style="color:var(--text3);font-size:13px">블로그 ID를 입력하고 조회하세요</div>';
-  const biKwInp = document.getElementById('biKwInp');
-  if (biKwInp) biKwInp.value = '';
-  document.getElementById('biKwClear')?.classList.remove('show');
-  const biRankResult = document.getElementById('biRankResult');
-  if (biRankResult) biRankResult.innerHTML = '<div class="bi-rank-empty">키워드를 입력하면 상위 100개 결과 중<br>포스팅 포함 여부를 확인합니다</div>';
-  biStatsLoaded = false;
-  currentBlogId = savedId;
-
-  // 상단으로 스크롤
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-/* ── 앱 초기화 ── */
-function resetApp() {
-  try {
-    // 탭 전환
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    const kwTab = document.getElementById('tab-kw');
-    if (kwTab) kwTab.classList.add('active');
-    const firstTabBtn = document.querySelector('.tab-nav .tab-btn');
-    if (firstTabBtn) firstTabBtn.classList.add('active');
-
-    // 키워드 분석 초기화
-    const kwInp = document.getElementById('kwInp');
-    if (kwInp) { kwInp.value = ''; kwInp.focus(); }
-    const kwClear = document.getElementById('kwClear');
-    if (kwClear) kwClear.classList.remove('show');
-    const resultsPanel = document.getElementById('resultsPanel');
-    if (resultsPanel) resultsPanel.classList.remove('show');
-    const loadingWrap = document.getElementById('loadingWrap');
-    if (loadingWrap) loadingWrap.classList.remove('show');
-    const errBox = document.getElementById('errBox');
-    if (errBox) errBox.classList.remove('show');
-    kws = []; data = [];
-
-    // 블로그 지수 탭 초기화
-    const biIdInp = document.getElementById('biIdInp');
-    if (biIdInp) biIdInp.value = '';
-    const biIdClear = document.getElementById('biIdClear');
-    if (biIdClear) biIdClear.classList.remove('show');
-    const biStatsTitle = document.getElementById('biStatsTitle');
-    if (biStatsTitle) biStatsTitle.textContent = '블로그 활동 지표';
-    const biStatsBody = document.getElementById('biStatsBody');
-    if (biStatsBody) biStatsBody.innerHTML = '<div class="bi-rank-empty" style="color:var(--text3);font-size:13px">블로그 ID를 입력하고 조회하세요</div>';
-    const biKwInp = document.getElementById('biKwInp');
-    if (biKwInp) biKwInp.value = '';
-    const biKwClear = document.getElementById('biKwClear');
-    if (biKwClear) biKwClear.classList.remove('show');
-    const biRankResult = document.getElementById('biRankResult');
-    if (biRankResult) biRankResult.innerHTML = '<div class="bi-rank-empty">키워드를 입력하면 상위 100개 결과 중<br>포스팅 포함 여부를 확인합니다</div>';
-    biStatsLoaded = false;
-    currentBlogId = '';
-
-    log('ok', '준비 완료 — 키워드를 입력하고 검색하세요');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  } catch(e) { console.error('resetApp error', e); }
-}
-
-/* ── 입력창 X 버튼 ── */
-function toggleClear(inputId, btnId) {
-  const inp = document.getElementById(inputId);
-  const btn = document.getElementById(btnId);
-  if (!inp || !btn) return;
-  btn.classList.toggle('show', inp.value.length > 0);
-}
-function clearInput(inputId, btnId) {
-  const inp = document.getElementById(inputId);
-  const btn = document.getElementById(btnId);
-  if (!inp || !btn) return;
-  inp.value = '';
-  btn.classList.remove('show');
-  inp.focus();
-}
-
-/* ── 탭 전환 ── */
-function switchTab(id, btn) {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + id).classList.add('active');
-  btn.classList.add('active');
-  // 블로그 지수 탭 전환 시 저장된 ID 자동 입력
-  if (id === 'bi') {
-    const savedId = localStorage.getItem(BLOG_SETTING_KEY) || '';
-    const biIdInp = document.getElementById('biIdInp');
-    if (biIdInp && savedId && !biIdInp.value) {
-      biIdInp.value = savedId;
-      toggleClear('biIdInp', 'biIdClear');
-    }
-  }
-  // 노출 레이더 탭 전환 시 블로그 ID 업데이트
-  if (id === 'radar') updateRadarBlogId();
-}
-
-/* ═══════════════════════════════
-   탭 1: 키워드 분석
-═══════════════════════════════ */
 const MAX_RECENT = 5;
 function getRecent() { try { return JSON.parse(localStorage.getItem('recentKw') || '[]'); } catch(e) { return []; } }
 function saveRecent(kw) {
@@ -1247,437 +568,25 @@ function copyJSON() {
   navigator.clipboard.writeText(JSON.stringify(data,null,2)).then(()=>log('ok','JSON이 클립보드에 복사됐습니다'));
 }
 
-/* ═══════════════════════════════
-   탭 3: 노출 레이더
-═══════════════════════════════ */
-let radarScanning = false;
-let radarAllPosts = [];
-let radarScores   = {};
-let radarPage     = 0;
-const RADAR_PAGE_SIZE = 5;
 
-function updateRadarBlogId() {
-  const blogId = getMyBlogId();
-  const el = document.getElementById('radarBlogId');
-  if (el) el.textContent = `blog.naver.com/${blogId}`;
-}
+/* ── 페이지 훅 (공통 common.js에서 호출) ── */
+window.pageReset = function() {
+  kws = []; data = [];
+  document.getElementById('resultsPanel')?.classList.remove('show');
+  document.getElementById('loadingWrap')?.classList.remove('show');
+  document.getElementById('errBox')?.classList.remove('show');
+  const kwInp = document.getElementById('kwInp');
+  if (kwInp) { kwInp.value = ''; kwInp.focus(); }
+  document.getElementById('kwClear')?.classList.remove('show');
+  log('ok', '준비 완료 — 키워드를 입력하고 검색하세요');
+};
+window.onBlogSettingChanged = function() {
+  // 블로그 ID 변경 시 "내 포스팅" 섹션이 옛 ID 기준이므로 결과 초기화
+  window.pageReset();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+log('ok', '준비 완료 — 키워드를 입력하고 검색하세요');
 
-function extractKeywords(title) {
-  const stopWords = ['이','그','저','것','수','있','하','에','를','을','의','가','이','은','는',
-    '으로','로','에서','에게','까지','부터','처럼','보다','만','도','와','과','및',
-    '또는','혹은','그리고','하지만','그러나','따라서','그래서',
-    '방법','방식','정리','소개','알아보기','알아보자','해보자','총정리','완벽',
-    '최고','최신','추천','리뷰','후기','이야기','내용','정보','꿀팁','팁','노하우'];
-  const cleaned = title.replace(/<[^>]+>/g,'').replace(/[|·\-–—\[\]【】()（）《》「」『』]/g,' ').trim();
-  const words   = cleaned.match(/[가-힣]{2,}|[a-zA-Z]{3,}/g) || [];
-  const filtered = [...new Set(words.filter(w => !stopWords.includes(w)))];
-  return filtered.sort((a,b) => b.length - a.length).slice(0, 5);
-}
-
-// 포스팅의 의도 키워드 후보 추출 — RSS <tag> 해시태그 우선, 없으면 제목에서 추출 (폴백)
-// ※ RSS <tag> = 글쓴이가 직접 입력한 해시태그, <category> = 폴더명 (혼동 주의)
-function getPostKeywords(post) {
-  const tags = Array.isArray(post.tags) ? post.tags : [];
-  const cleanedTags = [...new Set(
-    tags.map(t => String(t).replace(/^#/,'').trim()).filter(t => t.length >= 2)
-  )].slice(0, 5);  // RelKwdStat hintKeywords 최대 5개 제한
-  if (cleanedTags.length) return { keywords: cleanedTags, source: 'tag' };
-  return { keywords: extractKeywords(post.title), source: 'title' };
-}
-
-async function checkRank(keyword, blogId) {
-  try {
-    const res  = await fetch(`/api/blogstats?keyword=${encodeURIComponent(keyword)}&blogId=${encodeURIComponent(blogId)}`);
-    const json = await res.json();
-    const ranks = json.ranking?.ranks || [];
-    return ranks.length > 0 ? ranks[0].rank : null;
-  } catch(e) { return null; }
-}
-
-async function fetchRecentPosts(blogId) {
-  try {
-    const res  = await fetch(`/api/myposts?query=__all__&blogId=${encodeURIComponent(blogId)}`);
-    const json = await res.json();
-    return (json.items || []).slice(0, 15);
-  } catch(e) { return []; }
-}
-
-// 검색광고 API 1회 호출 — 후보 키워드의 검색량을 조회해 상위 3개만 선별
-// ※ RelKwdStat는 타 API 대비 1/5~1/6 속도 제한 → "1회 호출" 구조 절대 유지
-async function getTopKeywordsByVolume(keywords) {
-  if (!keywords.length) return [];
-  try {
-    const res  = await fetch('/api/keyword', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ keywords: keywords.map(k => k.replace(/\s+/g,'')).slice(0,5) })
-    });
-    const json = await res.json();
-    const list = json.keywordList || [];
-
-    // 후보 키워드 자신의 검색량만 매칭 (연관 키워드로 확장하지 않음)
-    const withVol = keywords.map(kw => {
-      const hit = list.find(d => d.relKeyword === kw.replace(/\s+/g,''));
-      const pc  = hit ? (hit.monthlyPcQcCnt     === '< 10' ? 5 : (parseInt(hit.monthlyPcQcCnt)     || 0)) : 0;
-      const mo  = hit ? (hit.monthlyMobileQcCnt === '< 10' ? 5 : (parseInt(hit.monthlyMobileQcCnt) || 0)) : 0;
-      return { kw, vol: pc + mo };
-    });
-    // 검색량 상위 3개 선별 (검색량 0이어도 후보가 3개 이하면 전부 스캔)
-    return withVol.sort((a,b) => b.vol - a.vol).slice(0, 3).map(d => d.kw);
-  } catch(e) {
-    // API 실패 시 앞 3개로 폴백
-    return keywords.slice(0, 3);
-  }
-}
-
-// 포스팅 지수 산정 (v3) — 순위 30 / 최신성 25 / 키워드 적합도 30 / 매칭폭 15 = 100점 → ÷100
-function calcPostScore(ranks, pubDate, title, keywords) {
-  // ① 검색 노출 순위 (30점) — 스캔 키워드 중 최고 순위 기준
-  let rankScore = 0;
-  const validRanks = ranks.filter(r => r !== null);
-  const bestRank = validRanks.sort((a,b) => a-b)[0] ?? null;
-  if      (bestRank === null) rankScore = 0;
-  else if (bestRank <= 3)     rankScore = 30;
-  else if (bestRank <= 10)    rankScore = 23;
-  else if (bestRank <= 30)    rankScore = 15;
-  else                        rankScore = 7;
-
-  // ② 최신성 (25점)
-  let freshScore = 0;
-  if (pubDate) {
-    const days = (Date.now() - new Date(pubDate)) / (1000*60*60*24);
-    if      (days <= 7)   freshScore = 25;
-    else if (days <= 30)  freshScore = 20;
-    else if (days <= 90)  freshScore = 12;
-    else if (days <= 180) freshScore = 6;
-    else                  freshScore = 2;
-  }
-
-  // ③ 키워드 적합도 (30점) — 의도 키워드(태그)의 제목 내 위치
-  let kwScore = 6;
-  const cleanTitle = title.replace(/<[^>]+>/g,'').toLowerCase();
-  const first15 = cleanTitle.slice(0,15);
-  for (const kw of keywords) {
-    const kwLower = kw.toLowerCase().replace(/\s+/g,'');
-    const titleNoSpace  = cleanTitle.replace(/\s+/g,'');
-    const first15NoSpace = first15.replace(/\s+/g,'');
-    if      (first15NoSpace.includes(kwLower)) { kwScore = 30; break; }
-    else if (titleNoSpace.includes(kwLower))   { kwScore = Math.max(kwScore, 18); }
-  }
-
-  // ④ 매칭폭 (15점) — 스캔 키워드 중 100위 내 노출 비율
-  let coverScore = 0;
-  if (ranks.length > 0) {
-    const ratio = validRanks.length / ranks.length;
-    if      (ratio >= 1)     coverScore = 15;
-    else if (ratio >= 0.67)  coverScore = 10;
-    else if (ratio > 0)      coverScore = 5;
-  }
-
-  return ((rankScore + freshScore + kwScore + coverScore) / 100).toFixed(2);
-}
-
-function scoreColor(score) {
-  const s = parseFloat(score);
-  if (s >= 0.80) return '#00b200';
-  if (s >= 0.60) return '#1428a0';
-  if (s >= 0.40) return '#b06000';
-  return '#c00';
-}
-
-function showRadarPage(page) {
-  radarPage = page;
-  for (let t = 0; t < 3; t++) {
-    const tab = document.getElementById(`radarTab${t}`);
-    if (!tab) continue;
-    tab.classList.remove('active');
-    const s = t * RADAR_PAGE_SIZE;
-    const isDone = radarAllPosts.slice(s, s+RADAR_PAGE_SIZE).every((_,i) => radarScores[s+i] !== undefined);
-    if (isDone) tab.classList.add('done'); else tab.classList.remove('done');
-    if (t === page) tab.classList.add('active');
-  }
-  const start = page * RADAR_PAGE_SIZE;
-  const pagePosts = radarAllPosts.slice(start, start + RADAR_PAGE_SIZE);
-  const resultsEl = document.getElementById('radarResults');
-  if (!resultsEl) return;
-  resultsEl.innerHTML = pagePosts.map((post, idx) => {
-    const i = start + idx;
-    const safeTitle = post.title.replace(/<[^>]+>/g,'');
-    const score = radarScores[i];
-    const scoreHtml = score !== undefined
-      ? `<span style="font-size:11px;color:var(--text3);margin-right:3px">포스팅 지수</span><span style="font-size:16px;font-weight:700;color:${scoreColor(score)}">${score}</span>`
-      : `<span style="font-size:11px;color:var(--text3)">대기 중</span>`;
-    return `<div class="radar-item" id="radar-item-${i}">
-      <div class="radar-item-head">
-        <div class="radar-post-title"><a href="${post.link}" target="_blank" rel="noopener">${safeTitle}</a></div>
-        <div id="radar-score-${i}" style="flex-shrink:0">${scoreHtml}</div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-async function startRadarScan() {
-  if (radarScanning) return;
-  radarScanning = true;
-
-  const blogId   = getMyBlogId();
-  const scanBtn  = document.getElementById('radarScanBtn');
-  const progress = document.getElementById('radarProgress');
-  const progFill = document.getElementById('radarProgressFill');
-  const progTxt  = document.getElementById('radarProgressTxt');
-  const stopBtn  = document.getElementById('radarStopBtn');
-  const tabWrap  = document.getElementById('radarPageTabs');
-
-  scanBtn.disabled = true;
-  scanBtn.innerHTML = '<div class="rank-spinner" style="width:16px;height:16px;border-width:2px"></div> 스캔 중...';
-  progress.classList.add('show');
-  if (stopBtn) stopBtn.style.display = 'block';
-  progFill.style.width = '0%';
-  progTxt.textContent = 'RSS에서 포스팅 불러오는 중...';
-  radarScores = {};
-  log('busy', `📡 노출 레이더 스캔 시작 — ${blogId}`);
-
-  const posts = await fetchRecentPosts(blogId);
-  if (!posts.length) {
-    document.getElementById('radarResults').innerHTML = '<div class="radar-empty">포스팅을 불러올 수 없습니다.<br>블로그 ID를 확인해 주세요.</div>';
-    scanBtn.disabled = false; scanBtn.innerHTML = '📡 노출 레이더 스캔 시작';
-    progress.classList.remove('show');
-    if (stopBtn) stopBtn.style.display = 'none';
-    radarScanning = false; return;
-  }
-
-  radarAllPosts = posts;
-  const total    = posts.length;
-  const tabCount = Math.ceil(total / RADAR_PAGE_SIZE);
-
-  if (tabWrap) {
-    tabWrap.style.display = 'block';
-    for (let t = 0; t < 3; t++) {
-      const tab = document.getElementById(`radarTab${t}`);
-      if (!tab) continue;
-      const s = t * RADAR_PAGE_SIZE;
-      const e = Math.min(s + RADAR_PAGE_SIZE, total);
-      tab.textContent = `${s+1}~${e}`;
-      tab.style.display = t < tabCount ? '' : 'none';
-      tab.classList.remove('active','done');
-    }
-    document.getElementById('radarTab0')?.classList.add('active');
-  }
-
-  showRadarPage(0);
-
-  for (let page = 0; page < tabCount; page++) {
-    if (!radarScanning) { progTxt.textContent = `⏹ 스캔 중단됨`; break; }
-
-    // 현재 스캔 중 탭에 scanning 클래스 추가
-    const curTab = document.getElementById(`radarTab${page}`);
-    if (curTab) {
-      curTab.classList.add('scanning');
-      curTab.innerHTML = `<span class="tab-spinner">⏳</span>${curTab.textContent.trim()}`;
-    }
-
-    const start = page * RADAR_PAGE_SIZE;
-    const pagePosts = posts.slice(start, start + RADAR_PAGE_SIZE);
-
-    for (let idx = 0; idx < pagePosts.length; idx++) {
-      if (!radarScanning) break;
-      const i    = start + idx;
-      const post = pagePosts[idx];
-
-      if (page === radarPage) {
-        const scoreEl = document.getElementById(`radar-score-${i}`);
-        if (scoreEl) scoreEl.innerHTML = `<span style="font-size:11px;color:var(--text3)">분석 중...</span>`;
-      }
-
-      // 1단계: RSS 태그(해시태그) 우선 키워드 추출, 없으면 제목에서 폴백
-      const { keywords: candidateKws, source: kwSource } = getPostKeywords(post);
-
-      // 2단계: 검색광고 API 1회 호출로 검색량 조회 → 상위 3개만 선별
-      progTxt.textContent = `[${i+1}/${total}] ${kwSource === 'tag' ? '태그' : '제목'} 키워드 검색량 조회 중...`;
-      const scanKws = await getTopKeywordsByVolume(candidateKws);
-
-      // 3단계: 순위 조회 (3개씩 묶어서, 딜레이 80ms)
-      progTxt.textContent = `[${i+1}/${total}] 순위 스캔 중... (${scanKws.length}개)`;
-      const rankResults = [];
-      for (let j = 0; j < scanKws.length; j += 3) {
-        if (!radarScanning) break;
-        const chunk = scanKws.slice(j, j+3);
-        const ranks = await Promise.all(chunk.map(kw => checkRank(kw, blogId)));
-        chunk.forEach((kw, k) => rankResults.push({ kw, rank: ranks[k] }));
-        if (j+3 < scanKws.length) await new Promise(r => setTimeout(r, 80));
-      }
-
-      const score = calcPostScore(rankResults.map(r=>r.rank), post.pubDate, post.title, scanKws);
-      radarScores[i] = score;
-
-      if (page === radarPage) {
-        const scoreEl = document.getElementById(`radar-score-${i}`);
-        if (scoreEl) scoreEl.innerHTML = `<span style="font-size:11px;color:var(--text3);margin-right:3px">포스팅 지수</span><span style="font-size:16px;font-weight:700;color:${scoreColor(score)}">${score}</span>`;
-      }
-
-      progFill.style.width = Math.round(((i+1)/total)*100) + '%';
-    }
-
-    const doneTab = document.getElementById(`radarTab${page}`);
-    if (doneTab) {
-      doneTab.classList.remove('scanning');
-      doneTab.classList.add('done');
-      const s = page * RADAR_PAGE_SIZE;
-      const e = Math.min(s + RADAR_PAGE_SIZE, total);
-      doneTab.innerHTML = `${s+1}~${e} ✓`;
-    }
-    showRadarPage(radarPage);
-  }
-
-  if (stopBtn) stopBtn.style.display = 'none';
-  if (radarScanning) {
-    progFill.style.width = '100%';
-    progTxt.textContent  = `✅ 스캔 완료 — 포스팅 ${total}개 분석`;
-    log('ok', `📡 노출 레이더 스캔 완료 — 포스팅 ${total}개`);
-  }
-  scanBtn.disabled  = false;
-  scanBtn.innerHTML = '🔄 다시 스캔';
-  radarScanning     = false;
-}
-let biStatsLoaded = false;
-let currentBlogId = '';
-
-// LEVEL 1~9 정의
-const LEVELS = [
-  { lv:1, min:0,   max:10,  name:'씨앗',     desc:'이제 막 시작한 블로거',         color:'lv1' },
-  { lv:2, min:11,  max:20,  name:'새싹',     desc:'꾸준히 글을 쓰기 시작했어요',    color:'lv2' },
-  { lv:3, min:21,  max:35,  name:'나무',     desc:'블로그가 자리를 잡아가고 있어요', color:'lv3' },
-  { lv:4, min:36,  max:50,  name:'꽃',       desc:'활발하게 활동 중인 블로거',      color:'lv4' },
-  { lv:5, min:51,  max:65,  name:'열매',     desc:'꾸준한 활동으로 성장 중',        color:'lv5' },
-  { lv:6, min:66,  max:75,  name:'숲',       desc:'탄탄한 콘텐츠를 쌓고 있어요',   color:'lv6' },
-  { lv:7, min:76,  max:85,  name:'별',       desc:'높은 활동성의 파워 블로거',      color:'lv7' },
-  { lv:8, min:86,  max:94,  name:'왕관',     desc:'최상위 활동 블로거',             color:'lv8' },
-  { lv:9, min:95,  max:100, name:'다이아',   desc:'전설적인 블로거',                color:'lv9' },
-];
-
-function getLevel(score) {
-  return LEVELS.find(l => score >= l.min && score <= l.max) || LEVELS[0];
-}
-
-// 활동 지수 계산 — 최근 30일 발행 수 기반 (월 30개 = 만점)
-function calcScore(recent30) {
-  return Math.min(Math.round((recent30 / 30) * 100), 100);
-}
-
-async function loadBlogStats() {
-  const idInp = document.getElementById('biIdInp');
-  const blogId = (idInp?.value || 'p911c4').trim().toLowerCase().replace(/^https?:\/\/[^/]+\//, '');
-  if (!blogId) return;
-  currentBlogId = blogId;
-  biStatsLoaded = true;
-
-  const body      = document.getElementById('biStatsBody');
-  const titleEl   = document.getElementById('biStatsTitle');
-  if (titleEl) titleEl.textContent = `블로그 활동 지표 — ${blogId}`;
-  body.innerHTML = '<div class="bi-loading"><div class="rank-spinner"></div>블로그 데이터 불러오는 중...</div>';
-  log('busy', `"${blogId}" 블로그 지수 로딩 중...`);
-
-  try {
-    const res  = await fetch(`/api/blogstats?blogId=${encodeURIComponent(blogId)}`);
-    const json = await res.json();
-    const stats = json.stats || {};
-
-    const lastDateStr = stats.lastDate
-      ? new Date(stats.lastDate).toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'})
-      : '-';
-
-    const actScore   = calcScore(stats.recent30 || 0);
-    const level      = getLevel(actScore);
-    const gaugeColor = actScore >= 66 ? 'var(--blue)' : actScore >= 36 ? 'var(--amber)' : actScore >= 11 ? 'var(--green)' : '#aaa';
-
-    body.innerHTML = `
-      <!-- 레벨 배지 -->
-      <div class="bi-level-wrap">
-        <div class="bi-level-badge ${level.color}">LV.${level.lv} ${level.name}</div>
-        <div class="bi-level-info">
-          <div class="bi-level-name">${level.desc}</div>
-          <div class="bi-level-desc">활동 지수 ${actScore}점 · ${LEVELS.map(l=>`<span style="opacity:${actScore>=l.min?'1':'0.25'};font-weight:${level.lv===l.lv?'700':'400'}">${l.lv}</span>`).join(' → ')}</div>
-        </div>
-      </div>
-
-      <!-- 통계 그리드 -->
-      <div class="bi-stat-grid">
-        <div class="bi-stat-cell">
-          <div class="bi-stat-num" style="color:var(--blue)">${(stats.total||0).toLocaleString()}+</div>
-          <div class="bi-stat-lbl">총 포스팅 수</div>
-          <div class="bi-stat-sub">추정값</div>
-        </div>
-        <div class="bi-stat-cell">
-          <div class="bi-stat-num" style="color:var(--green)">${stats.recent30||0}</div>
-          <div class="bi-stat-lbl">최근 30일 발행</div>
-          <div class="bi-stat-sub">최근 활동량</div>
-        </div>
-        <div class="bi-stat-cell">
-          <div class="bi-stat-num" style="color:${gaugeColor}">${actScore}</div>
-          <div class="bi-stat-lbl">활동 지수</div>
-          <div class="bi-stat-sub">100점 만점</div>
-        </div>
-      </div>
-
-      <!-- 게이지 -->
-      <div class="bi-gauge-wrap">
-        <div class="bi-gauge-title">
-          <span>활동 지수 게이지</span>
-          <span style="color:${gaugeColor};font-weight:700">${actScore}점 · LV.${level.lv} ${level.name}</span>
-        </div>
-        <div class="bi-gauge-bar">
-          <div class="bi-gauge-fill" style="width:${actScore}%;background:${gaugeColor}"></div>
-        </div>
-        <div class="bi-gauge-labels">
-          ${LEVELS.map(l=>`<span style="font-size:9px;color:${actScore>=l.min?'var(--blue)':'#ccc'}">LV${l.lv}</span>`).join('')}
-        </div>
-      </div>
-      <div class="bi-last-date">📅 마지막 포스팅: <strong>${lastDateStr}</strong></div>`;
-
-    log('ok', `"${blogId}" 블로그 지수 로드 완료 — LV.${level.lv} ${level.name} (${actScore}점)`);
-  } catch(e) {
-    body.innerHTML = `<div class="bi-rank-empty" style="color:var(--red)">데이터 로드 실패: ${e.message}</div>`;
-    log('fail', '블로그 지수 로드 실패');
-  }
-}
-
-async function loadRanking() {
-  const kw     = document.getElementById('biKwInp').value.trim().replace(/\s+/g,'');
-  const result = document.getElementById('biRankResult');
-  const blogId = currentBlogId || 'p911c4';
-  if (!kw) return;
-  result.innerHTML = '<div class="bi-loading"><div class="rank-spinner"></div>순위 조회 중...</div>';
-  log('busy', `"${kw}" 노출 순위 조회 중...`);
-  try {
-    const res  = await fetch(`/api/blogstats?keyword=${encodeURIComponent(kw)}&blogId=${encodeURIComponent(blogId)}`);
-    const json = await res.json();
-    const ranks = json.ranking?.ranks || [];
-    if (!ranks.length) {
-      result.innerHTML = `<div class="bi-rank-empty">상위 100개 결과에 <strong>"${kw}"</strong> 관련<br><strong>${blogId}</strong> 블로그 포스팅이 없습니다</div>`;
-      log('ok', `"${kw}" — 상위 100개 내 노출 없음`);
-      return;
-    }
-    result.innerHTML = `
-      <div style="font-size:12px;color:var(--text3);margin-bottom:10px">
-        <strong>${blogId}</strong> · "${kw}" 검색 상위 100개 중 <strong style="color:var(--blue)">${ranks.length}개</strong> 노출
-      </div>
-      <div class="bi-rank-result">
-        ${ranks.map(r => {
-          const cls = r.rank <= 3 ? 'top3' : r.rank <= 10 ? 'top10' : 'other';
-          return `<a class="bi-rank-item" href="${r.link}" target="_blank" rel="noopener">
-            <span class="bi-rank-badge ${cls}">${r.rank}위</span>
-            <div class="bi-rank-info">
-              <div class="bi-rank-title">${r.title}</div>
-              <div class="bi-rank-desc">${r.description}</div>
-            </div>
-          </a>`;
-        }).join('')}
-      </div>`;
-    log('ok', `"${kw}" 순위 조회 완료 — ${ranks.length}개 노출`);
-  } catch(e) {
-    result.innerHTML = `<div class="bi-rank-empty" style="color:var(--red)">순위 조회 실패: ${e.message}</div>`;
-    log('fail', '순위 조회 실패');
-  }
-}
 </script>
 </body>
 </html>

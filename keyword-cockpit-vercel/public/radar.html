@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>노출 레이더 — 포스팅 지수 자동 분석 | KEYWORD COCKPIT</title>
+<meta name="description" content="최근 포스팅 15개의 해시태그 키워드를 자동 추출하고 검색량 상위 3개 키워드의 네이버 노출 순위를 스캔해 포스팅 지수(0.00~1.00)를 산출하는 무료 도구입니다.">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon48.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/appletouchicon180.png">
+<link rel="stylesheet" href="/common.css">
+</head>
+<body>
+<!-- ── Topbar ── -->
+<div class="topbar">
+  <div class="topbar-brand" onclick="resetApp()" title="처음으로">
+    <img src="/logo.png" alt="KEYWORD COCKPIT" style="height:26px;width:auto;display:block">
+  </div>
+  <div class="topbar-status">
+    <div class="status-dot live" id="apiDot"></div>
+    <span id="apiTxt">서버 연결됨</span>
+    &nbsp;·&nbsp;
+    <span id="clock">--:--</span>
+    &nbsp;&nbsp;
+    <button class="topbar-settings" onclick="openSettings()">⚙️ <span class="topbar-settings-txt">설정</span></button>
+  </div>
+</div>
+
+<!-- ── 설정 모달 ── -->
+<div class="modal-overlay" id="settingsModal" onclick="if(event.target===this)closeSettings()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">⚙️ 블로그 설정</div>
+      <button class="modal-close" onclick="closeSettings()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-label">📌 내 블로그 ID</div>
+      <div class="modal-desc">키워드 분석 결과에서 <strong>내 포스팅</strong>을 자동으로 찾아 보여줍니다.<br>네이버 블로그 주소에서 ID 부분만 입력하세요.</div>
+      <div class="modal-current" id="modalCurrentBlog">
+        현재 설정: <strong id="modalCurrentId">미설정 (기본값 사용)</strong>
+      </div>
+      <div class="modal-input-row">
+        <span class="modal-prefix">blog.naver.com/</span>
+        <input class="input" type="text" id="settingsBlogId"
+          placeholder="블로그 ID 입력 (예: p911c4)"
+          autocomplete="off"
+          onkeydown="if(event.key==='Enter'){saveBlogSetting();}"/>
+      </div>
+      <div class="modal-saved" id="modalSaved">✅ 저장되었습니다!</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="resetBlogSetting()">초기화</button>
+      <button class="btn btn-primary btn-sm" onclick="saveBlogSetting()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 탭 네비게이션 (페이지 링크) ── -->
+<nav class="tab-nav">
+  <div class="tab-nav-inner">
+    <a class="tab-btn" href="/">
+      <span class="tab-icon">🔍</span> 키워드 분석
+    </a>
+    <a class="tab-btn" href="/blog">
+      <span class="tab-icon">📊</span> 블로그 지수
+    </a>
+    <a class="tab-btn active" href="/radar">
+      <span class="tab-icon">📡</span> 노출 레이더
+    </a>
+  </div>
+</nav>
+
+<div class="page-panel">
+<div class="page">
+
+  <div class="radar-hero">
+    <div class="radar-hero-title">📡 노출 레이더</div>
+    <div class="radar-hero-sub">최근 포스팅 15개의 해시태그(의도 키워드)를 자동 추출하고, 검색량 상위 3개 키워드로 네이버 상위 100개 결과 노출 순위를 스캔합니다</div>
+  </div>
+
+  <!-- 현재 블로그 ID 표시 -->
+  <div class="radar-blogid-bar">
+    <div>
+      <span class="radar-blogid-hint">스캔 대상 블로그 · </span>
+      <span class="radar-blogid-val" id="radarBlogId">blog.naver.com/p911c4</span>
+    </div>
+    <button class="rank-load-btn" onclick="openSettings()">⚙️ 변경</button>
+  </div>
+
+  <!-- 스캔 실행 -->
+  <div class="radar-scan-wrap">
+    <button class="radar-scan-btn" id="radarScanBtn" onclick="startRadarScan()">
+      📡 노출 레이더 스캔 시작
+    </button>
+    <div class="radar-progress" id="radarProgress">
+      <div class="radar-progress-bar-wrap">
+        <div class="radar-progress-fill" id="radarProgressFill" style="width:0%"></div>
+      </div>
+      <div class="radar-progress-txt" id="radarProgressTxt">스캔 준비 중...</div>
+      <button id="radarStopBtn" style="display:none;margin-top:8px;width:100%;padding:8px;background:#fff0f0;color:var(--red);border:1px solid rgba(200,0,0,0.2);border-radius:6px;font-family:'Noto Sans KR',sans-serif;font-size:12px;cursor:pointer" onclick="radarScanning=false">⏹ 스캔 중단</button>
+    </div>
+  </div>
+
+  <!-- 페이징 탭 -->
+  <div id="radarPageTabs" style="display:none;margin-bottom:12px">
+    <div style="display:flex;gap:6px">
+      <button class="radar-page-tab active" id="radarTab0" onclick="showRadarPage(0)">1~5</button>
+      <button class="radar-page-tab" id="radarTab1" onclick="showRadarPage(1)">6~10</button>
+      <button class="radar-page-tab" id="radarTab2" onclick="showRadarPage(2)">11~15</button>
+    </div>
+  </div>
+
+  <!-- 스캔 결과 -->
+  <div id="radarResults">
+    <div class="radar-empty">스캔 버튼을 누르면 최근 포스팅 15개의<br>노출 순위를 자동으로 분석합니다</div>
+  </div>
+
+</div>
+</div>
+
+<!-- ── 정보 섹션: 사용법 · 지표 해설 · FAQ ── -->
+<section class="seo-sec">
+  <div class="seo-card">
+    <h2>노출 레이더 사용법</h2>
+    <ol>
+      <li><strong>블로그 확인</strong> — 스캔 대상 블로그가 상단에 표시됩니다. 다른 블로그를 스캔하려면 변경 버튼(설정)에서 블로그 ID를 저장하세요.</li>
+      <li><strong>스캔 시작</strong> — 버튼을 누르면 RSS에서 최근 포스팅 최대 15개를 불러와 순서대로 분석합니다. 진행률 바와 함께 현재 단계가 표시됩니다.</li>
+      <li><strong>결과 확인</strong> — 포스팅 5개 단위로 3개 페이지(1~5 / 6~10 / 11~15)에 나뉘어 표시되며, 분석 중인 페이지는 점선 테두리와 모래시계, 완료된 페이지는 체크 표시로 구분됩니다.</li>
+      <li><strong>중단·재스캔</strong> — 스캔 중 언제든 중단할 수 있고, 완료 후 다시 스캔 버튼으로 최신 순위를 재확인할 수 있습니다.</li>
+    </ol>
+  </div>
+
+  <div class="seo-card">
+    <h2>포스팅 지수 산정 기준 (v3)</h2>
+    <p>포스팅 지수는 0.00~1.00 사이의 종합 점수로, 각 포스팅의 검색 노출 상태를 한 눈에 보여줍니다. 포스팅에 입력된 <strong>해시태그를 글쓴이의 의도 키워드로 우선 사용</strong>하고(태그가 없으면 제목에서 자동 추출), 검색광고 API로 각 키워드의 검색량을 조회해 <strong>검색량 상위 3개 키워드만</strong> 네이버 블로그 검색 상위 100위 내 노출 여부를 스캔합니다. 네 가지 요소를 합산해 100점 만점으로 계산한 뒤 100으로 나눕니다.</p>
+    <table class="seo-table">
+      <tr><th>구성 요소</th><th>배점</th><th>세부 기준</th></tr>
+      <tr><td>① 검색 노출 순위</td><td>30점</td><td>최고 순위 기준 — 1~3위 30 / 4~10위 23 / 11~30위 15 / 31~100위 7 / 100위 밖 0</td></tr>
+      <tr><td>② 최신성</td><td>25점</td><td>발행 후 7일 이내 25 / 30일 20 / 90일 12 / 180일 6 / 초과 2</td></tr>
+      <tr><td>③ 키워드 적합도</td><td>30점</td><td>의도 키워드가 제목 앞 15자 이내 30 / 제목 내 포함 18 / 미포함 6</td></tr>
+      <tr><td>④ 매칭폭</td><td>15점</td><td>스캔 키워드 중 100위 내 노출 비율 — 전부 15 / 3분의 2 이상 10 / 1개 이상 5 / 없음 0</td></tr>
+    </table>
+    <table class="seo-table">
+      <tr><th>등급</th><th>지수 범위</th><th>해석</th></tr>
+      <tr><td>우수 (초록)</td><td>0.80~1.00</td><td>노출·최신성·키워드 모두 양호</td></tr>
+      <tr><td>양호 (파랑)</td><td>0.60~0.79</td><td>전반적으로 좋으나 개선 여지 있음</td></tr>
+      <tr><td>보통 (주황)</td><td>0.40~0.59</td><td>키워드 보완 또는 내용 업데이트 검토</td></tr>
+      <tr><td>개선 (빨강)</td><td>0.00~0.39</td><td>노출 하락 또는 오래된 콘텐츠 — 리라이팅 권장</td></tr>
+    </table>
+    <p>지수가 낮은 포스팅은 제목 앞부분에 핵심 키워드를 배치하고, 검색량이 있는 해시태그를 재정비한 뒤 내용을 보강(리라이팅)하면 개선 효과를 기대할 수 있습니다.</p>
+  </div>
+
+  <div class="seo-card">
+    <h2>자주 묻는 질문 (FAQ)</h2>
+    <div class="seo-faq-q">키워드는 어떻게 정해지나요?</div>
+    <div class="seo-faq-a">포스팅 작성 시 입력한 해시태그를 의도 키워드로 우선 사용합니다. 해시태그가 없는 포스팅은 제목에서 불용어를 제외한 핵심 단어를 자동 추출합니다. 그중 검색량이 가장 많은 3개만 스캔해 속도와 정확도를 함께 확보합니다.</div>
+    <div class="seo-faq-q">스캔이 왜 포스팅마다 몇 초씩 걸리나요?</div>
+    <div class="seo-faq-a">네이버 검색광고 API의 호출 속도 제한을 준수하기 위해 호출 사이에 의도적인 지연을 두고 있습니다. 과도한 요청으로 차단되는 것을 막기 위한 설계입니다.</div>
+    <div class="seo-faq-q">포스팅 지수는 네이버 공식 지수인가요?</div>
+    <div class="seo-faq-a">아니요. 공개 API 데이터만 활용한 자체 추정 지표입니다. 공감 수, 방문자 수, 체류 시간처럼 로그인이 필요한 데이터는 반영되지 않습니다.</div>
+    <div class="seo-faq-q">같은 포스팅인데 스캔할 때마다 지수가 달라집니다.</div>
+    <div class="seo-faq-a">검색 순위는 시점에 따라 변동되고, 최신성 점수도 시간이 지나며 자연 감소합니다. 주기적으로 재스캔해 추세를 확인하는 방식을 권장합니다.</div>
+    <div class="seo-faq-q">15개보다 오래된 포스팅도 분석할 수 있나요?</div>
+    <div class="seo-faq-a">RSS가 제공하는 최근 포스팅 범위 내에서 최대 15개를 분석합니다. 특정 오래된 포스팅의 노출이 궁금하다면 블로그 지수 탭의 키워드 노출 현황 기능으로 개별 확인할 수 있습니다.</div>
+  </div>
+</section>
+
+<!-- ── Console ── -->
+<div class="console">
+  <div class="cdot ok" id="cdot"></div>
+  <span id="ctxt">준비 완료</span>
+</div>
+
+<!-- ── Site Footer ── -->
+<footer style="max-width:780px;margin:0 auto;padding:8px 16px 96px;text-align:center">
+  <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:10px">
+    <strong>Keyword Cockpit</strong>은 네이버 검색 데이터 기반 키워드 검색량·경쟁도를
+    한눈에 보여주는 무료 분석 도구입니다.<br>
+    키워드 분석 방법과 도구 제작 과정은 블로그에서 확인하실 수 있습니다.
+  </p>
+  <p style="margin-bottom:14px">
+    <a href="https://keywordcockpit.com" target="_blank" rel="noopener"
+       style="font-size:13px;font-weight:700;color:var(--blue);text-decoration:none">
+      키워드 분석 노하우 보러 가기 → keywordcockpit.com
+    </a>
+  </p>
+  <p style="font-size:12px;color:var(--text3)">
+    © 2026 Keyword Cockpit ·
+    <a href="https://keywordcockpit.com/privacy-policy/" target="_blank" rel="noopener"
+       style="color:var(--text3);text-decoration:underline">개인정보처리방침</a>
+  </p>
+</footer>
+
+<script src="/common.js"></script>
+<script>
+let radarScanning = false;
+let radarAllPosts = [];
+let radarScores   = {};
+let radarPage     = 0;
+const RADAR_PAGE_SIZE = 5;
+
+function updateRadarBlogId() {
+  const blogId = getMyBlogId();
+  const el = document.getElementById('radarBlogId');
+  if (el) el.textContent = `blog.naver.com/${blogId}`;
+}
+
+function extractKeywords(title) {
+  const stopWords = ['이','그','저','것','수','있','하','에','를','을','의','가','이','은','는',
+    '으로','로','에서','에게','까지','부터','처럼','보다','만','도','와','과','및',
+    '또는','혹은','그리고','하지만','그러나','따라서','그래서',
+    '방법','방식','정리','소개','알아보기','알아보자','해보자','총정리','완벽',
+    '최고','최신','추천','리뷰','후기','이야기','내용','정보','꿀팁','팁','노하우'];
+  const cleaned = title.replace(/<[^>]+>/g,'').replace(/[|·\-–—\[\]【】()（）《》「」『』]/g,' ').trim();
+  const words   = cleaned.match(/[가-힣]{2,}|[a-zA-Z]{3,}/g) || [];
+  const filtered = [...new Set(words.filter(w => !stopWords.includes(w)))];
+  return filtered.sort((a,b) => b.length - a.length).slice(0, 5);
+}
+
+// 포스팅의 의도 키워드 후보 추출 — RSS <tag> 해시태그 우선, 없으면 제목에서 추출 (폴백)
+// ※ RSS <tag> = 글쓴이가 직접 입력한 해시태그, <category> = 폴더명 (혼동 주의)
+function getPostKeywords(post) {
+  const tags = Array.isArray(post.tags) ? post.tags : [];
+  const cleanedTags = [...new Set(
+    tags.map(t => String(t).replace(/^#/,'').trim()).filter(t => t.length >= 2)
+  )].slice(0, 5);  // RelKwdStat hintKeywords 최대 5개 제한
+  if (cleanedTags.length) return { keywords: cleanedTags, source: 'tag' };
+  return { keywords: extractKeywords(post.title), source: 'title' };
+}
+
+async function checkRank(keyword, blogId) {
+  try {
+    const res  = await fetch(`/api/blogstats?keyword=${encodeURIComponent(keyword)}&blogId=${encodeURIComponent(blogId)}`);
+    const json = await res.json();
+    const ranks = json.ranking?.ranks || [];
+    return ranks.length > 0 ? ranks[0].rank : null;
+  } catch(e) { return null; }
+}
+
+async function fetchRecentPosts(blogId) {
+  try {
+    const res  = await fetch(`/api/myposts?query=__all__&blogId=${encodeURIComponent(blogId)}`);
+    const json = await res.json();
+    return (json.items || []).slice(0, 15);
+  } catch(e) { return []; }
+}
+
+// 검색광고 API 1회 호출 — 후보 키워드의 검색량을 조회해 상위 3개만 선별
+// ※ RelKwdStat는 타 API 대비 1/5~1/6 속도 제한 → "1회 호출" 구조 절대 유지
+async function getTopKeywordsByVolume(keywords) {
+  if (!keywords.length) return [];
+  try {
+    const res  = await fetch('/api/keyword', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ keywords: keywords.map(k => k.replace(/\s+/g,'')).slice(0,5) })
+    });
+    const json = await res.json();
+    const list = json.keywordList || [];
+
+    // 후보 키워드 자신의 검색량만 매칭 (연관 키워드로 확장하지 않음)
+    const withVol = keywords.map(kw => {
+      const hit = list.find(d => d.relKeyword === kw.replace(/\s+/g,''));
+      const pc  = hit ? (hit.monthlyPcQcCnt     === '< 10' ? 5 : (parseInt(hit.monthlyPcQcCnt)     || 0)) : 0;
+      const mo  = hit ? (hit.monthlyMobileQcCnt === '< 10' ? 5 : (parseInt(hit.monthlyMobileQcCnt) || 0)) : 0;
+      return { kw, vol: pc + mo };
+    });
+    // 검색량 상위 3개 선별 (검색량 0이어도 후보가 3개 이하면 전부 스캔)
+    return withVol.sort((a,b) => b.vol - a.vol).slice(0, 3).map(d => d.kw);
+  } catch(e) {
+    // API 실패 시 앞 3개로 폴백
+    return keywords.slice(0, 3);
+  }
+}
+
+// 포스팅 지수 산정 (v3) — 순위 30 / 최신성 25 / 키워드 적합도 30 / 매칭폭 15 = 100점 → ÷100
+function calcPostScore(ranks, pubDate, title, keywords) {
+  // ① 검색 노출 순위 (30점) — 스캔 키워드 중 최고 순위 기준
+  let rankScore = 0;
+  const validRanks = ranks.filter(r => r !== null);
+  const bestRank = validRanks.sort((a,b) => a-b)[0] ?? null;
+  if      (bestRank === null) rankScore = 0;
+  else if (bestRank <= 3)     rankScore = 30;
+  else if (bestRank <= 10)    rankScore = 23;
+  else if (bestRank <= 30)    rankScore = 15;
+  else                        rankScore = 7;
+
+  // ② 최신성 (25점)
+  let freshScore = 0;
+  if (pubDate) {
+    const days = (Date.now() - new Date(pubDate)) / (1000*60*60*24);
+    if      (days <= 7)   freshScore = 25;
+    else if (days <= 30)  freshScore = 20;
+    else if (days <= 90)  freshScore = 12;
+    else if (days <= 180) freshScore = 6;
+    else                  freshScore = 2;
+  }
+
+  // ③ 키워드 적합도 (30점) — 의도 키워드(태그)의 제목 내 위치
+  let kwScore = 6;
+  const cleanTitle = title.replace(/<[^>]+>/g,'').toLowerCase();
+  const first15 = cleanTitle.slice(0,15);
+  for (const kw of keywords) {
+    const kwLower = kw.toLowerCase().replace(/\s+/g,'');
+    const titleNoSpace  = cleanTitle.replace(/\s+/g,'');
+    const first15NoSpace = first15.replace(/\s+/g,'');
+    if      (first15NoSpace.includes(kwLower)) { kwScore = 30; break; }
+    else if (titleNoSpace.includes(kwLower))   { kwScore = Math.max(kwScore, 18); }
+  }
+
+  // ④ 매칭폭 (15점) — 스캔 키워드 중 100위 내 노출 비율
+  let coverScore = 0;
+  if (ranks.length > 0) {
+    const ratio = validRanks.length / ranks.length;
+    if      (ratio >= 1)     coverScore = 15;
+    else if (ratio >= 0.67)  coverScore = 10;
+    else if (ratio > 0)      coverScore = 5;
+  }
+
+  return ((rankScore + freshScore + kwScore + coverScore) / 100).toFixed(2);
+}
+
+function scoreColor(score) {
+  const s = parseFloat(score);
+  if (s >= 0.80) return '#00b200';
+  if (s >= 0.60) return '#1428a0';
+  if (s >= 0.40) return '#b06000';
+  return '#c00';
+}
+
+function showRadarPage(page) {
+  radarPage = page;
+  for (let t = 0; t < 3; t++) {
+    const tab = document.getElementById(`radarTab${t}`);
+    if (!tab) continue;
+    tab.classList.remove('active');
+    const s = t * RADAR_PAGE_SIZE;
+    const isDone = radarAllPosts.slice(s, s+RADAR_PAGE_SIZE).every((_,i) => radarScores[s+i] !== undefined);
+    if (isDone) tab.classList.add('done'); else tab.classList.remove('done');
+    if (t === page) tab.classList.add('active');
+  }
+  const start = page * RADAR_PAGE_SIZE;
+  const pagePosts = radarAllPosts.slice(start, start + RADAR_PAGE_SIZE);
+  const resultsEl = document.getElementById('radarResults');
+  if (!resultsEl) return;
+  resultsEl.innerHTML = pagePosts.map((post, idx) => {
+    const i = start + idx;
+    const safeTitle = post.title.replace(/<[^>]+>/g,'');
+    const score = radarScores[i];
+    const scoreHtml = score !== undefined
+      ? `<span style="font-size:11px;color:var(--text3);margin-right:3px">포스팅 지수</span><span style="font-size:16px;font-weight:700;color:${scoreColor(score)}">${score}</span>`
+      : `<span style="font-size:11px;color:var(--text3)">대기 중</span>`;
+    return `<div class="radar-item" id="radar-item-${i}">
+      <div class="radar-item-head">
+        <div class="radar-post-title"><a href="${post.link}" target="_blank" rel="noopener">${safeTitle}</a></div>
+        <div id="radar-score-${i}" style="flex-shrink:0">${scoreHtml}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function startRadarScan() {
+  if (radarScanning) return;
+  radarScanning = true;
+
+  const blogId   = getMyBlogId();
+  const scanBtn  = document.getElementById('radarScanBtn');
+  const progress = document.getElementById('radarProgress');
+  const progFill = document.getElementById('radarProgressFill');
+  const progTxt  = document.getElementById('radarProgressTxt');
+  const stopBtn  = document.getElementById('radarStopBtn');
+  const tabWrap  = document.getElementById('radarPageTabs');
+
+  scanBtn.disabled = true;
+  scanBtn.innerHTML = '<div class="rank-spinner" style="width:16px;height:16px;border-width:2px"></div> 스캔 중...';
+  progress.classList.add('show');
+  if (stopBtn) stopBtn.style.display = 'block';
+  progFill.style.width = '0%';
+  progTxt.textContent = 'RSS에서 포스팅 불러오는 중...';
+  radarScores = {};
+  log('busy', `📡 노출 레이더 스캔 시작 — ${blogId}`);
+
+  const posts = await fetchRecentPosts(blogId);
+  if (!posts.length) {
+    document.getElementById('radarResults').innerHTML = '<div class="radar-empty">포스팅을 불러올 수 없습니다.<br>블로그 ID를 확인해 주세요.</div>';
+    scanBtn.disabled = false; scanBtn.innerHTML = '📡 노출 레이더 스캔 시작';
+    progress.classList.remove('show');
+    if (stopBtn) stopBtn.style.display = 'none';
+    radarScanning = false; return;
+  }
+
+  radarAllPosts = posts;
+  const total    = posts.length;
+  const tabCount = Math.ceil(total / RADAR_PAGE_SIZE);
+
+  if (tabWrap) {
+    tabWrap.style.display = 'block';
+    for (let t = 0; t < 3; t++) {
+      const tab = document.getElementById(`radarTab${t}`);
+      if (!tab) continue;
+      const s = t * RADAR_PAGE_SIZE;
+      const e = Math.min(s + RADAR_PAGE_SIZE, total);
+      tab.textContent = `${s+1}~${e}`;
+      tab.style.display = t < tabCount ? '' : 'none';
+      tab.classList.remove('active','done');
+    }
+    document.getElementById('radarTab0')?.classList.add('active');
+  }
+
+  showRadarPage(0);
+
+  for (let page = 0; page < tabCount; page++) {
+    if (!radarScanning) { progTxt.textContent = `⏹ 스캔 중단됨`; break; }
+
+    // 현재 스캔 중 탭에 scanning 클래스 추가
+    const curTab = document.getElementById(`radarTab${page}`);
+    if (curTab) {
+      curTab.classList.add('scanning');
+      curTab.innerHTML = `<span class="tab-spinner">⏳</span>${curTab.textContent.trim()}`;
+    }
+
+    const start = page * RADAR_PAGE_SIZE;
+    const pagePosts = posts.slice(start, start + RADAR_PAGE_SIZE);
+
+    for (let idx = 0; idx < pagePosts.length; idx++) {
+      if (!radarScanning) break;
+      const i    = start + idx;
+      const post = pagePosts[idx];
+
+      if (page === radarPage) {
+        const scoreEl = document.getElementById(`radar-score-${i}`);
+        if (scoreEl) scoreEl.innerHTML = `<span style="font-size:11px;color:var(--text3)">분석 중...</span>`;
+      }
+
+      // 1단계: RSS 태그(해시태그) 우선 키워드 추출, 없으면 제목에서 폴백
+      const { keywords: candidateKws, source: kwSource } = getPostKeywords(post);
+
+      // 2단계: 검색광고 API 1회 호출로 검색량 조회 → 상위 3개만 선별
+      progTxt.textContent = `[${i+1}/${total}] ${kwSource === 'tag' ? '태그' : '제목'} 키워드 검색량 조회 중...`;
+      const scanKws = await getTopKeywordsByVolume(candidateKws);
+
+      // 3단계: 순위 조회 (3개씩 묶어서, 딜레이 80ms)
+      progTxt.textContent = `[${i+1}/${total}] 순위 스캔 중... (${scanKws.length}개)`;
+      const rankResults = [];
+      for (let j = 0; j < scanKws.length; j += 3) {
+        if (!radarScanning) break;
+        const chunk = scanKws.slice(j, j+3);
+        const ranks = await Promise.all(chunk.map(kw => checkRank(kw, blogId)));
+        chunk.forEach((kw, k) => rankResults.push({ kw, rank: ranks[k] }));
+        if (j+3 < scanKws.length) await new Promise(r => setTimeout(r, 80));
+      }
+
+      const score = calcPostScore(rankResults.map(r=>r.rank), post.pubDate, post.title, scanKws);
+      radarScores[i] = score;
+
+      if (page === radarPage) {
+        const scoreEl = document.getElementById(`radar-score-${i}`);
+        if (scoreEl) scoreEl.innerHTML = `<span style="font-size:11px;color:var(--text3);margin-right:3px">포스팅 지수</span><span style="font-size:16px;font-weight:700;color:${scoreColor(score)}">${score}</span>`;
+      }
+
+      progFill.style.width = Math.round(((i+1)/total)*100) + '%';
+    }
+
+    const doneTab = document.getElementById(`radarTab${page}`);
+    if (doneTab) {
+      doneTab.classList.remove('scanning');
+      doneTab.classList.add('done');
+      const s = page * RADAR_PAGE_SIZE;
+      const e = Math.min(s + RADAR_PAGE_SIZE, total);
+      doneTab.innerHTML = `${s+1}~${e} ✓`;
+    }
+    showRadarPage(radarPage);
+  }
+
+  if (stopBtn) stopBtn.style.display = 'none';
+  if (radarScanning) {
+    progFill.style.width = '100%';
+    progTxt.textContent  = `✅ 스캔 완료 — 포스팅 ${total}개 분석`;
+    log('ok', `📡 노출 레이더 스캔 완료 — 포스팅 ${total}개`);
+  }
+  scanBtn.disabled  = false;
+  scanBtn.innerHTML = '🔄 다시 스캔';
+  radarScanning     = false;
+}
+
+/* ── 페이지 훅 (공통 common.js에서 호출) ── */
+window.pageReset = function() {
+  if (radarScanning) { radarScanning = false; }
+  radarAllPosts = []; radarScores = {}; radarPage = 0;
+  const tabWrap = document.getElementById('radarPageTabs');
+  if (tabWrap) tabWrap.style.display = 'none';
+  const res = document.getElementById('radarResults');
+  if (res) res.innerHTML = '<div class="radar-empty">스캔 버튼을 누르면 최근 포스팅 15개의<br>노출 순위를 자동으로 분석합니다</div>';
+  document.getElementById('radarProgress')?.classList.remove('show');
+  const btn = document.getElementById('radarScanBtn');
+  if (btn) { btn.disabled = false; btn.innerHTML = '📡 노출 레이더 스캔 시작'; }
+  updateRadarBlogId();
+  log('ok', '준비 완료 — 스캔 버튼을 눌러 시작하세요');
+};
+window.onBlogSettingChanged = function() {
+  window.pageReset();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+updateRadarBlogId();
+log('ok', '준비 완료 — 스캔 버튼을 눌러 시작하세요');
+
+</script>
+</body>
+</html>
