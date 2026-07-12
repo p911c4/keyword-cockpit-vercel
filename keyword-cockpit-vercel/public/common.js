@@ -71,9 +71,10 @@ function resetBlogSetting() {
   log('ok', '블로그 설정이 초기화되었습니다');
 }
 
-/* ── 브랜드 클릭: 현재 페이지 초기화 또는 홈 이동 ── */
+/* ── 브랜드 클릭: 홈에서는 초기화, 그 외 페이지에서는 홈으로 이동 ── */
 function resetApp() {
-  if (typeof window.pageReset === 'function') {
+  const onHome = location.pathname === '/' || location.pathname === '/index.html';
+  if (onHome && typeof window.pageReset === 'function') {
     window.pageReset();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   } else {
