@@ -53,7 +53,13 @@ function parseRSS(xml) {
     const link        = get('link');
     const description = get('description').replace(/<[^>]+>/g,'').slice(0, 80);
     const pubDate     = get('pubDate');
-    if (title && link) items.push({ title, link, description, pubDate });
+    // <tag> = 글쓴이가 입력한 해시태그 (콤마 구분). <category>는 폴더명이므로 사용하지 않음
+    const tags        = get('tag')
+      .replace(/&amp;/g,'&')
+      .split(',')
+      .map(t => t.trim())
+      .filter(t => t.length > 0);
+    if (title && link) items.push({ title, link, description, pubDate, tags });
   }
   items.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
   return items;
@@ -106,6 +112,7 @@ function searchAPI(query, blogId, callback) {
           link:        item.link,
           description: (item.description || '').replace(/<[^>]+>/g, '').slice(0, 80),
           pubDate:     item.pubDate || '',
+          tags:        [],  // 블로그 검색 API는 태그 미제공 — 프론트가 제목 추출로 폴백
         }));
       callback(items);
     } catch(e) { callback([]); }
