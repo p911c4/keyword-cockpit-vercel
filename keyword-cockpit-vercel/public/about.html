@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>소개 — KEYWORD COCKPIT</title>
+<meta name="description" content="Keyword Cockpit은 네이버 키워드 검색량·블로그 지수·포스팅 노출을 무료로 분석하는 도구입니다. 운영자가 직접 설계·개발하며, 개발 배경과 운영 원칙, 문의처를 안내합니다.">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon48.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/appletouchicon180.png">
+<link rel="stylesheet" href="/common.css">
+</head>
+<body>
+<!-- ── Topbar ── -->
+<div class="topbar">
+  <div class="topbar-brand" onclick="resetApp()" title="처음으로">
+    <img src="/logo.png" alt="KEYWORD COCKPIT" style="height:26px;width:auto;display:block">
+  </div>
+  <div class="topbar-status">
+    <div class="status-dot live" id="apiDot"></div>
+    <span id="apiTxt">서버 연결됨</span>
+    &nbsp;·&nbsp;
+    <span id="clock">--:--</span>
+    &nbsp;&nbsp;
+    <button class="topbar-settings" onclick="openSettings()">⚙️ <span class="topbar-settings-txt">설정</span></button>
+  </div>
+</div>
+
+<!-- ── 설정 모달 ── -->
+<div class="modal-overlay" id="settingsModal" onclick="if(event.target===this)closeSettings()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">⚙️ 블로그 설정</div>
+      <button class="modal-close" onclick="closeSettings()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-label">📌 내 블로그 ID</div>
+      <div class="modal-desc">키워드 분석 결과에서 <strong>내 포스팅</strong>을 자동으로 찾아 보여줍니다.<br>네이버 블로그 주소에서 ID 부분만 입력하세요.</div>
+      <div class="modal-current" id="modalCurrentBlog">
+        현재 설정: <strong id="modalCurrentId">미설정 (기본값 사용)</strong>
+      </div>
+      <div class="modal-input-row">
+        <span class="modal-prefix">blog.naver.com/</span>
+        <input class="input" type="text" id="settingsBlogId"
+          placeholder="블로그 ID 입력 (예: p911c4)"
+          autocomplete="off"
+          onkeydown="if(event.key==='Enter'){saveBlogSetting();}"/>
+      </div>
+      <div class="modal-saved" id="modalSaved">✅ 저장되었습니다!</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="resetBlogSetting()">초기화</button>
+      <button class="btn btn-primary btn-sm" onclick="saveBlogSetting()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 탭 네비게이션 (페이지 링크) ── -->
+<nav class="tab-nav">
+  <div class="tab-nav-inner">
+    <a class="tab-btn" href="/">
+      <span class="tab-icon">🔍</span> 키워드 분석
+    </a>
+    <a class="tab-btn" href="/blog">
+      <span class="tab-icon">📊</span> 블로그 지수
+    </a>
+    <a class="tab-btn" href="/radar">
+      <span class="tab-icon">📡</span> 노출 레이더
+    </a>
+  </div>
+</nav>
+
+<div class="page-panel">
+
+<section class="seo-sec" style="padding-top:24px">
+  <div class="seo-card">
+    <h2>Keyword Cockpit 소개</h2>
+    <p>안녕하세요, Keyword Cockpit(키워드 콕핏)을 만들고 운영하는 <strong>뉴카</strong>(blog.naver.com/p911c4)입니다.</p>
+    <p>IT 엔지니어로 일하며 데이터를 다뤄왔고, 여행 블로그를 직접 운영하면서 키워드 분석이 콘텐츠 성과를 좌우한다는 것을 경험으로 배웠습니다. 기존 키워드 도구들을 쓰면서 느꼈던 불편함 — 여러 사이트를 오가며 검색량과 노출 순위를 따로 확인해야 하는 번거로움 — 을 직접 해결하고자 이 도구를 설계하고 개발했습니다.</p>
+    <p>기획부터 설계, 개발, 배포, 운영까지 전 과정을 운영자가 직접 수행하고 있으며, 도구를 만들며 얻은 인사이트와 키워드 분석 노하우는 <a href="https://keywordcockpit.com" target="_blank" rel="noopener" style="color:var(--blue);font-weight:700;text-decoration:none">공식 블로그(keywordcockpit.com)</a>의 제작 노트에 기록하고 있습니다.</p>
+  </div>
+
+  <div class="seo-card">
+    <h2>무엇을 할 수 있나요?</h2>
+    <ul>
+      <li><strong>키워드 분석</strong> — 네이버 검색광고 데이터 기반 월간 검색량(PC/모바일), 경쟁도, 연관 키워드, 12개월 검색 트렌드를 한 화면에서 확인합니다.</li>
+      <li><strong>블로그 지수</strong> — 블로그 ID만 입력하면 활동 지표(LV.1~9)와 키워드별 상위 100위 내 노출 순위를 조회합니다.</li>
+      <li><strong>노출 레이더</strong> — 최근 포스팅 15개의 해시태그 키워드를 자동 분석해 포스팅별 노출 상태를 지수(0.00~1.00)로 보여줍니다.</li>
+    </ul>
+    <p>모든 기능은 무료이며 회원가입 없이 사용할 수 있습니다. 데이터는 네이버 검색광고 API, 네이버 데이터랩, 네이버 검색 API에서 실시간으로 가져옵니다.</p>
+  </div>
+
+  <div class="seo-card">
+    <h2>운영 원칙</h2>
+    <ul>
+      <li>네이버 공식 API 데이터만 사용하며, 자체 추정 지표(활동 지수·포스팅 지수)는 산정 원리를 각 페이지에 공개합니다.</li>
+      <li>IP 주소 등 개인 식별 정보는 저장하지 않습니다. 서비스 개선을 위한 익명 통계(검색 키워드·방문 수)만 30일간 보관 후 자동 삭제합니다.</li>
+      <li>API 제공처의 호출 제한을 준수하며, 과도한 자동화 요청을 지원하지 않습니다.</li>
+    </ul>
+  </div>
+
+  <div class="seo-card">
+    <h2>문의</h2>
+    <p>제휴, 협업, 광고 문의, 오류 신고, 기능 제안 등 궁금한 점이 있으시면 아래 이메일로 연락해 주세요.</p>
+    <p><strong>이메일:</strong> <a href="mailto:p911c4@naver.com" style="color:var(--blue);font-weight:700;text-decoration:none">p911c4@naver.com</a></p>
+    <p>문의 주신 내용은 영업일 기준 2~3일 이내에 답변드리고 있습니다. 개인이 운영하는 서비스로, 빠른 답변이 어려운 경우가 있을 수 있는 점 너그럽게 양해 부탁드립니다.</p>
+  </div>
+</section>
+
+</div>
+
+<!-- ── Console ── -->
+<div class="console">
+  <div class="cdot ok" id="cdot"></div>
+  <span id="ctxt">준비 완료</span>
+</div>
+
+<!-- ── Site Footer ── -->
+<footer style="max-width:780px;margin:0 auto;padding:8px 16px 96px;text-align:center">
+  <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:10px">
+    <strong>Keyword Cockpit</strong>은 네이버 검색 데이터 기반 키워드 검색량·경쟁도를
+    한눈에 보여주는 무료 분석 도구입니다.<br>
+    키워드 분석 방법과 도구 제작 과정은 블로그에서 확인하실 수 있습니다.
+  </p>
+  <p style="margin-bottom:14px">
+    <a href="https://keywordcockpit.com" target="_blank" rel="noopener"
+       style="font-size:13px;font-weight:700;color:var(--blue);text-decoration:none">
+      키워드 분석 노하우 보러 가기 → keywordcockpit.com
+    </a>
+  </p>
+  <p style="font-size:12.5px;margin-bottom:14px">
+    <a href="/about" style="color:var(--text2);text-decoration:none;margin:0 7px">소개</a>·
+    <a href="/guide" style="color:var(--text2);text-decoration:none;margin:0 7px">이용 가이드</a>·
+    <a href="/changelog" style="color:var(--text2);text-decoration:none;margin:0 7px">업데이트 이력</a>·
+    <a href="mailto:p911c4@naver.com" style="color:var(--text2);text-decoration:none;margin:0 7px">문의</a>
+  </p>
+  <p style="font-size:12px;color:var(--text3)">
+    © 2026 Keyword Cockpit ·
+    <a href="https://keywordcockpit.com/privacy-policy/" target="_blank" rel="noopener"
+       style="color:var(--text3);text-decoration:underline">개인정보처리방침</a>
+  </p>
+</footer>
+
+<script src="/common.js"></script>
+<script>
+/* 정보 페이지 — 페이지 훅 없음 (브랜드 클릭 시 common.js가 홈으로 이동) */
+log('ok', '준비 완료');
+</script>
+</body>
+</html>
