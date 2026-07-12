@@ -102,13 +102,34 @@
     </ul>
   </div>
 
-  <div class="seo-card">
+  <div class="seo-card" id="contact">
     <h2>문의</h2>
     <p>제휴, 협업, 광고 문의, 오류 신고, 기능 제안 등 궁금한 점이 있으시면 아래 이메일로 연락해 주세요.</p>
-    <p><strong>이메일:</strong> <a href="mailto:p911c4@naver.com" style="color:var(--blue);font-weight:700;text-decoration:none">p911c4@naver.com</a></p>
+    <p><strong>이메일:</strong>
+      <span id="contactEmail" style="color:var(--blue);font-weight:700">p911c4@naver.com</span>
+      <button onclick="copyContactEmail()" class="btn btn-outline btn-sm" style="margin-left:8px;vertical-align:middle">📋 주소 복사</button>
+    </p>
     <p>문의 주신 내용은 영업일 기준 2~3일 이내에 답변드리고 있습니다. 개인이 운영하는 서비스로, 빠른 답변이 어려운 경우가 있을 수 있는 점 너그럽게 양해 부탁드립니다.</p>
   </div>
 </section>
+<script>
+function copyContactEmail() {
+  const email = document.getElementById('contactEmail').textContent.trim();
+  const done  = () => log('ok', '📋 이메일 주소가 복사되었습니다 — ' + email);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(email).then(done).catch(() => fallbackCopy(email, done));
+  } else {
+    fallbackCopy(email, done);
+  }
+}
+function fallbackCopy(text, cb) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); cb(); } catch(e) {}
+  document.body.removeChild(ta);
+}
+</script>
 
 </div>
 
@@ -135,7 +156,7 @@
     <a href="/about" style="color:var(--text2);text-decoration:none;margin:0 7px">소개</a>·
     <a href="/guide" style="color:var(--text2);text-decoration:none;margin:0 7px">이용 가이드</a>·
     <a href="/changelog" style="color:var(--text2);text-decoration:none;margin:0 7px">업데이트 이력</a>·
-    <a href="mailto:p911c4@naver.com" style="color:var(--text2);text-decoration:none;margin:0 7px">문의</a>
+    <a href="/about#contact" style="color:var(--text2);text-decoration:none;margin:0 7px">문의</a>
   </p>
   <p style="font-size:12px;color:var(--text3)">
     © 2026 Keyword Cockpit ·
