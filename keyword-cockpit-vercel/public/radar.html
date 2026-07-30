@@ -34,34 +34,7 @@
   </div>
 </div>
 
-<!-- ── 설정 모달 ── -->
-<div class="modal-overlay" id="settingsModal" onclick="if(event.target===this)closeSettings()">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">⚙️ 블로그 설정</div>
-      <button class="modal-close" onclick="closeSettings()">×</button>
-    </div>
-    <div class="modal-body">
-      <div class="modal-label">📌 내 블로그 ID</div>
-      <div class="modal-desc">키워드 분석 결과에서 <strong>내 포스팅</strong>을 자동으로 찾아 보여줍니다.<br>네이버 블로그 주소에서 ID 부분만 입력하세요.</div>
-      <div class="modal-current" id="modalCurrentBlog">
-        현재 설정: <strong id="modalCurrentId">미설정 (기본값 사용)</strong>
-      </div>
-      <div class="modal-input-row">
-        <span class="modal-prefix">blog.naver.com/</span>
-        <input class="input" type="text" id="settingsBlogId"
-          placeholder="블로그 ID 입력 (예: p911c4)"
-          autocomplete="off"
-          onkeydown="if(event.key==='Enter'){saveBlogSetting();}"/>
-      </div>
-      <div class="modal-saved" id="modalSaved">✅ 저장되었습니다!</div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline btn-sm" onclick="resetBlogSetting()">초기화</button>
-      <button class="btn btn-primary btn-sm" onclick="saveBlogSetting()">저장</button>
-    </div>
-  </div>
-</div>
+<!-- 설정 모달 마크업은 common.js가 필요 시 생성 (정적 HTML에 UI 문구 미노출) -->
 
 <!-- ── 탭 네비게이션 (페이지 링크) ── -->
 <nav class="tab-nav">
@@ -90,7 +63,7 @@
   <div class="radar-blogid-bar">
     <div>
       <span class="radar-blogid-hint">스캔 대상 블로그 · </span>
-      <span class="radar-blogid-val" id="radarBlogId">blog.naver.com/p911c4</span>
+      <span class="radar-blogid-val" id="radarBlogId">미설정</span>
     </div>
     <button class="rank-load-btn" onclick="openSettings()">⚙️ 변경</button>
   </div>
@@ -216,7 +189,7 @@ const RADAR_PAGE_SIZE = 5;
 function updateRadarBlogId() {
   const blogId = getMyBlogId();
   const el = document.getElementById('radarBlogId');
-  if (el) el.textContent = `blog.naver.com/${blogId}`;
+  if (el) el.textContent = blogId ? `blog.naver.com/${blogId}` : '미설정 — ⚙️ 변경 버튼으로 블로그 ID를 입력하세요';
 }
 
 function extractKeywords(title) {
@@ -374,9 +347,17 @@ function showRadarPage(page) {
 
 async function startRadarScan() {
   if (radarScanning) return;
+
+  const blogId = getMyBlogId();
+  if (!blogId) {
+    const res = document.getElementById('radarResults');
+    if (res) res.innerHTML = '<div class="radar-empty">스캔할 블로그 ID가 설정되지 않았습니다.<br>⚙️ 변경 버튼을 눌러 네이버 블로그 ID를 입력해 주세요.</div>';
+    log('fail', '블로그 ID를 먼저 설정해 주세요');
+    openSettings();
+    return;
+  }
   radarScanning = true;
 
-  const blogId   = getMyBlogId();
   const scanBtn  = document.getElementById('radarScanBtn');
   const progress = document.getElementById('radarProgress');
   const progFill = document.getElementById('radarProgressFill');

@@ -25,23 +25,61 @@ function log(type, msg) {
 const BLOG_SETTING_KEY = 'kc_my_blog_id';
 
 function getMyBlogId() {
-  return localStorage.getItem(BLOG_SETTING_KEY) || 'p911c4';
+  // 기본값 없음 — 사용자가 설정하지 않았으면 빈 문자열 (하드코딩 제거)
+  return (localStorage.getItem(BLOG_SETTING_KEY) || '').trim();
+}
+
+/* 설정 모달 마크업은 정적 HTML에 두지 않고 여기서 생성한다.
+   (UI 문구가 페이지 소스에 남지 않게 하여 크롤러가 본문으로 수집하지 않도록 함)
+   최초 호출 시 1회만 DOM에 삽입된다. 문구·동작은 기존과 동일. */
+function ensureSettingsModal() {
+  if (document.getElementById('settingsModal')) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'modal-overlay';
+  wrap.id = 'settingsModal';
+  wrap.addEventListener('click', e => { if (e.target === wrap) closeSettings(); });
+  wrap.innerHTML = [
+    '<div class="modal">',
+      '<div class="modal-header">',
+        '<div class="modal-title">⚙️ 블로그 설정</div>',
+        '<button class="modal-close" onclick="closeSettings()">×</button>',
+      '</div>',
+      '<div class="modal-body">',
+        '<div class="modal-label">📌 내 블로그 ID</div>',
+        '<div class="modal-desc">키워드 분석 결과에서 <strong>내 포스팅</strong>을 자동으로 찾아 보여줍니다.<br>네이버 블로그 주소에서 ID 부분만 입력하세요.</div>',
+        '<div class="modal-current" id="modalCurrentBlog">현재 설정: <strong id="modalCurrentId">미설정</strong></div>',
+        '<div class="modal-input-row">',
+          '<span class="modal-prefix">blog.naver.com/</span>',
+          '<input class="input" type="text" id="settingsBlogId" placeholder="블로그 ID 입력 (예: p911c4)" autocomplete="off" />',
+        '</div>',
+        '<div class="modal-saved" id="modalSaved">✅ 저장되었습니다!</div>',
+      '</div>',
+      '<div class="modal-footer">',
+        '<button class="btn btn-outline btn-sm" onclick="resetBlogSetting()">초기화</button>',
+        '<button class="btn btn-primary btn-sm" onclick="saveBlogSetting()">저장</button>',
+      '</div>',
+    '</div>'
+  ].join('');
+  document.body.appendChild(wrap);
+  wrap.querySelector('#settingsBlogId')
+      .addEventListener('keydown', e => { if (e.key === 'Enter') saveBlogSetting(); });
 }
 
 function openSettings() {
+  ensureSettingsModal();
   const saved = localStorage.getItem(BLOG_SETTING_KEY) || '';
   const inp   = document.getElementById('settingsBlogId');
   const cur   = document.getElementById('modalCurrentId');
   const savedMsg = document.getElementById('modalSaved');
   if (inp) inp.value = saved;
-  if (cur) cur.textContent = saved ? saved : '미설정 (기본값 사용)';
+  if (cur) cur.textContent = saved ? saved : '미설정';
   if (savedMsg) savedMsg.classList.remove('show');
   document.getElementById('settingsModal').classList.add('show');
   setTimeout(() => inp?.focus(), 100);
 }
 
 function closeSettings() {
-  document.getElementById('settingsModal').classList.remove('show');
+  document.getElementById('settingsModal')?.classList.remove('show');
 }
 
 function saveBlogSetting() {
@@ -67,7 +105,7 @@ function resetBlogSetting() {
   const inp = document.getElementById('settingsBlogId');
   const cur = document.getElementById('modalCurrentId');
   if (inp) inp.value = '';
-  if (cur) cur.textContent = '미설정 (기본값 사용)';
+  if (cur) cur.textContent = '미설정';
   log('ok', '블로그 설정이 초기화되었습니다');
 }
 
