@@ -4,10 +4,7 @@
     { "src": "api/*.js", "use": "@vercel/node" },
     { "src": "public/**", "use": "@vercel/static" }
   ],
-"routes": [
-    { "src": "/sitemap.xml", "dest": "/public/sitemap.xml" },
-    { "src": "/robots.txt", "dest": "/robots.txt" },
-    { "src": "/sitemap.xml", "dest": "/sitemap.xml" },
+  "routes": [
     { "src": "/api/keyword",   "dest": "/api/keyword.js"   },
     { "src": "/api/blog",      "dest": "/api/blog.js"      },
     { "src": "/api/trend",     "dest": "/api/trend.js"     },
@@ -24,7 +21,8 @@
     { "src": "/changelog",     "dest": "/public/changelog.html" },
     { "src": "/",              "dest": "/public/index.html" },
     { "src": "/(.*\\.(png|svg|jpg|jpeg|ico|webp|txt|xml|json|css|js))", "dest": "/public/$1" }
-  ],  "crons": [
+  ],
+  "crons": [
     { "path": "/api/cleanup", "schedule": "0 19 * * *" }
   ]
 }
