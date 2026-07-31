@@ -107,6 +107,8 @@ function resetBlogSetting() {
   if (inp) inp.value = '';
   if (cur) cur.textContent = '미설정';
   log('ok', '블로그 설정이 초기화되었습니다');
+  // 저장과 동일하게 현재 페이지 표시도 즉시 갱신 (모달은 열어둠)
+  window.onBlogSettingChanged?.();
 }
 
 /* ── 브랜드 클릭: 홈에서는 초기화, 그 외 페이지에서는 홈으로 이동 ── */
