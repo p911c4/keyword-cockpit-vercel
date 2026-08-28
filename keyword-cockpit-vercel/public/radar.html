@@ -113,7 +113,14 @@
   </div>
 
   <div class="seo-card">
-    <h2>포스팅 지수 산정 원리</h2>
+    <h2>포스팅 지수 — 일시 중단 안내</h2>
+    <p><strong>2026년 8월부터 포스팅 지수 산정을 일시 중단했습니다.</strong> 네이버 블로그 검색 API의 정확도순 결과가 실제 검색 노출 순서와 크게 어긋나는 현상이 확인되었기 때문입니다. 실제 검색에서 상위에 있는 글이 API 결과 100건 안에 아예 나타나지 않는 사례가 성격이 다른 여러 키워드에서 반복됐습니다.</p>
+    <p>포스팅 지수는 100점 중 45점(검색 노출 순위 30 + 매칭폭 15)이 순위 기반입니다. 순위 없이 계산하면 <strong>모든 포스팅이 0.55 이하로 눌려</strong> 잘 쓴 글도 나쁘게 보입니다. 근거의 절반이 빠진 점수를 매기는 대신 표시를 멈췄고, API가 정상화되면 복구합니다.</p>
+    <p>스캔은 계속 동작합니다. 포스팅 목록과 각 글에서 뽑아낸 의도 키워드는 그대로 확인하실 수 있습니다.</p>
+  </div>
+
+  <div class="seo-card">
+    <h2>포스팅 지수 산정 원리 (복구 시 적용)</h2>
     <p>포스팅 지수는 0.00~1.00 사이의 종합 점수로, 각 포스팅의 검색 노출 상태를 한 눈에 보여줍니다. 포스팅에 입력된 <strong>해시태그를 글쓴이의 의도 키워드로 우선 사용</strong>하고(태그가 없으면 제목에서 자동 추출), 검색광고 API로 각 키워드의 검색량을 조회해 <strong>검색량 상위 3개 키워드만</strong> 네이버 블로그 검색 상위 100위 내 노출 여부를 스캔합니다. 아래 네 가지 요소를 종합해 산출하며, 세부 배점 구간은 지속적인 정확도 개선을 위해 내부 기준으로 관리됩니다.</p>
     <table class="seo-table">
       <tr><th>구성 요소</th><th>비중</th><th>평가 방식</th></tr>
@@ -140,6 +147,8 @@
     <div class="seo-faq-a">네이버 검색광고 API의 호출 속도 제한을 준수하기 위해 호출 사이에 의도적인 지연을 두고 있습니다. 과도한 요청으로 차단되는 것을 막기 위한 설계입니다.</div>
     <div class="seo-faq-q">포스팅 지수는 네이버 공식 지수인가요?</div>
     <div class="seo-faq-a">아니요. 공개 API 데이터만 활용한 자체 추정 지표입니다. 공감 수, 방문자 수, 체류 시간처럼 로그인이 필요한 데이터는 반영되지 않습니다.</div>
+    <div class="seo-faq-q">포스팅 지수가 왜 안 나오나요?</div>
+    <div class="seo-faq-a">2026년 8월부터 일시 중단했습니다. 지수의 45%가 네이버 블로그 검색 순위에 기대는데, 그 순위가 실제 검색 화면과 어긋나는 정도가 참고 지표로도 쓸 수 없는 수준이 되었습니다. 부정확한 점수로 판단을 그르치게 하는 대신 표시를 멈췄고, API가 정상화되면 복구합니다.</div>
     <div class="seo-faq-q">같은 포스팅인데 스캔할 때마다 지수가 달라집니다.</div>
     <div class="seo-faq-a">검색 순위는 시점에 따라 변동되고, 최신성 점수도 시간이 지나며 자연 감소합니다. 주기적으로 재스캔해 추세를 확인하는 방식을 권장합니다.</div>
     <div class="seo-faq-q">15개보다 오래된 포스팅도 분석할 수 있나요?</div>
@@ -217,6 +226,13 @@ function getPostKeywords(post) {
 }
 
 async function checkRank(keyword, blogId) {
+  /* ── 2026-08-28 임시 중단 ──
+     blogstats의 순위 조회가 sort=sim 기반이라 결과를 신뢰할 수 없다.
+     포스팅 15개 x 키워드 3개 = 최대 45회 호출이 여기서 나갔다.
+     복구 시 이 return 한 줄만 지운다. */
+  return null;
+
+  // eslint-disable-next-line no-unreachable
   try {
     const res  = await fetch(`/api/blogstats?keyword=${encodeURIComponent(keyword)}&blogId=${encodeURIComponent(blogId)}`);
     const json = await res.json();
@@ -322,6 +338,7 @@ function showRadarPage(page) {
     if (!tab) continue;
     tab.classList.remove('active');
     const s = t * RADAR_PAGE_SIZE;
+    /* null도 완료로 본다 — 지수 중단 상태 */
     const isDone = radarAllPosts.slice(s, s+RADAR_PAGE_SIZE).every((_,i) => radarScores[s+i] !== undefined);
     if (isDone) tab.classList.add('done'); else tab.classList.remove('done');
     if (t === page) tab.classList.add('active');
@@ -334,7 +351,11 @@ function showRadarPage(page) {
     const i = start + idx;
     const safeTitle = post.title.replace(/<[^>]+>/g,'');
     const score = radarScores[i];
-    const scoreHtml = score !== undefined
+    /* null = 스캔은 끝났으나 지수 산정을 중단한 상태.
+       undefined(대기 중)와 구분해야 "아직 안 됨"으로 오해하지 않는다. */
+    const scoreHtml = score === null
+      ? `<span style="font-size:11px;color:var(--text3)">지수 중단</span>`
+      : score !== undefined
       ? `<span style="font-size:11px;color:var(--text3);margin-right:3px">포스팅 지수</span><span style="font-size:16px;font-weight:700;color:${scoreColor(score)}">${score}</span>`
       : `<span style="font-size:11px;color:var(--text3)">대기 중</span>`;
     return `<div class="radar-item" id="radar-item-${i}">
@@ -431,26 +452,19 @@ async function startRadarScan() {
       const { keywords: candidateKws, source: kwSource } = getPostKeywords(post);
 
       // 2단계: 검색광고 API 1회 호출로 검색량 조회 → 상위 3개만 선별
-      progTxt.textContent = `[${i+1}/${total}] ${kwSource === 'tag' ? '태그' : '제목'} 키워드 검색량 조회 중...`;
+      progTxt.textContent = `[${i+1}/${total}] ${kwSource === 'tag' ? '태그' : '제목'} 키워드 확인 중...`;
       const scanKws = await getTopKeywordsByVolume(candidateKws);
 
-      // 3단계: 순위 조회 (3개씩 묶어서, 딜레이 80ms)
-      progTxt.textContent = `[${i+1}/${total}] 순위 스캔 중... (${scanKws.length}개)`;
-      const rankResults = [];
-      for (let j = 0; j < scanKws.length; j += 3) {
-        if (!radarScanning) break;
-        const chunk = scanKws.slice(j, j+3);
-        const ranks = await Promise.all(chunk.map(kw => checkRank(kw, blogId)));
-        chunk.forEach((kw, k) => rankResults.push({ kw, rank: ranks[k] }));
-        if (j+3 < scanKws.length) await new Promise(r => setTimeout(r, 80));
-      }
-
-      const score = calcPostScore(rankResults.map(r=>r.rank), post.pubDate, post.title, scanKws);
-      radarScores[i] = score;
+      /* 3단계(순위 스캔)는 2026-08-28부터 건너뛴다.
+         포스팅 지수 100점 중 45점(노출 순위 30 + 매칭폭 15)이 순위 기반이라,
+         순위 없이 계산하면 모든 글이 0.55 이하로 눌려 잘 쓴 글도 나쁘게 보인다.
+         근거의 절반이 없는 점수를 매기는 대신 지수 표시를 멈춘다.
+         복구 시 아래 원래 블록을 되살리면 된다. */
+      radarScores[i] = null;   // 스캔 완료 표시 (undefined와 구분)
 
       if (page === radarPage) {
         const scoreEl = document.getElementById(`radar-score-${i}`);
-        if (scoreEl) scoreEl.innerHTML = `<span style="font-size:11px;color:var(--text3);margin-right:3px">포스팅 지수</span><span style="font-size:16px;font-weight:700;color:${scoreColor(score)}">${score}</span>`;
+        if (scoreEl) scoreEl.innerHTML = `<span style="font-size:11px;color:var(--text3)">키워드 ${scanKws.length}개 확인</span>`;
       }
 
       progFill.style.width = Math.round(((i+1)/total)*100) + '%';

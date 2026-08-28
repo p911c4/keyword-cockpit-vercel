@@ -381,7 +381,7 @@ function card(d, i, maxT, rel) {
         <div class="mypost-sec">
           <button class="mypost-toggle" onclick="toggleMyPost(this)" aria-expanded="false">
             <div class="mypost-lbl">🔖 <span class="mypost-blog-name">${getMyBlogId() || '내 블로그(미설정)'}</span> 포스팅
-              <span class="mypost-lbl-sub">RSS 최근 30개 + 검색 상위 100개 중</span>
+              <span class="mypost-lbl-sub">블로그 RSS 기준</span>
               <span class="mypost-count-badge" id="badge-mp-${mypostId}">로딩중</span>
             </div>
             <span class="mypost-chevron" aria-hidden="true">▼</span>
@@ -395,10 +395,15 @@ function card(d, i, maxT, rel) {
         <div class="rank-sec">
           <div class="rank-lbl">
             <span>네이버 블로그 상위 포스팅</span>
-            <button class="rank-load-btn" id="btn-${rankId}" onclick="loadBlogPosts('${d.kw.replace(/'/g,"\\'")}','${rankId}')">불러오기</button>
+            <!-- 2026-08-28 임시 중단 — 복구 시 style="display:none"만 지우면 된다 -->
+            <button class="rank-load-btn" id="btn-${rankId}" style="display:none" onclick="loadBlogPosts('${d.kw.replace(/'/g,"\\'")}','${rankId}')">불러오기</button>
           </div>
           <div class="rank-list" id="${rankId}">
-            <div class="rank-empty">위 버튼을 클릭하면 상위 포스팅 10개를 가져옵니다</div>
+            <div class="rank-empty" style="text-align:left;line-height:1.7">
+              <strong>상위 포스팅 조회를 일시 중단했습니다.</strong><br>
+              네이버 블로그 검색 API의 정확도순 결과가 실제 검색 노출 순서와 크게 어긋나는 현상이 확인되어,
+              틀린 순위를 보여주지 않기 위해 잠시 내렸습니다. 정상화되는 대로 복구합니다.
+            </div>
           </div>
         </div>
       </div>
@@ -424,6 +429,13 @@ function toggleMyPost(btn) {
 
 async function loadBlogPosts(kw, rankId) {
   const listEl = document.getElementById(rankId);
+  /* 2026-08-28 임시 중단 — 버튼을 감췄으므로 여기까지 오지 않지만,
+     북마크·자동화로 직접 호출될 경우를 대비해 진입부에서 막는다.
+     아래 btnEl 조작보다 먼저 반환해야 버튼이 없는 상황에서도 안전하다.
+     복구 시 이 블록만 지우면 된다. */
+  if (listEl) listEl.innerHTML = '<div class="rank-empty">상위 포스팅 조회는 현재 일시 중단 중입니다.</div>';
+  return;
+
   const btnEl  = document.getElementById('btn-' + rankId);
   if (!listEl) return;
   btnEl.disabled = true; btnEl.textContent = '로딩 중...';
