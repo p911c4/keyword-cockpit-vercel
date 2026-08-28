@@ -57,7 +57,7 @@
 
   <div class="bi-hero">
     <div class="bi-hero-title">📊 블로그 지수 분석</div>
-    <div class="bi-hero-sub">네이버 블로그 ID를 입력하면 활동 지표와 키워드 노출 순위를 조회합니다</div>
+    <div class="bi-hero-sub">네이버 블로그 ID를 입력하면 활동 지표를 조회합니다</div>
   </div>
 
   <!-- 블로그 ID 입력 -->
@@ -98,7 +98,8 @@
       <div class="card-title">키워드 노출 현황</div>
     </div>
     <div class="card-body">
-      <div class="bi-kw-input-row">
+      <!-- 2026-08-28 임시 중단 — 복구 시 style="display:none"만 지우면 된다 -->
+      <div class="bi-kw-input-row" id="biKwRow" style="display:none">
         <div class="input-wrap">
           <input class="input" type="text" id="biKwInp"
             placeholder="키워드 입력 (예: 발리여행)"
@@ -111,7 +112,12 @@
         <button class="btn btn-primary" onclick="loadRanking()">100위 내 노출 조회</button>
       </div>
       <div id="biRankResult">
-        <div class="bi-rank-empty">키워드를 입력하면 상위 100개 결과 중<br>포스팅 포함 여부를 확인합니다</div>
+        <div class="bi-rank-empty" style="text-align:left;line-height:1.7">
+          <strong>키워드 노출 순위 조회를 일시 중단했습니다.</strong><br>
+          네이버 블로그 검색 API의 정확도순 결과가 실제 검색 노출 순서와 크게 어긋나는 현상이 확인되어,
+          틀린 순위를 보여주지 않기 위해 잠시 내렸습니다. 정상화되는 대로 복구합니다.<br>
+          그동안 위의 <strong>활동 지표</strong>는 블로그 RSS 기준이라 그대로 정확합니다.
+        </div>
       </div>
     </div>
   </div>
@@ -126,7 +132,7 @@
     <ol>
       <li><strong>블로그 ID 입력</strong> — blog.naver.com/ 뒤에 오는 아이디만 입력하고 조회 버튼을 누릅니다. 전체 URL을 붙여넣어도 자동으로 ID만 추출됩니다.</li>
       <li><strong>활동 지표 확인</strong> — 총 포스팅 수(추정), 최근 30일 발행 수, 활동 지수(100점 만점)와 LV.1~9 등급이 게이지와 함께 표시됩니다.</li>
-      <li><strong>키워드 노출 확인</strong> — 하단에 키워드를 입력하면 해당 키워드의 네이버 블로그 검색 상위 100개 결과 중 이 블로그의 포스팅이 몇 위에 노출되는지 확인할 수 있습니다.</li>
+      <li><strong>키워드 노출 확인</strong> — 현재 일시 중단 중입니다. 네이버 블로그 검색 API의 순위가 실제 검색 화면과 크게 어긋나는 현상이 확인되어, 정상화될 때까지 표시하지 않습니다.</li>
     </ol>
     <p>내 블로그뿐 아니라 벤치마킹하고 싶은 다른 블로그의 ID를 입력해 활동량을 비교 분석하는 용도로도 활용할 수 있습니다.</p>
   </div>
@@ -142,8 +148,9 @@
       <tr><td>LV.4~6</td><td>36~75점</td><td>꽃 · 열매 · 숲 — 꾸준한 성장 단계</td></tr>
       <tr><td>LV.7~9</td><td>76~100점</td><td>별 · 왕관 · 다이아 — 최상위 활동 단계</td></tr>
     </table>
-    <h3>키워드 노출 순위</h3>
-    <p>네이버 블로그 검색 결과 상위 100개를 스캔해 해당 블로그의 포스팅이 포함되어 있는지, 있다면 몇 번째인지 보여줍니다. 1~3위는 파랑, 4~10위는 하늘색 배지로 구분됩니다. 다만 API가 제공하는 정확도순(sim) 정렬은 실제 네이버 검색 화면의 노출 순서와 완전히 일치하지 않을 수 있다는 구조적 한계가 있으므로, 절대 순위보다는 <strong>노출 여부와 대략적 위치</strong>를 파악하는 참고 지표로 활용하세요.</p>
+    <h3>키워드 노출 순위 — 일시 중단</h3>
+    <p>네이버 블로그 검색 결과 상위 100개에서 해당 블로그의 포스팅 위치를 찾아 보여주던 기능입니다. 그런데 API가 제공하는 정확도순(sim) 정렬이 실제 네이버 검색 화면의 노출 순서와 어긋나는 정도가 참고 지표로 쓰기 어려운 수준임을 확인했습니다. 실제 검색에서 상위에 있는 글이 API 결과 100건 안에 아예 나타나지 않는 사례가 성격이 다른 여러 키워드에서 반복됐습니다.</p>
+    <p><strong>틀린 순위를 보여주는 것이 순위를 보여주지 않는 것보다 나쁘다고 판단해 조회를 멈췄습니다.</strong> API가 정상화되면 복구합니다. 활동 지수와 발행량은 블로그 RSS에서 직접 읽는 값이라 이 문제와 무관하며 그대로 정확합니다.</p>
   </div>
 
   <div class="seo-card">
@@ -152,8 +159,8 @@
     <div class="seo-faq-a">아니요. 네이버는 공식 블로그 지수를 공개하지 않습니다. 본 지표는 공개 RSS와 검색 API 데이터만으로 산출한 자체 추정 지표이며, 흔히 말하는 최적화 블로그 판별 지수와는 다릅니다.</div>
     <div class="seo-faq-q">총 포스팅 수가 실제와 다르게 나옵니다.</div>
     <div class="seo-faq-a">총 포스팅 수는 공개 데이터 기반 추정값이라 "+"를 붙여 표시합니다. 비공개·서로이웃공개 글은 집계되지 않습니다.</div>
-    <div class="seo-faq-q">노출 순위가 실제 검색 화면과 다른 이유는?</div>
-    <div class="seo-faq-a">네이버 블로그 검색 API의 정렬 방식이 실제 통합검색·VIEW 영역의 노출 로직과 다르기 때문입니다. 이는 API 자체의 구조적 한계로, 노출 여부 확인용 참고 지표로 활용하시길 권장합니다.</div>
+    <div class="seo-faq-q">키워드 노출 순위는 왜 안 나오나요?</div>
+    <div class="seo-faq-a">2026년 8월부터 일시 중단했습니다. 네이버 블로그 검색 API의 정렬 방식이 실제 통합검색 노출 로직과 다르다는 건 알려진 한계였는데, 최근 그 차이가 참고 지표로도 쓸 수 없는 수준으로 커졌습니다. 부정확한 순위로 판단을 그르치게 하는 대신 표시를 멈췄고, API가 정상화되면 복구합니다.</div>
     <div class="seo-faq-q">다른 사람 블로그도 조회할 수 있나요?</div>
     <div class="seo-faq-a">네. 공개된 RSS와 검색 데이터만 사용하므로 어떤 네이버 블로그든 ID만 알면 조회할 수 있습니다.</div>
     <div class="seo-faq-q">활동 지수를 올리려면 어떻게 해야 하나요?</div>
@@ -311,6 +318,13 @@ async function loadRanking() {
     log('fail', '블로그 ID를 먼저 조회해 주세요');
     return;
   }
+  /* 2026-08-28 임시 중단 — 입력창을 감췄으므로 여기까지 오지 않지만,
+     북마크·자동화 등으로 직접 호출될 경우를 대비해 한 번 더 막는다.
+     복구 시 이 블록만 지우면 된다. */
+  result.innerHTML = '<div class="bi-rank-empty">키워드 노출 순위 조회는 현재 일시 중단 중입니다.</div>';
+  return;
+
+  // eslint-disable-next-line no-unreachable
   result.innerHTML = '<div class="bi-loading"><div class="rank-spinner"></div>순위 조회 중...</div>';
   log('busy', `"${kw}" 노출 순위 조회 중...`);
   try {
