@@ -107,6 +107,15 @@ function estimateTotalPosts(blogId, callback) {
 
 // 키워드 순위 조회
 function findMyRank(keyword, blogId, callback) {
+  /* ── 2026-08-28 임시 중단 ──
+     아래 조회는 sort=sim을 쓰는데, 이 정렬이 네이버 블로그를 사실상 반환하지
+     않는 현상이 확인됐다. 실제 네이버 검색에서 상위에 있는 글이 API 결과
+     100건 안에 아예 나타나지 않는 사례를 성격이 다른 여러 키워드에서 확인했다.
+     틀린 순위를 보여주는 것이 순위를 보여주지 않는 것보다 나쁘므로 쉰다.
+     정상화되면 이 return 한 줄만 지우면 원래대로 동작한다. */
+  return callback(null, [], true);
+
+  // eslint-disable-next-line no-unreachable
   const query   = encodeURIComponent(keyword);
   const apiPath = `/v1/search/blog.json?query=${query}&display=100&sort=sim`;
   const options = {
@@ -174,11 +183,12 @@ module.exports = async (req, res) => {
 
   const rankPromise = keyword
     ? new Promise(resolve => {
-        findMyRank(keyword, blogId, (err, found) => resolve(err ? [] : found));
+        findMyRank(keyword, blogId, (err, found, suspended) =>
+          resolve({ ranks: err ? [] : found, suspended: !!suspended }));
       })
-    : Promise.resolve([]);
+    : Promise.resolve({ ranks: [], suspended: false });
 
-  const [rssResult, totalResult, ranks] = await Promise.all([rssPromise, totalPromise, rankPromise]);
+  const [rssResult, totalResult, rank] = await Promise.all([rssPromise, totalPromise, rankPromise]);
 
   // 총 포스팅 수: RSS는 최근 50개만 제공 → API 추정값 우선, 없으면 RSS 카운트
   const totalPosts = totalResult.estimated > rssResult.rssCount
@@ -193,6 +203,8 @@ module.exports = async (req, res) => {
       recent30:  rssResult.recent30,
       lastDate:  rssResult.lastDate,
     },
-    ranking: { ranks },
+    /* suspended=true면 "노출 없음"이 아니라 "조회하지 않음"이다.
+       프런트가 이 둘을 구분하지 못하면 사용자에게 거짓을 말하게 된다. */
+    ranking: { ranks: rank.ranks, suspended: rank.suspended },
   });
 };
