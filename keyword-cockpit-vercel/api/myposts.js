@@ -88,7 +88,15 @@ function searchRSS(query, blogId, callback) {
 }
 
 function searchAPI(query, blogId, callback) {
-  // __all__ 이면 API 검색 스킵
+  /* ── 2026-08-27 임시 중단 ──
+     아래 호출은 sort=sim을 쓰는데, 이 정렬이 네이버 블로그를 사실상 반환하지
+     않는 현상이 확인됐다(상위 100건 중 0~1건). blogId 필터를 통과하는 결과가
+     거의 없어 매 검색마다 빈 배열을 받으려고 네이버 API를 1회 소모하고 있었다.
+     RSS 경로만으로도 최근 글은 찾아지므로 그때까지 이 경로를 쉰다.
+     정상화되면 이 return 한 줄만 지우면 원래대로 동작한다. */
+  return callback([]);
+
+  // eslint-disable-next-line no-unreachable
   if (query === '__all__') return callback([]);
   const combined = encodeURIComponent(query);
   const apiPath  = `/v1/search/blog.json?query=${combined}&display=100&sort=sim`;
