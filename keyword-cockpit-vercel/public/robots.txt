@@ -1,0 +1,11 @@
+# tool.keywordcockpit.com
+# 도구 서브도메인 — Vercel 서빙. 본도메인(keywordcockpit.com)과 별개 파일이다.
+
+User-agent: *
+Allow: /
+
+# 관리자 화면과 API 엔드포인트는 색인 대상이 아니다
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://tool.keywordcockpit.com/sitemap.xml
