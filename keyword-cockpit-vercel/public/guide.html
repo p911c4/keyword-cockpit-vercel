@@ -11,47 +11,36 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/appletouchicon180.png">
+<link rel="canonical" href="https://tool.keywordcockpit.com/guide">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://tool.keywordcockpit.com/guide">
 <link rel="stylesheet" href="/common.css">
 </head>
 <body>
-<!-- ── Topbar ── -->
-<div class="topbar">
-  <div class="topbar-brand" onclick="resetApp()" title="처음으로">
-    <img src="/logo.png" alt="KEYWORD COCKPIT" style="height:26px;width:auto;display:block">
+<!-- ── 브랜드 헤더 ── -->
+<div class="brand">
+  <div class="brand-left" onclick="resetApp()" style="cursor:pointer" title="처음으로">
+    <img src="/favicon.svg" alt="" class="brand-icon"><h1>Keyword Cockpit</h1>
+    <span class="brand-meta">v2.0 · tool.keywordcockpit.com</span>
   </div>
-  <div class="topbar-status">
-    <div class="status-dot live" id="apiDot"></div>
-    <span id="apiTxt">서버 연결됨</span>
-    &nbsp;·&nbsp;
-    <span id="clock">--:--</span>
-    &nbsp;&nbsp;
-    <button class="topbar-settings" onclick="openSettings()">⚙️ <span class="topbar-settings-txt">설정</span></button>
-  </div>
+  <button class="brand-settings" onclick="openSettings()">설정</button>
 </div>
 
 <!-- 설정 모달 마크업은 common.js가 필요 시 생성 (정적 HTML에 UI 문구 미노출) -->
 
-<!-- ── 탭 네비게이션 (페이지 링크) ── -->
-<nav class="tab-nav">
-  <div class="tab-nav-inner">
-    <a class="tab-btn" href="/">
-      <span class="tab-icon">🔍</span> 키워드 분석
-    </a>
-    <a class="tab-btn" href="/blog">
-      <span class="tab-icon">📊</span> 블로그 지수
-    </a>
-    <a class="tab-btn" href="/radar">
-      <span class="tab-icon">📡</span> 노출 레이더
-    </a>
-  </div>
+<!-- ── 메인 탭 ── -->
+<nav class="main-tabs">
+  <a href="/">키워드 분석</a>
+  <a href="/blog">블로그 지수</a>
+  <a href="/radar">노출 레이더</a>
 </nav>
 
 <div class="page-panel">
 
-<section class="seo-sec" style="padding-top:24px">
+<section class="seo-sec">
   <div class="seo-card">
     <h2>시작하기 — 블로그 설정</h2>
-    <p>화면 우측 상단 <strong>⚙️ 설정</strong> 버튼에서 내 블로그 ID를 저장해 두면 세 가지 도구 전체에서 활용됩니다. 네이버 블로그 주소(blog.naver.com/아이디)에서 아이디 부분만 입력하면 되고, 전체 URL을 붙여넣어도 자동으로 추출됩니다. 설정값은 서버가 아닌 사용 중인 브라우저에만 저장되므로 다른 기기에서는 다시 설정해야 합니다.</p>
+    <p>화면 우측 상단 <strong>설정</strong> 버튼에서 내 블로그 ID를 저장해 두면 세 가지 도구 전체에서 활용됩니다. 네이버 블로그 주소(blog.naver.com/아이디)에서 아이디 부분만 입력하면 되고, 전체 URL을 붙여넣어도 자동으로 추출됩니다. 설정값은 서버가 아닌 사용 중인 브라우저에만 저장되므로 다른 기기에서는 다시 설정해야 합니다.</p>
   </div>
 
   <div class="seo-card">
@@ -65,6 +54,222 @@
     </ol>
     <h3>활용 팁</h3>
     <p>결과 하단의 CSV 저장으로 여러 키워드를 엑셀에 모아 비교하면 콘텐츠 발행 우선순위를 정하기 좋습니다. 최근 검색한 키워드 5개는 태그로 남아 클릭 한 번으로 재조회할 수 있습니다.</p>
+  </div>
+
+  <!-- ══════════ 구글 지표 (앵커: /guide#google-metrics) ══════════ -->
+  <div class="seo-card" id="google-metrics">
+    <h2>구글 지표 읽는 법 — Google Ads 키워드 플래너</h2>
+    <p>키워드 분석 화면의 소스 전환 버튼에서 <strong>구글</strong> 또는 <strong>통합</strong>을 고르면 Google Ads API(키워드 플래너)에서 받은 지표 4종이 함께 표시됩니다. 네이버 검색량 표와 섞지 않고 별도 카드로 분리했으며, 통합 보기에서는 같은 성격의 지표가 좌우로 마주보도록 배치했습니다.</p>
+
+    <h3>표시되는 지표 4종</h3>
+    <p><strong>월간 검색량 (구간)</strong>: 대한민국·구글 검색 기준 월평균 검색량입니다. 아래 "검색량을 구간으로 표시하는 이유"에서 설명하듯 정확한 수치가 아닌 범위(예: 10,000 ~ 100,000)로 제공됩니다.</p>
+    <p><strong>경쟁도 지수 (0~100)</strong>: 네이버의 낮음·중간·높음 3단계보다 세밀한 수치 지표입니다. 같은 "중간"이라도 32와 68은 전혀 다른 시장이므로, 경쟁 강도를 비교할 때 훨씬 유용합니다.</p>
+    <p><strong>페이지 상단 입찰가</strong>: 해당 키워드로 검색 결과 상단에 광고를 노출하기 위해 광고주들이 실제로 지불한 입찰가 범위(원)입니다. 네이버 지표에는 없는 항목으로, 키워드의 상업적 가치를 금액으로 가늠할 수 있습니다. 입찰가가 높다는 것은 그 키워드로 유입된 방문자가 실제 구매로 이어질 확률이 높다는 뜻입니다.</p>
+    <p><strong>12개월 계절성</strong>: 최근 1년 월별 검색량 추이입니다. 네이버 데이터랩 트렌드가 국내 상대 지표라면 이쪽은 구글 검색 기준이라, 두 검색엔진의 흐름 차이를 비교할 수 있습니다. 최고점 월과 최저 대비 배수를 함께 표시하므로 시즌 키워드인지 상시 키워드인지 한 줄로 판정됩니다.</p>
+
+    <h3>검색량을 구간으로 표시하는 이유</h3>
+    <p>구글 키워드 플래너는 광고 집행 실적이 없는 계정에 대해 검색량을 정확한 수치가 아닌 넓은 구간 단위로 제공합니다. 예를 들어 실제 검색량이 1,300회인 키워드와 9,400회인 키워드가 똑같이 "1,000 ~ 10,000" 구간으로 묶입니다.</p>
+    <p>이 값을 "월간 검색량 5,500회"처럼 하나의 숫자로 바꿔 표시하면 보기에는 깔끔하지만 사실과 다릅니다. 본 도구는 <strong>데이터가 가진 정밀도 이상으로 정확한 척 표시하지 않는다</strong>는 원칙에 따라 구간 그대로 표시합니다. 정확한 절대 수치가 필요한 경우에는 네이버 검색량을 기준으로 삼으시고, 구글 지표는 경쟁 강도와 상업적 가치를 판단하는 용도로 활용하세요.</p>
+    <p>표기 형식은 네이버와 맞춰 콤마 단위로 씁니다. 62,700 옆에 "1천 ~ 1만"이 놓이면 자릿수가 한눈에 잡히지 않기 때문입니다. 최근 검색 표에서는 두 검색엔진의 비중을 작은 막대로도 보여주는데, 이 막대의 폭 역시 화면에 표시된 구간에서만 계산합니다.</p>
+
+    <h3>네이버 경쟁도와 구글 경쟁도는 같은 값이 아닙니다</h3>
+    <p>두 지수는 0~100으로 같은 눈금을 쓰지만 산출 근거가 다릅니다. 네이버 경쟁도는 해당 키워드에 월평균 몇 개의 광고가 노출되는지를 환산한 값이고, 구글 경쟁도는 그 키워드에 입찰하는 광고주의 밀도입니다. 화면에서 두 게이지의 생김새를 일부러 다르게 그린 이유가 여기 있습니다 — 네이버는 칸을 세는 게이지, 구글은 위치를 가리키는 마커입니다. <strong>두 숫자를 직접 빼거나 비교하지 마시고</strong> 각 검색엔진 안에서의 상대적 강도로 읽으세요.</p>
+
+    <h3>화면 구성</h3>
+    <p>통합 보기에서는 같은 성격의 지표가 같은 행에 놓입니다. 눈이 좌우로만 움직이도록 한 배치입니다.</p>
+    <ul>
+      <li>1행: 월간 검색량 (네이버 합계·PC·모바일 / 구글 구간·경쟁도·입찰가)</li>
+      <li>2행: 경쟁도 지수 0~100 (네이버는 노출 광고 수 / 구글은 광고주 밀도)</li>
+      <li>3행: 12개월 추이 (네이버 데이터랩 트렌드 / 구글 계절성)</li>
+      <li>4행: 연관 키워드 (양쪽 모두 검색량순 상위 5개, 더보기로 15개까지)</li>
+      <li>5행: 네이버 발행 현황 / 내 블로그 포스팅 — 이 행만 좌우가 모두 네이버 데이터입니다. 소스가 아니라 "시장 상황과 내 글"로 나뉩니다.</li>
+    </ul>
+
+
+    <p>네 개 카드가 실제로 어떻게 보이는지 확인하세요. 통합 보기에서는 각각 1~4행의 오른쪽에 놓입니다.</p>
+
+    <!-- 목업은 실제 카드 컴포넌트를 그대로 재사용한다.
+         화면과 가이드가 어긋나면 심사·감사 때 문제가 되므로,
+         전용 스타일을 새로 만들지 않고 같은 클래스·같은 id를 쓴다. -->
+    <div class="guide-mock">
+      <div class="card">
+        <div class="card-head">
+          <h2>구글 광고 지표 <small>오사카여행</small></h2>
+          <span class="badge google">캐시</span>
+        </div>
+        <div id="gVolBody">
+          <div class="g-top">
+            <div><div class="gl">월간 검색량</div><div class="gv"><em>10,000 ~ 100,000</em><small>구간 표시</small></div></div>
+            <div><div class="gl">경쟁도</div><div class="gv">중간<small>54 / 100</small></div></div>
+            <div><div class="gl">페이지 상단 입찰가</div><div class="gv">320원 ~ 1,180원<small>과거 실적 기준</small></div></div>
+          </div>
+        </div>
+        <div class="foot"><span>Google Ads 키워드 플래너 · 대한민국 · 구글 검색</span></div>
+      </div>
+      <div class="cap">1행 오른쪽: 구글 광고 지표</div>
+    </div>
+
+    <div class="guide-mock">
+      <div class="card">
+        <div class="card-head"><h2>구글 경쟁도 지수 <small>광고주 밀도 기준</small></h2></div>
+        <div id="gCompBody">
+          <div class="comp-wrap">
+            <div class="comp-top"><span class="comp-label">경쟁 정도 <em>중간</em></span><b>54</b></div>
+            <div class="comp-track"><i class="comp-fill google" style="width:54%"></i></div>
+            <div class="comp-x"><span>0 · 경쟁 낮음</span><span>100 · 경쟁 높음</span></div>
+            <div class="comp-note">해당 키워드에 광고를 집행하는 광고주 밀도</div>
+          </div>
+        </div>
+      </div>
+      <div class="cap">2행 오른쪽: 구글 경쟁도 지수 &middot; 왼쪽 네이버는 노출 광고 수를 세는 다른 형태의 게이지입니다</div>
+    </div>
+
+    <div class="guide-mock">
+      <div class="card">
+        <div class="card-head">
+          <h2>구글 12개월 계절성 <small>월별 검색량</small></h2>
+          <span class="trend-badge up">상승 +22% · 전분기 대비</span>
+        </div>
+        <div id="gSeasonBody">
+          <div class="mchart google">
+            <div class="mtitle">월별 검색량 · 최고점 100% 환산</div>
+            <div class="mbars"><i class="" style="height:16%" title="2026년 8월"></i><i class="" style="height:19%" title="2026년 9월"></i><i class="" style="height:10%" title="2026년 10월"></i><i class="" style="height:40%" title="2026년 11월"></i><i class="" style="height:51%" title="2026년 12월"></i><i class="" style="height:46%" title="2026년 1월"></i><i class="" style="height:31%" title="2026년 2월"></i><i class="" style="height:25%" title="2026년 3월"></i><i class="" style="height:36%" title="2026년 4월"></i><i class="peak" style="height:100%" title="2026년 5월"></i><i class="" style="height:81%" title="2026년 6월"></i><i class="" style="height:22%" title="2026년 7월"></i></div>
+            <div class="mx"><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span></div>
+          </div>
+          <div class="trend-sub">
+            <div class="ts-fact">최고점 <b>5월</b> · 최저(10월) 대비 <b>2.7배</b></div>
+            <div class="ts-read">시즌 편차가 큰 상승 추세 키워드입니다. 성수기 3개월 전(2월)부터 콘텐츠를 선점하는 것이 유리합니다.</div>
+          </div>
+        </div>
+      </div>
+      <div class="cap">3행 오른쪽: 12개월 계절성 &middot; 아래 팁 박스가 최고점 월과 진폭을 한 줄로 정리합니다</div>
+    </div>
+
+    <div class="guide-mock">
+      <div class="card">
+        <div class="card-head"><h2>구글 연관 키워드 <small>키워드 아이디어</small></h2></div>
+        <div id="gIdeaBody">
+          <div class="kw-row">
+            <div class="kw-name">오사카 자유여행</div>
+            <div class="kw-meta"><span><b>1,000 ~ 10,000</b> 검색</span><span>경쟁 중간 · 48</span><span>~2,410원</span></div>
+          </div>
+          <div class="kw-row">
+            <div class="kw-name">오사카 3박4일</div>
+            <div class="kw-meta"><span><b>100 ~ 1,000</b> 검색</span><span>경쟁 낮음 · 27</span><span>~1,880원</span></div>
+          </div>
+          <div class="kw-row">
+            <div class="kw-name">오사카 맛집 추천</div>
+            <div class="kw-meta"><span><b>1,000 ~ 10,000</b> 검색</span><span>경쟁 중간 · 52</span><span>~2,930원</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="cap">4행 오른쪽: 구글 연관 키워드 &middot; 검색량순 상위 5개가 먼저 보이고 더보기로 15개까지 펼쳐집니다</div>
+    </div>
+
+    <p>수치는 키워드에 따라 달라집니다. 위 화면은 실제 카드와 같은 구성 요소로 그린 예시입니다.</p>
+    <!-- 목업은 실제 카드 컴포넌트를 그대로 재사용한다.
+         화면과 가이드 문구가 어긋나면 심사·감사 때 문제가 되므로,
+         전용 스타일을 새로 만들지 않고 같은 클래스·같은 id를 쓴다. -->
+  </div>
+
+  <div class="seo-card" id="google-serp">
+    <h2>구글 검색 순위(상위 10)는 왜 없나요</h2>
+    <p>구글은 공개 검색 결과 페이지를 반환하는 공식 API를 제공하지 않습니다. 그나마 쓸 수 있던 Custom Search JSON API도 신규 이용이 중단됐고 2027년 1월 1일 종료됩니다.</p>
+    <p>검색 결과를 직접 수집하는 방식은 구글 약관에 어긋나므로 본 도구는 사용하지 않습니다. 대행 서비스를 통한 우회도 같은 이유로 쓰지 않습니다. Google Ads API를 정식으로 승인받아 운영 중인 도구가 약관 위반 소지가 있는 데이터를 함께 다루면, 지금 제공 중인 구글 지표 전체를 잃을 수 있기 때문입니다.</p>
+    <p>구글 쪽은 검색량·경쟁도·입찰가로 <strong>이 키워드에 시간을 쓸 가치가 있는지</strong>를 판단하는 데 씁니다.</p>
+
+    <h3 id="naver-rank">네이버 블로그 상위 10도 일시 중단했습니다</h3>
+    <p>네이버 블로그 검색 API의 정확도순(<code>sort=sim</code>) 결과가 실제 네이버 검색 노출 순서와 크게 어긋나는 현상이 확인되었습니다. 실제 검색에서 상위에 있는 글이 API 결과 100건 안에 아예 나타나지 않는 사례를 여러 키워드에서 확인했습니다.</p>
+    <p>틀린 순위를 보여주는 것이 순위를 보여주지 않는 것보다 나쁘다고 판단해 <strong>해당 카드를 잠시 내렸습니다.</strong> API가 정상화되면 복구합니다. 그동안은 아래 <strong>발행 현황</strong>으로 경쟁 강도를 가늠하실 수 있습니다.</p>
+
+    <div class="guide-mock">
+      <div class="card">
+        <div class="card-head"><h2>네이버 블로그 상위 10 <small>블로그 활동지수 비교</small></h2></div>
+        <div id="top10Wrap">
+          <div class="bar-row">
+            <div class="bar-rank">1</div>
+            <div class="bar-body">
+              <div class="bar-label">
+                <a href="https://blog.naver.com/" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">오사카 여행 3박 4일 코스 총정리</a>
+                <span class="author">여행하는날들</span>
+              </div>
+              <div class="bar-line">
+                <div class="bar-track"><div class="bar-fill" style="width:73%"></div></div>
+                <div class="bar-val">73</div>
+              </div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-rank me">2</div>
+            <div class="bar-body">
+              <div class="bar-label me">
+                <a href="https://blog.naver.com/" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">오사카 여행 준비물 체크리스트</a>
+                <span class="author">뉴카 (내 블로그)</span>
+              </div>
+              <div class="bar-line">
+                <div class="bar-track"><div class="bar-fill me" style="width:60%"></div></div>
+                <div class="bar-val">60</div>
+              </div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-rank">3</div>
+            <div class="bar-body">
+              <div class="bar-label">
+                <a href="https://blog.naver.com/" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">오사카 숙소 추천 난바 도톤보리</a>
+                <span class="author">여행기록소</span>
+              </div>
+              <div class="bar-line">
+                <div class="bar-track"><div class="bar-fill" style="width:41%"></div></div>
+                <div class="bar-val">41</div>
+              </div>
+            </div>
+          </div>
+          <div class="legend">
+            <span><i style="background:#2E4BC6"></i>경쟁 블로그</span>
+            <span><i style="background:#D9500F"></i>내 블로그 (p911c4)</span>
+            <span>막대 = 활동지수 추정치</span>
+            <button class="csv-btn" style="margin-left:auto">활동지수 조회</button>
+          </div>
+        </div>
+      </div>
+      <div class="cap">5행 왼쪽: 네이버 블로그 상위 10 &middot; <strong>현재 일시 중단</strong> — 복구 시 이 모습으로 돌아옵니다</div>
+    </div>
+
+    <p>중단 기간에는 그 자리에 <strong>발행 현황</strong>이 들어갑니다. 발행일 내림차순(<code>sort=date</code>)은 규칙이 단순해 해석 여지가 없으므로, 정확도순과 달리 신뢰할 수 있습니다.</p>
+    <ul>
+      <li><strong>오늘 발행</strong>: 조회 시각까지 이 키워드로 올라온 네이버 블로그 글 수입니다. 하루가 진행 중인 값이라 아래 세 항목과 성격이 달라 따로 떼어 두었습니다. 100건을 넘으면 <strong>100건 이상</strong>으로만 표시합니다.</li>
+      <li><strong>100건 발행</strong>: 최근 100건이 쌓이는 데 걸린 시간입니다. 하루가 안 걸렸다면 <strong>약 15시간 소요</strong>처럼 시간 단위로 표시합니다 — 하루도 못 버티고 밀려난다는 뜻입니다.</li>
+      <li><strong>1,000건 발행</strong>: 같은 계산을 1,000건 기준으로 본 값입니다. 100건 값과 나란히 보면 최근 발행이 몰렸는지 알 수 있습니다 — 100건 12일에 1,000건 115일이면 하루 평균이 8.3편과 8.7편으로 거의 같아 안정된 시장이고, 100건 6일에 1,000건 20일이면 최근 급증한 것입니다. 하루 10편 미만은 소수 한 자리로 표시해 두 기준이 구분되게 했습니다.</li>
+      <li><strong>기회 지수</strong>: 아래 절에서 따로 설명합니다.</li>
+    </ul>
+    <p>조회는 두 번입니다. 첫 페이지(100건)와 <code>start=901</code> 한 페이지만 보면 되므로, 사이 페이지를 훑지 않습니다. 네이버 블로그 검색은 <code>start</code> 상한이 1,000이라 그 너머는 볼 수 없고, 총 문서가 1,000건에 못 미치는 키워드는 두 번째 조회를 아예 건너뜁니다.</p>
+
+    <h3 id="opportunity">기회 지수 — 검색량만 보면 놓치는 것</h3>
+    <p>검색량이 큰 키워드가 늘 유리하지는 않습니다. 수요가 커도 글이 그만큼 많으면 나눠 가질 몫이 적기 때문입니다. 기회 지수는 <strong>월간 검색량을 30일 환산 발행량으로 나눈 값</strong>으로, 수요 대비 공급이 얼마나 비어 있는지를 봅니다.</p>
+    <ul>
+      <li><strong>매우 좋음</strong>: 편당 100회 이상 — 수요에 비해 글이 거의 없습니다</li>
+      <li><strong>좋음</strong>: 30~100회 — 신규 진입 여지가 있습니다</li>
+      <li><strong>보통</strong>: 10~30회 — 상위권이 아니면 유입이 어렵습니다</li>
+      <li><strong>포화</strong>: 10회 미만 — 검색량이 커도 몫이 적습니다</li>
+      <li><strong>수요 미미</strong>: 월간 검색량 100회 미만 — 등급을 매기지 않습니다. 공급이 많아서가 아니라 찾는 사람이 적어 편당 수치가 낮게 나오므로, 같은 값이라도 포화와는 정반대 상황입니다.</li>
+    </ul>
+    <p><strong>이 값은 편당 예상 유입이 아닙니다.</strong> 실제로는 상위 노출된 글이 대부분을 가져가므로 편차가 매우 큽니다. 시장이 얼마나 붐비는지를 가늠하는 용도로만 쓰시고, 수치를 작게 병기한 것도 정밀한 값이 아니기 때문입니다.</p>
+    <p>검색량은 네이버 전체 검색 수이고 발행량은 블로그 글 수라 모집단도 다릅니다. 카페·지식iN·플레이스는 빠져 있습니다. 30일 환산 발행량이 5편 미만이면 나눗셈이 불안정해 <strong>측정 불가</strong>로 표시합니다.</p>
+    <p>발행량은 <strong>소요 시간에서 역산</strong>합니다. 오늘 발행 수를 쓰지 않는 이유는 하루가 진행 중이기 때문입니다 — 새벽에 조회하면 적게, 밤에 조회하면 많게 나와 같은 키워드의 지수가 시각에 따라 달라집니다. 표본이 큰 1,000건 기준을 우선 쓰고, 없으면 100건 기준으로 계산합니다.</p>
+    <p>소요 시간은 <strong>소수로 계산</strong>합니다. 0.6일을 1일로 올리면 하루 평균이 158편에서 100편으로 왜곡되기 때문입니다. 다만 발행일 데이터에는 날짜만 있고 시각이 없어, 오늘 자정 이후 경과 시간만 실측하고 그 이전 날짜는 하루 단위로 셉니다.</p>
+  </div>
+
+  <div class="seo-card" id="google-data">
+    <h2>구글 데이터 취급 방침</h2>
+    <ul>
+      <li>키워드 아이디어 조회 <strong>한 가지 호출만</strong> 사용합니다. 계정이나 캠페인을 만들고 고치는 호출은 하지 않습니다.</li>
+      <li>검색량은 구간으로만 표시하며, 정밀한 측정치처럼 제시하지 않습니다.</li>
+      <li>구글 데이터는 <strong>CSV 내보내기에서 제외</strong>합니다. 화면에서 참고하는 것과 대량으로 내려받아 재배포하는 것은 다른 문제입니다.</li>
+      <li>조회 결과는 최대 7일간 저장해 같은 키워드의 중복 호출을 줄이고, 하루 호출 상한을 둡니다.</li>
+      <li>이용자의 구글 계정 연결을 요구하지 않으며, IP 주소를 저장하지 않습니다.</li>
+      <li>구글 지표가 보이지 않는 화면에서는 구글 API를 호출하지 않습니다. 소스 전환으로 구글이나 통합을 선택한 시점에만 조회합니다.</li>
+    </ul>
   </div>
 
   <div class="seo-card">
@@ -88,33 +293,6 @@
     <p>지수가 낮게 나온 포스팅은 리라이팅 후보입니다 — 제목 앞부분에 핵심 키워드를 배치하고, 검색량이 있는 해시태그로 재정비한 뒤 내용을 보강하세요. API 호출 제한 준수를 위해 포스팅마다 몇 초씩 소요되는 것은 정상 동작입니다. 지수 산정 원리와 등급표는 노출 레이더 페이지 하단에서 확인할 수 있습니다.</p>
   </div>
 
-  <div class="seo-card" id="google-metrics">
-    <h2>④ 구글 키워드 지표 — 준비 중</h2>
-    <p>현재 Keyword Cockpit이 제공하는 검색량·경쟁도는 모두 네이버 데이터입니다. 국내 블로그 노출을 판단하기에는 충분하지만, 그 키워드가 광고 시장에서 어느 정도 값이 나가는지, 계절에 따라 어떻게 움직이는지는 알 수 없습니다. 이 공백을 메우기 위해 <strong>Google Ads API(키워드 플래너)</strong> 연동을 진행하고 있으며, 구글의 API 액세스 승인 절차가 완료되는 대로 아래 지표가 추가됩니다.</p>
-
-    <h3>추가되는 지표 4종</h3>
-    <p><strong>월간 검색량 (구간)</strong> — 대한민국·구글 검색 기준 월평균 검색량입니다. 아래 "구간으로 표시하는 이유"에서 설명하듯 정확한 수치가 아닌 범위(예: 1만 ~ 10만)로 제공됩니다.</p>
-    <p><strong>경쟁도 지수 (0~100)</strong> — 네이버의 낮음·중간·높음 3단계보다 세밀한 수치 지표입니다. 같은 "중간"이라도 32와 68은 전혀 다른 시장이므로, 경쟁 강도를 비교할 때 훨씬 유용합니다.</p>
-    <p><strong>페이지 상단 입찰가</strong> — 해당 키워드로 검색 결과 상단에 광고를 노출하기 위해 광고주들이 실제로 지불한 입찰가 범위(원)입니다. <strong>본 도구가 제공해 온 네이버 지표에는 없던 항목</strong>으로, 키워드의 상업적 가치를 금액으로 가늠할 수 있습니다. 입찰가가 높다는 것은 그 키워드로 유입된 방문자가 실제 구매로 이어질 확률이 높다는 뜻입니다.</p>
-    <p><strong>12개월 계절성</strong> — 최근 1년간 월별 검색량 추이입니다. 네이버 데이터랩 트렌드가 국내 상대 지표라면, 이쪽은 구글 검색 기준이라 두 검색엔진의 흐름 차이를 비교할 수 있습니다.</p>
-
-    <h3>검색량을 구간으로 표시하는 이유</h3>
-    <p>구글 키워드 플래너는 광고 집행 실적이 없는 계정에 대해 검색량을 정확한 수치가 아닌 넓은 구간 단위로 제공합니다. 예를 들어 실제 검색량이 1,300회인 키워드와 9,400회인 키워드가 똑같이 "1천 ~ 1만" 구간으로 묶입니다.</p>
-    <p>이 값을 "월간 검색량 5,500회"처럼 하나의 숫자로 바꿔 표시하면 보기에는 깔끔하지만 사실과 다릅니다. 본 도구는 <strong>데이터가 가진 정밀도 이상으로 정확한 척 표시하지 않는다</strong>는 원칙에 따라 구간 그대로 표시할 계획입니다. 정확한 절대 수치가 필요한 경우에는 네이버 검색량을 기준으로 삼으시고, 구글 지표는 경쟁 강도와 상업적 가치를 판단하는 용도로 활용하세요.</p>
-
-    <h3>화면 구성 미리보기</h3>
-    <p>구글 지표는 네이버 검색량 표와 섞지 않고 별도의 카드로 분리해 표시할 예정이며, 소스 전환 버튼으로 네이버만 / 구글만 / 통합 보기를 고를 수 있도록 준비하고 있습니다. 아래는 개발 중인 화면입니다.</p>
-    <p style="margin:14px 0">
-      <img src="/google-preview.png" alt="구글 광고 지표 카드 화면 미리보기 — 월간 검색량 구간, 경쟁도 지수, 페이지 상단 입찰가, 12개월 계절성, 구글 연관 키워드"
-           style="width:100%;height:auto;display:block;border:1px solid var(--line,#e5e5e5);border-radius:10px">
-    </p>
-    <p style="font-size:12.5px;color:var(--text3)">※ 개발 중인 화면의 예시 데이터이며, 실제 수치가 아닙니다.</p>
-
-    <h3>데이터 출처와 이용 방식</h3>
-    <p>구글 지표는 Google Ads API의 키워드 아이디어 조회 기능 한 가지만을 사용해 <strong>조회 전용(read-only)</strong>으로 가져올 예정입니다. 본 도구는 광고 캠페인을 생성하거나 변경하지 않으며, 이용자가 자신의 구글 계정을 연결할 필요도 없습니다.</p>
-    <p>조회 결과는 서버에 7일간 캐시해 같은 키워드를 다시 조회할 때 API 호출 없이 제공하도록 설계했습니다. 구글에서 받아온 데이터는 화면 표시 용도로만 사용하며, CSV 등으로 일괄 내보내거나 재판매·재배포하지 않습니다. 이는 Google Ads API 이용약관을 준수하기 위한 조치입니다.</p>
-  </div>
-
   <div class="seo-card">
     <h2>추천 워크플로</h2>
     <p>세 도구를 이 순서로 쓰면 효과적입니다. ① <strong>키워드 분석</strong>으로 검색량이 있으면서 경쟁도가 낮은 키워드를 발굴하고 → ② 그 키워드로 글을 발행한 뒤 <strong>블로그 지수</strong>에서 노출 여부를 확인하고 → ③ 주기적으로 <strong>노출 레이더</strong>를 돌려 지수가 떨어진 포스팅을 찾아 리라이팅하는 순환 구조입니다. 발행 → 측정 → 개선의 사이클을 데이터로 관리하는 것이 이 도구의 핵심 활용법입니다.</p>
@@ -123,36 +301,19 @@
 
 </div>
 
-<!-- ── Console ── -->
-<div class="console">
-  <div class="cdot ok" id="cdot"></div>
-  <span id="ctxt">준비 완료</span>
-</div>
-
-<!-- ── Site Footer ── -->
-<footer style="max-width:780px;margin:0 auto;padding:8px 16px 96px;text-align:center">
-  <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:10px">
-    <strong>Keyword Cockpit</strong>은 네이버 검색 데이터 기반 키워드 검색량·경쟁도를
-    한눈에 보여주는 무료 분석 도구입니다.<br>
-    키워드 분석 방법과 도구 제작 과정은 블로그에서 확인하실 수 있습니다.
-  </p>
-  <p style="margin-bottom:14px">
-    <a href="https://keywordcockpit.com" target="_blank" rel="noopener"
-       style="font-size:13px;font-weight:700;color:var(--blue);text-decoration:none">
-      키워드 분석 노하우 보러 가기 → keywordcockpit.com
-    </a>
-  </p>
-  <p style="font-size:12.5px;margin-bottom:14px">
-    <a href="/about" style="color:var(--text2);text-decoration:none;margin:0 7px">소개</a>·
-    <a href="/guide" style="color:var(--text2);text-decoration:none;margin:0 7px">이용 가이드</a>·
-    <a href="/changelog" style="color:var(--text2);text-decoration:none;margin:0 7px">업데이트 이력</a>·
-    <a href="/about#contact" style="color:var(--text2);text-decoration:none;margin:0 7px">문의</a>
-  </p>
-  <p style="font-size:12px;color:var(--text3)">
-    © 2026 Keyword Cockpit ·
-    <a href="https://keywordcockpit.com/privacy-policy/" target="_blank" rel="noopener"
-       style="color:var(--text3);text-decoration:underline">개인정보처리방침</a>
-  </p>
+<!-- ── 푸터 ── -->
+<footer class="site-footer">
+  <div class="footer-links">
+    <a href="/about">소개</a><a href="/guide">이용 가이드</a><a href="/changelog">업데이트 이력</a><a href="/about#contact">문의</a>
+  </div>
+  <div class="footer-blog">
+    <strong>Keyword Cockpit</strong>은 운영자가 직접 설계하고 개발한 무료 키워드 분석 도구입니다.<br>
+    키워드 분석 노하우와 도구 제작 과정은 <a href="https://keywordcockpit.com" target="_blank" rel="noopener">공식 블로그 keywordcockpit.com</a>에서 확인하세요.
+  </div>
+  <div class="footer-legal">
+    활동지수·포스팅 지수는 공개 데이터 기반 자체 추정 지표로, 네이버 공식 지수와 다릅니다.<br>
+    © 2026 Keyword Cockpit · <a href="https://keywordcockpit.com/privacy-policy/" target="_blank" rel="noopener" style="color:inherit">개인정보처리방침</a>
+  </div>
 </footer>
 
 <script src="/common.js"></script>

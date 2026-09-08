@@ -10,593 +10,1544 @@
 <meta property="og:title" content="키워드 검색량 조회 – 키워드마스터 무료 대안 | Keyword Cockpit">
 <meta property="og:description" content="네이버 키워드 검색량 조회, 트렌드, 연관 키워드까지 무료로 확인하는 키워드마스터 스타일 분석 도구">
 <meta property="og:url" content="https://tool.keywordcockpit.com/">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="icon" type="image/png" sizes="48x48" href="/favicon48.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/appletouchicon180.png">
 <link rel="stylesheet" href="/common.css">
-<script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
-<!-- ── Topbar ── -->
-<div class="topbar">
-  <div class="topbar-brand" onclick="resetApp()" title="처음으로">
-    <img src="/logo.png" alt="KEYWORD COCKPIT" style="height:26px;width:auto;display:block">
+
+<!-- ── 브랜드 헤더 ── -->
+<div class="brand">
+  <div class="brand-left" onclick="resetApp()" style="cursor:pointer" title="처음으로">
+    <img src="/favicon.svg" alt="" class="brand-icon"><h1>Keyword Cockpit</h1>
+    <span class="brand-meta">v2.0 · tool.keywordcockpit.com</span>
   </div>
-  <div class="topbar-status">
-    <div class="status-dot live" id="apiDot"></div>
-    <span id="apiTxt">서버 연결됨</span>
-    &nbsp;·&nbsp;
-    <span id="clock">--:--</span>
-    &nbsp;&nbsp;
-    <button class="topbar-settings" onclick="openSettings()">⚙️ <span class="topbar-settings-txt">설정</span></button>
-  </div>
+  <button class="brand-settings" onclick="openSettings()">설정</button>
 </div>
 
 <!-- 설정 모달 마크업은 common.js가 필요 시 생성 (정적 HTML에 UI 문구 미노출) -->
 
-<!-- ── 탭 네비게이션 (페이지 링크) ── -->
-<nav class="tab-nav">
-  <div class="tab-nav-inner">
-    <a class="tab-btn active" href="/">
-      <span class="tab-icon">🔍</span> 키워드 분석
-    </a>
-    <a class="tab-btn" href="/blog">
-      <span class="tab-icon">📊</span> 블로그 지수
-    </a>
-    <a class="tab-btn" href="/radar">
-      <span class="tab-icon">📡</span> 노출 레이더
-    </a>
-  </div>
+<!-- ── 메인 탭 (페이지 링크) ── -->
+<nav class="main-tabs">
+  <a class="active" href="/">키워드 분석</a>
+  <a href="/blog">블로그 지수</a>
+  <a href="/radar">노출 레이더</a>
 </nav>
 
-<div class="page-panel">
-<div class="page">
-
-  <div class="hero">
-    <div class="hero-eyebrow">Naver Search Advertising API</div>
-    <div class="hero-title">키워드 검색량 조회</div>
-    <div class="hero-sub">네이버 키워드 검색량 조회부터 12개월 트렌드, 연관 키워드까지 한 번에 확인하세요.</div>
-  </div>
-
-  <div class="card">
-    <div class="card-header">
-      <div class="card-title">키워드 입력</div>
-      <div style="font-size:12px;color:var(--text3)">키워드 1개</div>
-    </div>
-    <div class="card-body">
-      <div class="kw-row">
-        <div class="input-wrap">
-          <input class="input" type="text" id="kwInp"
-            placeholder="키워드 입력 후 검색"
-            inputmode="search" enterkeyhint="search"
-            autocomplete="off"
-            oninput="toggleClear('kwInp','kwClear')"
-            onkeydown="if(event.key==='Enter'||event.keyCode===13){event.preventDefault();doSearch();}"
-            autofocus />
-          <button class="input-clear" id="kwClear" onclick="clearInput('kwInp','kwClear')" tabindex="-1">✕</button>
-        </div>
-        <button class="btn btn-primary" onclick="doSearch()">검색</button>
-      </div>
-      <div class="recent-wrap" id="recentWrap">
-        <div class="recent-label">
-          <span>🕒 최근 검색</span>
-          <button class="recent-clear" onclick="clearRecent()">전체 삭제</button>
-        </div>
-        <div class="recent-list" id="recentList"></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="loading-wrap" id="loadingWrap">
-    <div class="spinner"></div>
-    <div class="loading-txt">네이버 데이터베이스에서 검색량을 가져오는 중...</div>
-  </div>
-
-  <div class="errbox" id="errBox"></div>
-
-  <div class="results-panel" id="resultsPanel">
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">분석 결과</div>
-        <div class="results-topbar">
-          <div class="results-meta" id="rmeta"></div>
-          <div class="exp-row">
-            <button class="btn btn-outline btn-sm" onclick="exportCSV()">CSV 저장</button>
-            <button class="btn btn-outline btn-sm" onclick="copyJSON()">JSON 복사</button>
-          </div>
-        </div>
-      </div>
-      <div class="card-body" id="resList"></div>
-    </div>
-  </div>
-
-</div>
+<!-- ── 히어로 ── -->
+<div class="hero">
+  <div class="hero-eyebrow" id="heroEyebrow">네이버 검색광고 · 데이터랩</div>
+  <div class="hero-title">키워드 검색량 조회</div>
+  <div class="hero-sub" id="heroSub">네이버 키워드 검색량 조회부터 12개월 트렌드, 연관 키워드까지 한 번에 확인하세요.</div>
 </div>
 
-<!-- ── 정보 섹션: 사용법 · 지표 해설 · FAQ ── -->
-<section class="seo-sec">
-  <div class="seo-card">
-    <h2>키워드 검색량 조회 사용법</h2>
-    <ol>
-      <li><strong>키워드 입력</strong> — 상단 입력창에 분석하고 싶은 키워드를 입력하고 검색 버튼을 누릅니다. 띄어쓰기는 자동으로 제거되어 조회됩니다.</li>
-      <li><strong>검색량 확인</strong> — 최근 한 달 기준 PC·모바일 검색량과 그 합계, 그리고 두 기기 간 비율이 카드 형태로 표시됩니다.</li>
-      <li><strong>트렌드 분석</strong> — 최근 12개월 검색 트렌드 그래프에서 계절성과 상승·하락 흐름을 확인합니다. 전분기 대비 변화율 배지도 함께 제공됩니다.</li>
-      <li><strong>연관 키워드 탐색</strong> — 함께 표시되는 연관 키워드를 클릭하면 해당 키워드가 즉시 재분석되어, 꼬리에 꼬리를 무는 키워드 확장이 가능합니다.</li>
-      <li><strong>내 블로그 대조</strong> — 우측 상단 설정에서 블로그 ID를 저장해 두면, 검색한 키워드에 대해 내 블로그 포스팅과 네이버 상위 포스팅 10개를 함께 비교할 수 있습니다.</li>
-    </ol>
-    <p>분석 결과는 CSV 파일 저장과 JSON 복사를 지원하므로, 엑셀이나 다른 도구에서 후속 분석을 이어갈 수 있습니다.</p>
+<!-- ── 검색 ── -->
+<div class="search-row">
+  <div class="inp-wrap">
+    <input type="text" id="kwInp" placeholder="분석할 키워드 입력 (예: 도쿄여행)" autocomplete="off"
+           oninput="toggleClear('kwInp','kwClear')"
+           onkeydown="if(event.key==='Enter'){doSearch();}">
+    <button class="inp-clear" id="kwClear" onclick="clearInput('kwInp','kwClear')">×</button>
   </div>
-
-  <div class="seo-card">
-    <h2>지표 해설 — 숫자를 어떻게 읽어야 할까</h2>
-    <h3>월간 검색량 (PC / 모바일)</h3>
-    <p>네이버 검색광고 시스템이 집계한 최근 30일간의 검색 횟수 추정치입니다. 검색량이 10회 미만인 키워드는 정확한 수치 대신 "&lt; 10"으로 제공되며, 본 도구에서는 5로 환산해 표시합니다. 일반적으로 여행·맛집·쇼핑 등 생활 밀착형 주제는 모바일 비중이 70~90%에 달하므로, 모바일 검색 화면에서의 노출을 우선 고려하는 것이 좋습니다.</p>
-    <h3>경쟁도</h3>
-    <p>해당 키워드에 광고를 집행하는 광고주 수를 기준으로 한 낮음·중간·높음 3단계 지표입니다. 경쟁도가 높다는 것은 상업적 가치가 크다는 의미이기도 하지만, 그만큼 상위 노출 경쟁이 치열하다는 뜻입니다. 블로그 초기에는 <strong>검색량이 일정 수준 이상이면서 경쟁도가 낮은 키워드</strong>를 공략하는 전략이 효과적입니다.</p>
-    <h3>검색 트렌드 (최근 12개월)</h3>
-    <p>네이버 데이터랩 기반의 상대 지표로, 조회 기간 중 검색량이 가장 많았던 시점을 100%로 두고 각 월의 비율을 보여줍니다. 절대 검색량이 아닌 상대값이므로, 계절성 파악(예: "벚꽃 명소"는 3~4월 급등)과 키워드의 성장·쇠퇴 판단에 활용하세요.</p>
-    <h3>연관 키워드</h3>
-    <p>입력 키워드와 함께 검색되는 관련 키워드를 검색량 순으로 최대 10개 보여줍니다. 메인 키워드의 경쟁이 치열할 때 세부 연관 키워드(롱테일 키워드)로 우회 공략하는 데 유용합니다.</p>
-    <h3>구글 지표 (준비 중)</h3>
-    <p>현재 표시되는 지표는 모두 네이버 데이터입니다. 여기에 <strong>Google Ads API(키워드 플래너)</strong>를 연동해 구글 기준 검색량 구간, 경쟁도 지수(0~100), 페이지 상단 입찰가 범위, 12개월 계절성을 추가할 예정이며 현재 구글의 API 액세스 승인 절차를 진행하고 있습니다. 특히 <strong>입찰가 범위</strong>는 네이버 데이터로는 얻을 수 없는 지표로, 키워드의 상업적 가치를 금액으로 가늠할 수 있습니다. 제공 지표와 화면 구성은 <a href="/guide#google-metrics">이용 가이드</a>에서 미리 확인할 수 있습니다.</p>
-  </div>
-
-  <div class="seo-card">
-    <h2>자주 묻는 질문 (FAQ)</h2>
-    <div class="seo-faq-q">데이터 출처는 어디인가요?</div>
-    <div class="seo-faq-a">검색량과 경쟁도는 네이버 검색광고 API, 트렌드는 네이버 데이터랩 API, 블로그 포스팅은 네이버 검색 API에서 실시간으로 가져옵니다. 자체 추정치가 아닌 네이버 공식 데이터입니다.</div>
-    <div class="seo-faq-q">검색량은 얼마나 자주 갱신되나요?</div>
-    <div class="seo-faq-a">네이버 검색광고 시스템이 제공하는 최근 30일 누적 기준이며, 조회할 때마다 최신 데이터를 실시간으로 요청합니다. 별도의 캐시 없이 항상 현재 시점 데이터를 보여줍니다.</div>
-    <div class="seo-faq-q">검색량이 "&lt; 10"으로 나오는 이유는 뭔가요?</div>
-    <div class="seo-faq-a">네이버는 월 10회 미만 검색되는 키워드의 정확한 수치를 공개하지 않습니다. 본 도구는 이 경우 5회로 환산해 합계를 계산합니다.</div>
-    <div class="seo-faq-q">이용 요금이 있나요?</div>
-    <div class="seo-faq-a">아니요, 모든 기능을 무료로 사용할 수 있으며 회원가입도 필요 없습니다.</div>
-    <div class="seo-faq-q">검색 기록이 저장되나요?</div>
-    <div class="seo-faq-a">최근 검색 태그(최대 5개)는 사용자 브라우저의 localStorage에만 저장되며 서버에는 개인 식별 정보를 남기지 않습니다. 서비스 개선을 위한 익명 통계(검색 키워드, 방문 수)만 집계합니다.</div>
-    <div class="seo-faq-q">한 번에 여러 키워드를 조회할 수 있나요?</div>
-    <div class="seo-faq-a">현재는 정확도를 위해 1회 1키워드 조회 방식이며, 연관 키워드 클릭으로 빠르게 연속 분석할 수 있습니다.</div>
-    <div class="seo-faq-q">구글 검색량도 볼 수 있나요?</div>
-    <div class="seo-faq-a">준비 중입니다. Google Ads API(키워드 플래너) 연동을 진행하고 있으며, 승인 절차가 완료되면 구글 기준 검색량 구간·경쟁도 지수·페이지 상단 입찰가·12개월 계절성이 추가됩니다. 자세한 내용은 <a href="/guide#google-metrics">이용 가이드</a>를 참고하세요.</div>
-    <div class="seo-faq-q">구글 검색량은 왜 범위로 표시되나요?</div>
-    <div class="seo-faq-a">구글 키워드 플래너가 검색량을 정확한 수치가 아닌 구간 단위로 제공하기 때문입니다. 실제로 1,300회인 키워드와 9,400회인 키워드가 같은 구간에 묶이므로, 하나의 숫자로 바꿔 표시하면 사실과 달라집니다. 본 도구는 데이터가 가진 정밀도 이상으로 정확한 척 표시하지 않는다는 원칙에 따라 구간 그대로 표시할 계획입니다.</div>
-  </div>
-</section>
-
-<!-- ── Console ── -->
-<div class="console">
-  <div class="cdot ok" id="cdot"></div>
-  <span id="ctxt">준비 완료</span>
+  <button onclick="doSearch()">분석</button>
 </div>
 
-<!-- ── Site Footer ── -->
-<footer style="max-width:780px;margin:0 auto;padding:8px 16px 96px;text-align:center">
-  <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:10px">
-    <strong>Keyword Cockpit</strong>은 네이버 검색 데이터 기반 키워드 검색량·경쟁도를
-    한눈에 보여주는 무료 분석 도구입니다.<br>
-    키워드 분석 방법과 도구 제작 과정은 블로그에서 확인하실 수 있습니다.
-  </p>
-  <p style="margin-bottom:14px">
-    <a href="https://keywordcockpit.com" target="_blank" rel="noopener"
-       style="font-size:13px;font-weight:700;color:var(--blue);text-decoration:none">
-      키워드 분석 노하우 보러 가기 → keywordcockpit.com
-    </a>
-  </p>
-  <p style="font-size:12.5px;margin-bottom:14px">
-    <a href="/about" style="color:var(--text2);text-decoration:none;margin:0 7px">소개</a>·
-    <a href="/guide" style="color:var(--text2);text-decoration:none;margin:0 7px">이용 가이드</a>·
-    <a href="/changelog" style="color:var(--text2);text-decoration:none;margin:0 7px">업데이트 이력</a>·
-    <a href="/about#contact" style="color:var(--text2);text-decoration:none;margin:0 7px">문의</a>
-  </p>
-  <p style="font-size:12px;color:var(--text3)">
-    © 2026 Keyword Cockpit ·
-    <a href="https://keywordcockpit.com/privacy-policy/" target="_blank" rel="noopener"
-       style="color:var(--text3);text-decoration:underline">개인정보처리방침</a>
-  </p>
+<!-- ── 소스 토글 ── -->
+<div class="source-toggle" id="sourceToggle">
+  <button data-src="naver" class="active" onclick="setSource('naver')"><span class="dot"></span>네이버</button>
+  <button data-src="google" onclick="setSource('google')" disabled title="Google 검색량 연동 준비 중"><span class="dot"></span>구글 <span class="badge cached" id="gBadge1">준비 중</span></button>
+  <button data-src="both" onclick="setSource('both')" disabled title="Google 검색량 연동 준비 중"><span class="dot"></span>통합 보기 <span class="badge cached" id="gBadge2">준비 중</span></button>
+</div>
+
+<!-- ── 최근 검색 (소스 무관 · 결과 영역 밖) ── -->
+<div class="card" id="recentCard" style="display:none">
+  <div class="card-head">
+    <h2>최근 검색 <small>검색 당시 스냅샷</small></h2>
+    <a class="head-link" onclick="clearRecent()">전체 지우기</a>
+  </div>
+  <table>
+    <thead><tr>
+      <th>키워드</th><th class="ncol">네이버 검색량</th>
+      <th class="gcol" style="display:none">구글 검색량</th>
+      <th class="time-col">검색 시점</th>
+    </tr></thead>
+    <tbody id="recentBody"></tbody>
+  </table>
+  <button class="fold-btn" id="recentFold" onclick="toggleFold('recentCard', this)"></button>
+  <div class="foot" id="recentFoot" style="display:none"><span>막대 = 네이버(최근 30일) vs 구글(12개월 평균) 검색량 비중 · 구글은 구간 기준 근사값</span></div>
+</div>
+
+<div class="err-box" id="errBox"></div>
+<div class="load-box" id="loadingWrap"><div class="spinner"></div><br>검색량 데이터를 가져오는 중...</div>
+
+<!-- ══════════ 결과 영역 ══════════ -->
+<div class="results" id="resultsPanel">
+
+  <!-- ─── 행 1 · 검색량 ─── -->
+  <div class="card" id="volCard">
+    <div class="card-head">
+      <h2>네이버 키워드 검색량 <small id="nCardKw"></small></h2>
+      <span class="badge cached" id="nStatus">완료</span>
+    </div>
+    <div id="volBody"></div>
+    <div class="foot"><span id="volFoot">네이버 검색광고 · 최근 30일 기준</span></div>
+  </div>
+
+  <div class="card" id="gVolCard">
+    <div class="card-head">
+      <h2>구글 광고 지표 <small id="gCardKw"></small></h2>
+      <span class="badge google" id="gStatus">조회 중…</span>
+    </div>
+    <div id="gVolBody"></div>
+    <div class="foot"><span>Google Ads 키워드 플래너 · 대한민국 · 구글 검색</span></div>
+  </div>
+
+  <!-- ─── 행 2 · 경쟁도 지수 ─── -->
+  <div class="card" id="nCompCard">
+    <div class="card-head"><h2>네이버 경쟁도 지수 <small>노출 광고 수 기준</small></h2></div>
+    <div id="nCompBody"></div>
+  </div>
+
+  <div class="card" id="gCompCard">
+    <div class="card-head"><h2>구글 경쟁도 지수 <small>광고주 밀도 기준</small></h2></div>
+    <div id="gCompBody"></div>
+  </div>
+
+  <!-- ─── 행 3 · 12개월 흐름 ─── -->
+  <div class="card" id="trendCard">
+    <div class="card-head">
+      <h2>네이버 검색 트렌드 <small>최근 12개월 · 데이터랩</small></h2>
+      <span class="trend-badge" id="nTrendBadge" style="display:none"></span>
+    </div>
+    <div class="trend-wrap" id="trendWrap"><div class="load-box show"><div class="spinner"></div></div></div>
+  </div>
+
+  <div class="card" id="gSeasonCard">
+    <div class="card-head">
+      <h2>구글 12개월 계절성 <small>월별 검색량</small></h2>
+      <span class="trend-badge" id="gTrendBadge" style="display:none"></span>
+    </div>
+    <div id="gSeasonBody"></div>
+  </div>
+
+  <!-- ─── 행 4 · 연관 키워드 ─── -->
+  <div class="card" id="relCard">
+    <div class="card-head">
+      <h2>네이버 연관 키워드 <small>검색량순</small></h2>
+      <a class="head-link" onclick="exportRelatedCSV()">CSV 저장</a>
+    </div>
+    <div id="relBody"></div>
+    <button class="fold-btn" id="relFold" onclick="toggleFold('relCard', this)"></button>
+    <div class="foot"><span>클릭 시 해당 키워드로 재분석</span></div>
+  </div>
+
+  <div class="card" id="gIdeaCard">
+    <div class="card-head"><h2>구글 연관 키워드 <small>키워드 아이디어</small></h2></div>
+    <div id="gIdeaBody"></div>
+    <button class="fold-btn" id="gIdeaFold" onclick="toggleFold('gIdeaCard', this)"></button>
+    <div class="foot"><span>화면 표시 전용 · 클릭 시 재분석</span></div>
+  </div>
+
+
+  <!-- 발행 현황 (5행 좌) — 네이버 상위 10 임시 중단 기간의 대체 지표 -->
+  <div class="card" id="pubCard">
+    <div class="card-head">
+      <h2>네이버 발행 현황 <small>최신순 기준</small></h2>
+      <span class="badge naver" id="pubStatus" style="display:none"></span>
+    </div>
+    <div id="pubBody"></div>
+    <div class="foot"><span>네이버 블로그 검색 · 발행일 내림차순 · 조회 시각 기준</span></div>
+  </div>
+
+  <!-- 상위 10 — 임시 중단 (마크업 유지, CSS로 감춤) -->
+  <div class="card" id="top10Card">
+    <div class="card-head">
+      <h2>네이버 블로그 상위 10 <small>블로그 활동지수 비교</small></h2>
+      <button class="csv-btn" onclick="exportTop100CSV()">상위 100위 CSV 저장</button>
+    </div>
+    <div class="bar-wrap" id="top10Wrap"></div>
+  </div>
+
+  <!-- 내 블로그 포스팅 -->
+  <div class="card" id="mypostCard">
+    <div class="card-head">
+      <h2>내 블로그 포스팅 <small id="mypostMeta"></small></h2>
+      <a class="head-link" onclick="openSettings()">블로그 설정</a>
+    </div>
+    <div id="mypostList" style="padding:6px 16px 14px"></div>
+  </div>
+
+  <!-- 광고 슬롯 (승인 후 활성화) -->
+  <!-- 순위 기능 안내 (모든 보기에서 노출 · CSS로 제어) -->
+  <div class="src-note" id="serpNote">
+    <b>검색 순위 표시를 일시 중단했습니다.</b>
+    네이버 블로그 검색 API의 정확도순 결과가 실제 네이버 검색 노출 순서와 크게 어긋나는 현상이 확인되어, <b>네이버 블로그 상위 10</b>을 잠시 내렸습니다. 정상화되는 대로 복구합니다.
+    구글은 애초에 공개 검색 결과를 반환하는 공식 API가 없으며, 유일한 경로였던 Custom Search JSON API도 신규 이용이 중단되고 2027년 1월 1일 종료됩니다.
+    그동안은 <b>발행 현황</b>으로 경쟁 강도를, 구글 지표로 <b>키워드의 가치</b>를 판단하시면 됩니다.
+    <a href="/guide#google-metrics">구글 지표 읽는 법 →</a>
+  </div>
+
+  <div class="ad-slot">
+    <div class="ad-tag">AD · 광고 영역</div>
+    <div class="ad-note">애드센스 승인 후 활성화: 검색 결과 출력 하단 배치 (기능 버튼과 분리)</div>
+  </div>
+</div>
+
+<!-- ══════════ 정보 섹션 (상시 노출) ══════════ -->
+<div class="content-sec">
+  <h3>키워드 검색량 조회, 이렇게 사용하세요</h3>
+  <ol>
+    <li><strong>키워드 입력</strong>: 상단 입력창에 분석할 키워드를 입력하고 분석 버튼을 누릅니다. 띄어쓰기는 자동으로 정리되어 조회됩니다.</li>
+    <li><strong>검색량 확인</strong>: 최근 30일 기준 네이버 월간 검색량이 합계·PC·모바일로 나뉘어 표시됩니다. 상단 소스 전환에서 통합 보기를 선택하면 화면 왼쪽에 네이버, 오른쪽에 구글 지표가 같은 줄에 나란히 놓여 검색량·경쟁도·12개월 흐름·연관 키워드를 항목별로 바로 비교할 수 있습니다.</li>
+    <li><strong>경쟁도 확인</strong>: 경쟁도 지수 카드에서 이 키워드에 광고가 얼마나 몰려 있는지 0~100으로 확인합니다. 지수가 높을수록 상업적 가치가 크지만 상위 노출 난도도 함께 올라갑니다.</li>
+    <li><strong>트렌드 읽기</strong>: 최근 12개월 막대 그래프에서 상승·하락 배지와 최고점 월을 확인합니다. 그래프 아래에는 계절성을 해석한 실행 조언이 함께 표시됩니다.</li>
+    <li><strong>연관 키워드 확장</strong>: 연관 키워드 카드에서 검색량순 상위 5개를 바로 보고, 더보기로 최대 15개까지 펼칩니다. 목록의 키워드를 클릭하면 즉시 재분석되므로, 메인 키워드의 경쟁이 치열할 때 세부 키워드로 우회하는 가장 빠른 경로입니다.</li>
+    <li><strong>경쟁 확인</strong>: 상위 10 차트에서 현재 이 키워드를 점유한 블로그들과 활동지수를 비교합니다. 설정에 내 블로그 ID를 저장하면 내 블로그가 오렌지색으로 강조됩니다.</li>
+      <li><strong>경쟁 강도 판단</strong>: 네이버 발행 현황 카드에서 이 키워드로 글이 얼마나 빠르게 쌓이는지 확인합니다. 100건이 차는 데 걸린 시간이 짧을수록 새 글이 금방 밀려납니다. 기회 지수는 검색량 대비 발행량을 네 단계로 요약한 값입니다.</li>
+  </ol>
+  <div class="hint">검색창 아래 최근 검색 카드에는 검색 당시의 검색량 스냅샷이 함께 저장됩니다. 같은 키워드를 나중에 다시 조회해 스냅샷과 비교하면 검색량 변화 추세를 확인할 수 있습니다.</div>
+</div>
+
+<div class="content-sec">
+  <h3>지표 해설: 숫자를 어떻게 읽어야 할까</h3>
+  <dl class="metric">
+    <dt>PC / 모바일 (네이버 월간 검색량)</dt>
+    <dd>네이버 검색광고 시스템이 집계한 최근 30일 검색 횟수 추정치입니다. 월 10회 미만 키워드는 정확한 수치 대신 "&lt; 10"으로 제공되어 본 도구에서는 5로 환산합니다. 여행·맛집·쇼핑 같은 생활 밀착형 주제는 모바일 비중이 70~90%에 달하므로, 모바일 화면 기준의 노출 전략이 우선입니다.</dd>
+    <dt>네이버 경쟁도 지수 (0~100)</dt>
+    <dd>네이버 검색광고가 제공하는 월평균 노출 광고 수를 최대 15개 기준으로 환산한 값입니다. 검색 결과에 광고가 많이 붙는 키워드일수록 지수가 높고, 그만큼 상업적 의도가 강한 키워드로 볼 수 있습니다. 함께 표시되는 낮음·중간·높음은 네이버가 직접 제공하는 3단계 구분입니다.</dd>
+    <dt>구글 광고 지표 (검색량 · 경쟁도 · 입찰가)</dt>
+    <dd>Google Ads 키워드 플래너 기준 값입니다. 네이버와 구글은 이용자층과 검색 목적이 달라, 두 수치를 나란히 보면 이 키워드가 어느 검색엔진에서 더 큰 기회가 있는지 판단할 수 있습니다. 검색량은 키워드 플래너가 구간 단위로 제공하므로 정확한 수치가 아닌 범위(예: 10,000 ~ 100,000)로 표시합니다. 페이지 상단 입찰가는 광고주들이 실제로 지불한 금액 범위로, 키워드의 상업적 가치를 금액으로 가늠할 수 있습니다. 조회 결과는 7일간 캐시됩니다.</dd>
+    <dt>구글 경쟁도 지수 (0~100)</dt>
+    <dd>구글에서 해당 키워드에 광고를 집행하는 광고주 밀도입니다. 네이버 경쟁도 지수와 눈금은 같지만 산출 근거가 달라(네이버는 노출 광고 수, 구글은 광고주 밀도) 두 값을 직접 빼거나 비교하기보다 각 검색엔진 안에서의 상대적 수준으로 읽는 것이 맞습니다.</dd>
+    <dt>12개월 흐름 (네이버 트렌드 · 구글 계절성)</dt>
+    <dd>양쪽 모두 최고점 월을 기준으로 한 상대 지표라 같은 막대 형태로 표시합니다. 네이버 쪽은 데이터랩 기반입니다. 조회 기간 중 검색량이 가장 많았던 달을 100%로 두고 각 월의 비율을 보여주므로, 절대량이 아닌 계절성과 흐름을 읽는 용도입니다. 벚꽃·눈꽃 축제처럼 시즌 키워드는 성수기 2~3개월 전부터 콘텐츠를 선점하는 것이 정석입니다.</dd>
+    <dt>연관 키워드</dt>
+    <dd>메인 키워드 대비 검색량은 적지만 경쟁이 약한 롱테일 키워드를 찾는 출발점입니다. 네이버와 구글의 연관 키워드는 출처와 산출 기준이 달라 같은 키워드를 넣어도 서로 다른 목록이 나오는 것이 정상이며, 두 목록의 차이 자체가 검색엔진별 이용자 관심사의 차이를 보여줍니다.</dd>
+    <dt>오늘 발행</dt>
+    <dd>조회 시각까지 이 키워드로 올라온 네이버 블로그 글 수입니다. 하루가 진행 중인 값이라 아침에 보면 적고 밤에 보면 많습니다. 그래서 아래 세 항목과 따로 떼어 두었고, 경쟁 강도를 판단할 때는 아래 값을 보시는 편이 정확합니다. 100건을 넘으면 <strong>100건 이상</strong>으로만 표시합니다.</dd>
+
+    <dt>100건 발행 · 1,000건 발행</dt>
+    <dd>그만큼의 글이 쌓이는 데 걸린 시간입니다. <strong>내 글이 얼마나 버티는지</strong>를 말해줍니다 — 100건이 12일 걸렸다면 새 글이 하루 8~9편씩 올라온다는 뜻이고, 반대로 몇 시간 만에 100건이 차는 키워드는 하루도 못 버티고 밀려납니다. 하루가 안 걸리면 시간 단위로 표시합니다.</dd>
+
+    <dd>두 값을 나란히 보면 <strong>발행 속도가 변하고 있는지</strong> 알 수 있습니다. 100건 12일에 1,000건 115일이면 두 기간의 하루 평균이 거의 같아 안정된 시장입니다. 반대로 100건 6일인데 1,000건이 20일이면 최근 들어 글이 몰리고 있다는 신호입니다.</dd>
+
+    <dt>기회 지수</dt>
+    <dd>월간 검색량을 30일 환산 발행량으로 나눈 값입니다. 검색량이 큰 키워드가 늘 유리하지는 않습니다 — 수요가 커도 글이 그만큼 많으면 나눠 가질 몫이 적기 때문입니다. <strong>매우 좋음</strong>(편당 100회 이상) / <strong>좋음</strong>(30~100회) / <strong>보통</strong>(10~30회) / <strong>포화</strong>(10회 미만) 네 단계로 표시합니다. 다만 월간 검색량이 100회에 못 미치면 비율만으로는 뜻이 뒤집히므로 <strong>수요 미미</strong>로 따로 표시합니다 — 글이 많아서가 아니라 찾는 사람이 적어 편당 수치가 낮게 나오는 경우입니다.</dd>
+
+    <dd>이 값은 <strong>편당 예상 유입이 아닙니다.</strong> 실제로는 상위에 노출된 글이 대부분을 가져가므로 편차가 매우 큽니다. 시장이 얼마나 붐비는지 가늠하는 용도로만 쓰시고, 수치를 작게 병기한 것도 정밀한 값이 아니기 때문입니다. 검색량은 네이버 전체 검색 수이고 발행량은 블로그 글 수라 모집단도 다릅니다.</dd>
+
+    <dt>블로그 활동지수 (상위 10 차트)</dt>
+    <dd>상위 노출 중인 각 블로그의 최근 30일 발행량을 기준으로 한 자체 추정 지표(0~100)입니다. 경쟁 블로그들의 활동 수준을 파악해, 이 키워드에서 승부할 수 있을지 가늠하는 참고 자료로 활용하세요.</dd>
+  </dl>
+</div>
+
+<div class="content-sec">
+  <h3>자주 묻는 질문</h3>
+  <details class="faq"><summary>데이터 출처는 어디인가요?</summary><p>네이버 검색량·연관 키워드는 네이버 검색광고 API, 트렌드는 네이버 데이터랩 API, 블로그 포스팅은 네이버 검색 API, 구글 검색량은 Google Ads API(공식)에서 가져옵니다. 자체 추정치가 아닌 각 플랫폼의 공식 데이터입니다.</p></details>
+  <details class="faq"><summary>검색량은 얼마나 자주 갱신되나요?</summary><p>네이버 검색량은 조회 시점마다 최근 30일 기준 최신 데이터를 실시간 요청합니다. 구글 지표는 12개월 평균 기반이라 변동이 크지 않으므로 7일 캐시로 제공됩니다.</p></details>
+  <details class="faq"><summary>검색량이 "&lt; 10"으로 나오는 이유는 뭔가요?</summary><p>네이버는 월 10회 미만 검색되는 키워드의 정확한 수치를 공개하지 않습니다. 본 도구는 이 경우 5회로 환산해 표시합니다.</p></details>
+  <details class="faq"><summary>구글 검색량이 왜 정확한 숫자가 아닌 범위로 나오나요?</summary><p>Google Ads 키워드 플래너가 검색량을 구간 단위로 제공하기 때문입니다. 실제로 1,300회인 키워드와 9,400회인 키워드가 같은 구간에 묶이므로, 하나의 숫자로 바꿔 표시하면 사실과 달라집니다. 본 도구는 데이터가 가진 정밀도 이상으로 정확한 척 표시하지 않는다는 원칙에 따라 구간 그대로 보여줍니다. 정확한 절대 수치가 필요할 때는 네이버 검색량을 기준으로 삼으세요.</p></details>
+  <details class="faq"><summary>네이버와 구글의 경쟁도 지수를 직접 비교해도 되나요?</summary><p>눈금은 같은 0~100이지만 산출 근거가 다릅니다. 네이버는 검색 결과에 붙는 월평균 노출 광고 수(최대 15개)를 환산한 값이고, 구글은 해당 키워드에 광고를 집행하는 광고주 밀도입니다. 두 값을 빼거나 나누기보다 각 검색엔진 안에서의 상대적 수준으로 읽는 것이 맞습니다.</p></details>
+  <details class="faq"><summary>100건 발행과 1,000건 발행의 하루 평균이 같게 나옵니다.</summary><p>발행 속도가 안정적인 키워드에서 자연스럽게 나타나는 결과입니다. 100건이 12일, 1,000건이 115일 걸렸다면 하루 평균은 각각 8.3편과 8.7편으로 거의 같습니다. 최근 들어 글이 몰리거나 줄어든 키워드에서는 두 값이 눈에 띄게 벌어집니다.</p></details>
+  <details class="faq"><summary>발행 현황의 시간은 어떻게 계산되나요?</summary><p>네이버 블로그 검색을 최신순으로 조회해 100번째와 1,000번째 글의 발행일을 봅니다. 발행일 데이터에는 날짜만 있고 시각이 없어, 오늘 자정 이후 경과 시간만 실측하고 그 이전은 하루 단위로 셉니다. 그래서 같은 키워드라도 조회 시각에 따라 값이 조금씩 달라지며, 그것이 정상입니다.</p></details>
+  <details class="faq"><summary>구글 검색 순위(상위 10)는 왜 없나요?</summary><p>구글은 공개 검색 결과 페이지를 반환하는 공식 API를 제공하지 않습니다. 그나마 쓸 수 있던 Custom Search JSON API도 신규 이용이 중단됐고 2027년 1월 1일 종료됩니다. 결과를 직접 수집하는 방식은 구글 약관에 어긋나므로 본 도구는 사용하지 않습니다. 대신 구글 쪽은 Google Ads API로 받은 검색량·경쟁도·입찰가를 제공해 <strong>이 키워드에 시간을 쓸 가치가 있는지</strong>를 판단하도록 했고, 실제 노출 순위는 네이버 블로그 검색 기준으로 보여드립니다.</p></details>
+  <details class="faq"><summary>이용 요금이 있나요?</summary><p>아니요. 모든 기능이 무료이며 회원가입도 필요 없습니다.</p></details>
+  <details class="faq"><summary>검색 기록이 저장되나요?</summary><p>최근 검색 10개는 사용 중인 브라우저(localStorage)에만 저장되며 서버에는 개인 식별 정보를 남기지 않습니다. 서비스 개선을 위한 익명 통계(검색 키워드·방문 수)만 수집하고 30일 후 자동 삭제합니다.</p></details>
+</div>
+
+<!-- ── 푸터 ── -->
+<footer class="site-footer">
+  <div class="footer-links">
+    <a href="/about">소개</a><a href="/guide">이용 가이드</a><a href="/changelog">업데이트 이력</a><a href="/about#contact">문의</a>
+  </div>
+  <div class="footer-blog">
+    <strong>Keyword Cockpit</strong>은 운영자가 직접 설계하고 개발한 무료 키워드 분석 도구입니다.<br>
+    키워드 분석 노하우와 도구 제작 과정은 <a href="https://keywordcockpit.com" target="_blank" rel="noopener">공식 블로그 keywordcockpit.com</a>에서 확인하세요.
+  </div>
+  <div class="footer-legal">
+    활동지수·포스팅 지수는 공개 데이터 기반 자체 추정 지표로, 네이버 공식 지수와 다릅니다.<br>
+    © 2026 Keyword Cockpit · <a href="https://keywordcockpit.com/privacy-policy/" target="_blank" rel="noopener" style="color:inherit">개인정보처리방침</a>
+  </div>
 </footer>
 
 <script src="/common.js"></script>
 <script>
-let kws  = [];
-let data = [];
+/* ═══════════════════════════════
+   v2.0 탭1 — 키워드 분석
+═══════════════════════════════ */
+let currentKw   = '';
+let mainRow     = null;   // {kw,pc,mo}
+let relatedRows = [];     // [{kw,pc,mo}]
+let top100      = [];     // blog API items
+let source      = 'naver';
+let gData       = null;   // { seed, ideas, msg } — 구글 지표 응답
+let myPosts     = null;   // 내 블로그 포스팅 (순위는 top100이 채워진 뒤 다시 계산)
+let gLoadedKw   = null;   // 구글 지표를 이미 불러온 키워드 (중복 호출 방지)
+let nLoadedKw   = null;   // 네이버 부가 조회(트렌드·상위10·내포스팅)를 마친 키워드
 
-const MAX_RECENT = 5;
-function getRecent() { try { return JSON.parse(localStorage.getItem('recentKw') || '[]'); } catch(e) { return []; } }
-function saveRecent(kw) {
-  let list = getRecent().filter(k => k !== kw);
-  list.unshift(kw); list = list.slice(0, MAX_RECENT);
-  localStorage.setItem('recentKw', JSON.stringify(list));
+/* ── 최근 검색 (v2 스키마 + 구버전 마이그레이션) ── */
+const RECENT_KEY = 'kc_recent_v2';
+const MAX_RECENT = 10;   /* 스냅샷 보관 개수 */
+const FOLD_N     = 5;    /* 접힌 상태에서 보여줄 행 수 */
+const REL_MAX    = 15;   /* 연관 키워드 최대 확보 개수 */
+
+/* 카드 안의 목록을 5행까지만 보이게 접고 버튼으로 펼친다.
+   최근 검색 · 네이버 연관 · 구글 연관이 같은 동작을 공유한다. */
+function toggleFold(cardId, btn) {
+  const card = document.getElementById(cardId);
+  if (!card) return;
+  const open = card.classList.toggle('unfolded');
+  btn.textContent = open ? '접기' : `+ ${btn.dataset.rest}개 더보기`;
+}
+function setFold(cardId, btnId, total) {
+  const card = document.getElementById(cardId);
+  const btn  = document.getElementById(btnId);
+  if (!card || !btn) return;
+  const rest = Math.max(0, total - FOLD_N);
+  card.classList.remove('unfolded');
+  btn.dataset.rest  = rest;
+  btn.textContent   = `+ ${rest}개 더보기`;
+  btn.style.display = rest > 0 ? '' : 'none';
+}
+(function migrateRecent() {
+  try {
+    const oldRaw = localStorage.getItem('recentKw');
+    if (oldRaw && !localStorage.getItem(RECENT_KEY)) {
+      const olds = JSON.parse(oldRaw);
+      const conv = (Array.isArray(olds) ? olds : []).map(k => ({ kw: String(k), npc: null, nmo: null, g: null, ts: null }));
+      localStorage.setItem(RECENT_KEY, JSON.stringify(conv.slice(0, MAX_RECENT)));
+    }
+    if (oldRaw) localStorage.removeItem('recentKw');
+  } catch (e) {}
+})();
+function getRecent() { try { return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]'); } catch (e) { return []; } }
+function saveRecent(entry) {
+  let list = getRecent().filter(r => r.kw !== entry.kw);
+  list.unshift(entry);
+  localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, MAX_RECENT)));
   renderRecent();
 }
-function clearRecent() { localStorage.removeItem('recentKw'); renderRecent(); }
-function deleteRecentThis(el, e) {
-  e.stopPropagation();
-  const kw = el.closest('.recent-tag').dataset.kw;
-  const list = getRecent().filter(k => k !== kw);
-  localStorage.setItem('recentKw', JSON.stringify(list));
+/* 스냅샷의 한 칸만 나중에 채운다.
+   검색 시점에는 그때 본 소스만 저장하므로, 반대쪽은 비어 있다가
+   사용자가 그 칸을 눌렀을 때 이 함수로 메워진다. */
+function patchRecent(kw, fields) {
+  const list = getRecent();
+  const hit  = list.find(r => r.kw === kw);
+  if (!hit) return false;
+  Object.assign(hit, fields);
+  localStorage.setItem(RECENT_KEY, JSON.stringify(list));
+  return true;
+}
+function clearRecent() { localStorage.removeItem(RECENT_KEY); renderRecent(); toast('최근 검색을 모두 지웠습니다'); }
+function relTime(ts) {
+  if (!ts) return '-';
+  const s = (Date.now() - ts) / 1000;
+  if (s < 60) return '방금 전';
+  if (s < 3600) return Math.floor(s/60) + '분 전';
+  if (s < 86400) return Math.floor(s/3600) + '시간 전';
+  return Math.floor(s/86400) + '일 전';
+}
+/* 스냅샷에서 구글 구간을 꺼낸다.
+   v3.10부터 gmin·gmax를 함께 저장하지만, 그 이전 기록에는 라벨 문자열만 있다.
+   되읽기에 성공하면 옛 기록도 새 표기와 비중 바가 그대로 적용된다. */
+function recentRange(r) {
+  if (r.gmin != null || r.gmax != null) return { min: r.gmin, max: r.gmax };
+  return parseRangeLabel(r.g);
+}
+
+/* ── 최근 검색 빈칸 채우기 ──
+   그 칸에 필요한 호출 하나만 한다. 네이버 칸은 검색량 하나면 되므로
+   트렌드·내 포스팅은 부르지 않고, 구글 칸도 마찬가지다.
+   현재 화면의 카드는 건드리지 않는다 — 다른 키워드일 수 있다. */
+const _filling = new Set();
+function fillBtn(kw, src) {
+  if (src === 'google' && !window.GOOGLE_ENABLED) return '-';
+  const key = src + ':' + kw;
+  if (_filling.has(key)) return '<span class="rc-fill is-busy">조회 중</span>';
+  const esc = kw.replace(/'/g, "\\'");
+  const label = src === 'naver' ? '네이버 검색량 조회' : '구글 지표 조회';
+  return `<span class="rc-fill" role="button" tabindex="0" title="${label}"
+            onclick="event.stopPropagation();fillRecentCell('${esc}','${src}')"
+            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();event.stopPropagation();fillRecentCell('${esc}','${src}')}">조회</span>`;
+}
+async function fillRecentCell(kw, src) {
+  const key = src + ':' + kw;
+  if (_filling.has(key)) return;
+  _filling.add(key);
+  renderRecent();
+  try {
+    if (src === 'naver') {
+      const list = await fetchNaverVolume(kw);
+      const row  = list.find(d => d.kw === kw) || list[0];
+      if (!row) throw new Error('결과 없음');
+      patchRecent(kw, { npc: row.pc, nmo: row.mo });
+    } else {
+      const json = await fetchGoogle(kw);
+      if (json.error || !json.seed) throw new Error(json.message || '조회 불가');
+      patchRecentGoogle(kw, json.seed);
+    }
+  } catch (e) {
+    toast(`"${kw}" ${src === 'naver' ? '네이버' : '구글'} 조회 실패`, 3000);
+  }
+  _filling.delete(key);
   renderRecent();
 }
+
 function renderRecent() {
   const list = getRecent();
-  const wrap = document.getElementById('recentWrap');
-  const el   = document.getElementById('recentList');
-  if (!wrap || !el) return;
-  if (list.length === 0) { wrap.classList.remove('show'); return; }
-  wrap.classList.add('show');
-  el.innerHTML = list.map(kw => {
-    const safe = kw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    return `<div class="recent-tag" onclick="searchFromRecent(this.dataset.kw)" data-kw="${safe}">
-      <span class="rtag-icon">🕒</span><span>${safe}</span>
-      <span class="rtag-del" onclick="deleteRecentThis(this,event)">×</span>
-    </div>`;
+  const card = document.getElementById('recentCard');
+  const foot = document.getElementById('recentFoot');
+  /* 기록이 없으면 카드 자체를 감춘다 — 첫 방문에 빈 표를 보여줄 이유가 없다 */
+  if (!list.length) { card.style.display = 'none'; return; }
+  card.style.display = '';
+
+  /* 구글 열은 소스 토글과 연동한다. window.GOOGLE_ENABLED만 보면
+     '네이버만 보기'에서도 구글 열이 남는다. */
+  const gOn = window.GOOGLE_ENABLED && (source === 'google' || source === 'both');
+  const nOn = source !== 'google';   /* 구글만 보기에서는 네이버 열도 감춘다 */
+  /* 비중 바는 두 수치가 한 행에 모두 있을 때만 의미가 있다 */
+  const barOn = nOn && gOn;
+  if (foot) foot.style.display = barOn ? '' : 'none';
+
+  document.getElementById('recentBody').innerHTML = list.map((r, i) => {
+    const fold = i >= FOLD_N ? ' fold-row' : '';
+    const sum = (r.npc == null && r.nmo == null) ? null : (r.npc || 0) + (r.nmo || 0);
+    /* 네이버 검색량은 합계를 크게, PC·모바일을 그 아래 작게 —
+       열을 3개에서 1개로 줄이면서 정보는 그대로 남긴다. */
+    const nCell = sum == null
+      ? fillBtn(r.kw, 'naver')
+      : `<strong>${fmtNum(sum)}</strong><em class="sub">PC ${fmtNum(r.npc)} · 모바일 ${fmtNum(r.nmo)}</em>`;
+
+    /* 구글 구간 — 네이버와 같은 콤마 표기로 맞춘다 (1천 ~ 1만 → 1,000 ~ 10,000) */
+    const gr    = recentRange(r);
+    const gCell = gr ? (fmtRange(gr.min, gr.max) || '-')
+                     : (r.g || fillBtn(r.kw, 'google'));
+
+    /* 비중 바 — 폭은 화면에 이미 노출된 구간에서만 파생한다(기하 중앙값).
+       raw를 쓰면 폭에서 정확한 수치가 역산되므로 쓰지 않는다.
+       퍼센트 숫자도 찍지 않는다 — 찍는 순간 같은 역산이 가능해진다. */
+    const mid = gr ? geoMid(gr.min, gr.max) : null;
+    let barRow = '';
+    if (barOn && sum != null && mid != null && sum + mid > 0) {
+      const nP  = Math.max(2, Math.min(98, Math.round(sum / (sum + mid) * 100)));
+      const tip = (nP >= 65 ? '네이버 우세' : nP <= 35 ? '구글 우세' : '비슷')
+                + ' — 네이버 최근 30일 vs 구글 12개월 평균 · 구간 기준 근사';
+      barRow = `<tr class="rc-bar-row${fold}">
+        <td></td>
+        <td class="rc-bar-cell" colspan="2">
+          <div class="rc-bar" title="${tip}"><i class="n" style="width:${nP}%"></i><i class="g" style="width:${100 - nP}%"></i></div>
+        </td>
+        <td class="time"></td>
+      </tr>`;
+    }
+
+    return barRow + `<tr class="${fold.trim()}">
+      <td class="kw" onclick="searchFromRecent('${r.kw.replace(/'/g,"\\'")}')">${r.kw}</td>
+      ${nOn ? `<td class="num-cell">${nCell}</td>` : ''}
+      ${gOn ? `<td class="g-col">${gCell}</td>` : ''}
+      <td class="time">${relTime(r.ts)}</td>
+    </tr>`;
   }).join('');
+  setFold('recentCard', 'recentFold', list.length);
 }
 function searchFromRecent(kw) {
   document.getElementById('kwInp').value = kw;
-  kws = [kw]; saveRecent(kw);
-  log('busy', '"' + kw + '" 검색 중...');
-  runScan();
-}
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', renderRecent);
-else renderRecent();
-
-function doSearch() {
-  const inp = document.getElementById('kwInp');
-  const kw  = inp.value.trim().replace(/\s+/g, '');
-  if (!kw) return;
-  kws = [kw]; inp.value = '';
-  saveRecent(kw);
-  log('busy', `"${kw}" 검색 중...`);
-  runScan();
+  toggleClear('kwInp','kwClear');
+  doSearch();
 }
 
-/* ── 통계 로깅 ── */
-function logPageView() {
-  fetch('/api/log', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ type: 'pageview' })
-  }).catch(() => {});
+/* ═══ 구글 지표 공통 상수 ═══ */
+/* 구글이 준 competition 문자열. 지금은 라벨을 지수에서 만들므로 쓰지 않지만
+   응답 스키마의 일부라 남겨 둔다 (compLabel 참조). */
+const COMP_KO   = { LOW:'낮음', MEDIUM:'중간', HIGH:'높음', UNSPECIFIED:'-' };
+const MONTH_NUM = { JANUARY:1, FEBRUARY:2, MARCH:3, APRIL:4, MAY:5, JUNE:6,
+                    JULY:7, AUGUST:8, SEPTEMBER:9, OCTOBER:10, NOVEMBER:11, DECEMBER:12 };
+
+/* ── 계절성 문구 ──
+   12개월 창의 왼쪽 끝은 1년 전이다. 월만 떼어 쓰면 작년 8월과 올해 8월이
+   구분되지 않아, 8월에 "8월 정점 후 하락"이라는 모순된 문장이 나온다.
+   최고·최저에 연도를 붙이고, 최고점이 창의 어디에 있느냐로 문장을 나눈다. */
+function ymShort(ym) {   /* 2025-08 → 25년 8월 */
+  return `${ym.slice(2,4)}년 ${parseInt(ym.slice(5,7),10)}월`;
 }
-function logSearch(keyword) {
-  fetch('/api/log', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ type: 'search', keyword })
-  }).catch(() => {});
+function ymLong(ym) {    /* 2025-08 → 2025년 8월 */
+  return `${ym.slice(0,4)}년 ${parseInt(ym.slice(5,7),10)}월`;
 }
-// 페이지 로드 완료 후 방문 기록
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', logPageView);
-} else {
-  logPageView();
+/* 다음 성수기와 그 3개월 전 준비 시점을 연도까지 붙여 돌려준다.
+   이미 지난 달을 "N월부터 준비하세요"라고 안내하면 행동으로 이어지지 않는다. */
+function nextSeason(peakYm, now) {
+  const peakM = parseInt(peakYm.slice(5,7), 10);
+  const nowY  = now.getFullYear(), nowM = now.getMonth() + 1;
+  if (peakM === nowM) return { current: true };
+  let py = peakM < nowM ? nowY + 1 : nowY;
+  let pm = peakM - 3, prepY = py;
+  if (pm <= 0) { pm += 12; prepY -= 1; }
+  return { current: false, peak: `${py}년 ${peakM}월`, prep: `${prepY}년 ${pm}월` };
+}
+/* 최고점이 창의 앞·중간·뒤 어디냐에 따라 같은 하락도 뜻이 다르다 */
+function peakPhrase(peakYm, idx, n, dir) {
+  if (idx >= n - 3) return `가장 최근 구간인 ${ymLong(peakYm)}에 정점을 찍었습니다`;
+  if (idx <= 2)     return `${ymLong(peakYm)} 정점 이후 1년째 ${dir}입니다`;
+  return `${ymLong(peakYm)} 정점 후 ${dir}입니다`;
 }
 
-async function runScan() {
-  log('busy', '데이터를 가져오는 중...');
+function gWon(v){return v==null?null:v.toLocaleString('ko-KR')+'원';}
+
+/* ── 검색 실행 ── */
+/* ── 네이버 검색량 조회 (순수 호출) ──
+   화면 상태를 건드리지 않고 값만 돌려준다.
+   현재 키워드 갱신과 최근 검색 빈칸 채우기가 같은 호출을 공유한다. */
+async function fetchNaverVolume(kw) {
+  const res  = await fetch('/api/keyword', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ keywords: [kw] })
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || `오류 ${res.status}`);
+  return (json.keywordList || []).map(d => ({
+    kw: d.relKeyword,
+    pc: d.monthlyPcQcCnt     === '< 10' ? 5 : (parseInt(d.monthlyPcQcCnt)     || 0),
+    mo: d.monthlyMobileQcCnt === '< 10' ? 5 : (parseInt(d.monthlyMobileQcCnt) || 0),
+    comp: d.compIdx || '-',
+    /* plAvgDepth = 월평균 노출 광고 수(0~15). compIdx가 3단계뿐이라
+       구글의 0~100 지수와 나란히 놓을 수 없어, 실제 숫자인 이 값을 환산해 쓴다. */
+    depth: (function(v){ const n = parseFloat(v); return isFinite(n) ? n : null; })(d.plAvgDepth)
+  }));
+}
+
+/* 네이버 1·2·4행 — 검색량·경쟁도·연관 키워드 */
+async function loadNaverVolume(kw) {
+  const list = await fetchNaverVolume(kw);
+  mainRow = list.find(d => d.kw === kw) || list[0] || { kw, pc: 0, mo: 0 };
+  relatedRows = list.filter(d => d.kw !== mainRow.kw)
+                    .sort((a,b) => (b.pc + b.mo) - (a.pc + a.mo))
+                    .slice(0, REL_MAX);
+  patchRecent(kw, { npc: mainRow.pc, nmo: mainRow.mo });
+  renderVolume();
+  renderNaverComp();
+  renderRelated();
+  renderRecent();
+}
+
+/* 네이버 전체 — 검색량 이후 3·5행을 이어서 채운다 */
+async function loadNaver(kw) {
+  if (!kw || nLoadedKw === kw) return;
+  nLoadedKw = kw;
+  try {
+    await loadNaverVolume(kw);
+  } catch (e) {
+    nLoadedKw = null;   /* 실패했으면 다시 시도할 수 있어야 한다 */
+    throw e;
+  }
+  loadNaverExtras(kw);
+}
+
+async function doSearch() {
+  const raw = document.getElementById('kwInp').value.trim();
+  if (!raw) { toast('키워드를 입력하세요'); return; }
+  const kw = raw.replace(/\s+/g, '');
+  currentKw = kw;
+
+  /* 새 키워드이므로 두 소스 모두 미로드 상태로 되돌린다 */
+  nLoadedKw = null; gLoadedKw = null;
+  mainRow = null; relatedRows = []; gData = null;
+  top100 = []; myPosts = null;
+
   document.getElementById('loadingWrap').classList.add('show');
   document.getElementById('resultsPanel').classList.remove('show');
   document.getElementById('errBox').classList.remove('show');
-  try {
-    const res  = await fetch('/api/keyword', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({keywords:kws}) });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error || `오류 ${res.status}`);
-    data = (json.keywordList || []).map(d => ({
-      kw:     d.relKeyword,
-      pc:     d.monthlyPcQcCnt     === '< 10' ? 5 : (parseInt(d.monthlyPcQcCnt)     || 0),
-      mo:     d.monthlyMobileQcCnt === '< 10' ? 5 : (parseInt(d.monthlyMobileQcCnt) || 0),
-      comp:   d.compIdx || 'N/A',
-      isHint: kws.includes(d.relKeyword),
-    }));
-    // 키워드 검색 로깅
-    kws.forEach(kw => logSearch(kw));
-    renderResults();
-    log('ok', `조회 완료 — 총 ${data.length}개 키워드 데이터`);
-  } catch(e) {
-    document.getElementById('loadingWrap').classList.remove('show');
-    showErr(e.message.includes('Failed to fetch') ? '<strong>서버에 연결할 수 없습니다.</strong>' : `<strong>오류:</strong> ${e.message}`);
-    log('fail', '조회 실패: ' + e.message);
-  }
-}
 
-function renderResults() {
+  /* 스냅샷은 자리만 먼저 만든다. 값은 실제로 조회한 소스만 채운다.
+     예전에는 소스와 무관하게 /api/keyword를 불러 네이버 값을 넣었는데,
+     구글만 보는 사용자에게는 쓰지도 않는 호출이었고
+     "구글로 검색했는데 네이버 값이 있다"는 비대칭도 여기서 생겼다. */
+  saveRecent({ kw, npc: null, nmo: null, g: null, gmin: null, gmax: null, ts: Date.now() });
+  logSearch(kw);
+
+  const tasks = [];
+  if (source !== 'google') tasks.push(loadNaver(kw));
+  if (window.GOOGLE_ENABLED && source !== 'naver') tasks.push(loadGoogle(kw));
+
+  const results = await Promise.allSettled(tasks);
   document.getElementById('loadingWrap').classList.remove('show');
-  document.getElementById('resultsPanel').classList.add('show');
-  const main = data.filter(d => d.isHint);
-  const rel  = data.filter(d => !d.isHint).sort((a,b) => (b.pc+b.mo)-(a.pc+a.mo));
-  const maxT = Math.max(...data.map(d => d.pc+d.mo), 1);
-  const now  = new Date();
-  document.getElementById('rmeta').textContent =
-    `기본 키워드 ${main.length}개 · 연관 키워드 ${rel.length}개 · ${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
-  document.getElementById('resList').innerHTML =
-    main.length ? main.map((d,i) => card(d,i,maxT,rel)).join('')
-    : '<div style="text-align:center;padding:32px;color:var(--text3);font-size:13px">검색 결과가 없습니다.</div>';
-  setTimeout(() => {
-    main.forEach(d => {
-      const rankId   = 'rank-' + d.kw.replace(/[^a-zA-Z0-9가-힣]/g,'');
-      const mypostId = 'my-'   + d.kw.replace(/[^a-zA-Z0-9가-힣]/g,'');
-      loadTrend(d.kw, rankId);
-      loadMyPosts(d.kw, mypostId);
-    });
-  }, 60);
-}
 
-const compMap    = {'LOW':'c-low','낮음':'c-low','MID':'c-mid','MEDIUM':'c-mid','중간':'c-mid','HIGH':'c-high','높음':'c-high'};
-const compTxtMap = {'c-low':'경쟁 낮음','c-mid':'경쟁 중간','c-high':'경쟁 높음'};
-
-function card(d, i, maxT, rel) {
-  const tot   = d.pc + d.mo;
-  const pcPct = tot > 0 ? Math.round(d.pc/tot*100) : 0;
-  const moPct = 100 - pcPct;
-  const cCls  = compMap[(d.comp||'').toUpperCase?.()] || compMap[d.comp] || 'c-mid';
-  const cTxt  = compTxtMap[cCls] || 'N/A';
-  const rankId   = 'rank-' + d.kw.replace(/[^a-zA-Z0-9가-힣]/g,'');
-  const mypostId = 'my-'   + d.kw.replace(/[^a-zA-Z0-9가-힣]/g,'');
-  const relHtml = rel.length ? `
-    <div class="rel-sec">
-      <div class="rel-lbl">연관 키워드 (${Math.min(rel.length,10)}개)</div>
-      <div class="rel-list">${rel.slice(0,10).map(r=>`
-        <div class="rtag" onclick="searchRelated('${r.kw.replace(/'/g,"\\'")}')">
-          ${r.kw}<span class="rvol">${fmt(r.pc+r.mo)}</span>
-        </div>`).join('')}
-      </div>
-    </div>` : '';
-  return `
-    <div class="kwcard" style="animation-delay:${i*0.06}s">
-      <div class="kwcard-head">
-        <div class="kwname">${d.kw}</div>
-        <div class="comp-pill ${cCls}">${cTxt}</div>
-      </div>
-      <div class="kwcard-body">
-        <div class="sgrid">
-          <div class="scell pc-cell">
-            <div class="slbl"><span class="slbl-icon">🖥</span>PC 월간</div>
-            <div class="snum pc">${fmt(d.pc)}</div>
-            <div class="sunit">전체의 ${pcPct}%</div>
-          </div>
-          <div class="scell mo-cell">
-            <div class="slbl"><span class="slbl-icon">📱</span>모바일 월간</div>
-            <div class="snum mo">${fmt(d.mo)}</div>
-            <div class="sunit">전체의 ${moPct}%</div>
-          </div>
-          <div class="scell tot-cell">
-            <div class="slbl"><span class="slbl-icon">📊</span>월간 합계</div>
-            <div class="snum tot">${fmt(tot)}</div>
-            <div class="sunit">PC ${pcPct}% · 모바일 ${moPct}%</div>
-          </div>
-        </div>
-        <div class="trend-sec">
-          <div class="trend-header">
-            <div class="trend-lbl">📈 검색 트렌드 (최근 12개월)</div>
-            <div class="trend-badge trend-flat" id="badge-${rankId}">분석 중...</div>
-          </div>
-          <div class="trend-chart-wrap" id="trend-${rankId}">
-            <div class="trend-loading"><div class="rank-spinner"></div>트렌드 데이터 로딩 중...</div>
-          </div>
-          <div class="trend-summary" id="trend-sum-${rankId}"></div>
-        </div>
-        ${relHtml}
-        <div class="mypost-sec">
-          <button class="mypost-toggle" onclick="toggleMyPost(this)" aria-expanded="false">
-            <div class="mypost-lbl">🔖 <span class="mypost-blog-name">${getMyBlogId() || '내 블로그(미설정)'}</span> 포스팅
-              <span class="mypost-lbl-sub">블로그 RSS 기준</span>
-              <span class="mypost-count-badge" id="badge-mp-${mypostId}">로딩중</span>
-            </div>
-            <span class="mypost-chevron" aria-hidden="true">▼</span>
-          </button>
-          <div class="mypost-body" id="body-${mypostId}">
-            <div class="mypost-list" id="${mypostId}">
-              <div class="mypost-loading"><div class="rank-spinner"></div>불러오는 중...</div>
-            </div>
-          </div>
-        </div>
-        <div class="rank-sec">
-          <div class="rank-lbl">
-            <span>네이버 블로그 상위 포스팅</span>
-            <!-- 2026-08-28 임시 중단 — 복구 시 style="display:none"만 지우면 된다 -->
-            <button class="rank-load-btn" id="btn-${rankId}" style="display:none" onclick="loadBlogPosts('${d.kw.replace(/'/g,"\\'")}','${rankId}')">불러오기</button>
-          </div>
-          <div class="rank-list" id="${rankId}">
-            <div class="rank-empty" style="text-align:left;line-height:1.7">
-              <strong>상위 포스팅 조회를 일시 중단했습니다.</strong><br>
-              네이버 블로그 검색 API의 정확도순 결과가 실제 검색 노출 순서와 크게 어긋나는 현상이 확인되어,
-              틀린 순위를 보여주지 않기 위해 잠시 내렸습니다. 정상화되는 대로 복구합니다.
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>`;
-}
-
-function fmt(n) {
-  if (n >= 10000) return (n/10000).toFixed(1)+'만';
-  return n.toLocaleString('ko-KR');
-}
-function searchRelated(kw) {
-  document.getElementById('kwInp').value = kw;
-  kws = [kw]; log('busy', `"${kw}" 검색 중...`); runScan();
-}
-function toggleMyPost(btn) {
-  const chevron = btn.querySelector('.mypost-chevron');
-  const bodyEl  = btn.nextElementSibling;
-  const isOpen  = bodyEl.classList.contains('open');
-  bodyEl.classList.toggle('open', !isOpen);
-  chevron.classList.toggle('open', !isOpen);
-  btn.setAttribute('aria-expanded', String(!isOpen));
-}
-
-async function loadBlogPosts(kw, rankId) {
-  const listEl = document.getElementById(rankId);
-  /* 2026-08-28 임시 중단 — 버튼을 감췄으므로 여기까지 오지 않지만,
-     북마크·자동화로 직접 호출될 경우를 대비해 진입부에서 막는다.
-     아래 btnEl 조작보다 먼저 반환해야 버튼이 없는 상황에서도 안전하다.
-     복구 시 이 블록만 지우면 된다. */
-  if (listEl) listEl.innerHTML = '<div class="rank-empty">상위 포스팅 조회는 현재 일시 중단 중입니다.</div>';
-  return;
-
-  const btnEl  = document.getElementById('btn-' + rankId);
-  if (!listEl) return;
-  btnEl.disabled = true; btnEl.textContent = '로딩 중...';
-  listEl.innerHTML = '<div class="rank-loading"><div class="rank-spinner"></div>포스팅을 가져오는 중...</div>';
-  try {
-    const res  = await fetch(`/api/blog?query=${encodeURIComponent(kw)}&display=10`);
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error || '오류');
-    const items = json.items || [];
-    if (!items.length) { listEl.innerHTML = '<div class="rank-empty">검색 결과가 없습니다</div>'; return; }
-    listEl.innerHTML = items.map((item,i) => `
-      <a class="rank-item" href="${item.link}" target="_blank" rel="noopener">
-        <span class="rank-num">${i+1}</span>
-        <div class="rank-info">
-          <div class="rank-title">${item.title.replace(/<[^>]+>/g,'')}</div>
-          <div class="rank-desc">${(item.description||'').replace(/<[^>]+>/g,'')}</div>
-          <div class="rank-blogger">✍️ ${item.bloggername||''}</div>
-        </div>
-      </a>`).join('');
-    btnEl.textContent = '새로고침'; btnEl.disabled = false;
-    log('ok', `"${kw}" 블로그 상위 포스팅 ${items.length}개 로드 완료`);
-  } catch(e) {
-    listEl.innerHTML = `<div class="rank-empty">불러오기 실패: ${e.message}</div>`;
-    btnEl.textContent = '다시 시도'; btnEl.disabled = false;
-  }
-}
-
-async function loadMyPosts(kw, mypostId) {
-  const listEl  = document.getElementById(mypostId);
-  const badgeEl = document.getElementById('badge-mp-' + mypostId);
-  if (!listEl) return;
-
-  const blogId   = getMyBlogId();
-  const blogName = blogId;
-
-  // 블로그 ID 미설정 시 조회하지 않고 설정 안내 (기본 블로그 하드코딩 제거)
-  if (!blogId) {
-    if (badgeEl) { badgeEl.textContent = '미설정'; badgeEl.classList.add('zero'); }
-    listEl.innerHTML = '<div class="mypost-empty">⚙️ 설정에서 내 블로그 ID를 저장하면 이 키워드와 관련된 내 포스팅을 함께 보여드립니다.</div>';
+  const failed = results.filter(r => r.status === 'rejected');
+  if (results.length && failed.length === results.length) {
+    const msg = failed[0].reason && failed[0].reason.message || '알 수 없는 오류';
+    const box = document.getElementById('errBox');
+    box.innerHTML = msg.includes('Failed to fetch')
+      ? '<strong>서버에 연결할 수 없습니다.</strong> 잠시 후 다시 시도해 주세요.'
+      : `<strong>오류:</strong> ${msg}`;
+    box.classList.add('show');
+    log('fail', '조회 실패: ' + msg);
     return;
   }
 
+  document.getElementById('resultsPanel').classList.add('show');
+  applySourceView();
+  toast(`"${kw}" 분석 완료`);
+}
+
+/* ── 구글 지표 조회 ── */
+/* ── 구글 지표 조회 (순수 호출) ── */
+async function fetchGoogle(kw) {
+  const res  = await fetch('/api/google-keyword', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ keyword: kw })
+  });
+  return res.json();
+}
+/* 최근 검색 스냅샷에는 구간만 저장 (정확한 수치 raw는 저장하지 않는다).
+   min·max는 화면에 이미 노출된 값이라 저장해도 원칙에 어긋나지 않으며,
+   이게 있어야 표기 형식을 바꾸거나 비중 바를 그릴 수 있다. */
+function patchRecentGoogle(kw, seed) {
+  if (!seed || !seed.volume) return;
+  const v = seed.volume;
+  patchRecent(kw, {
+    g:    v.label,
+    gmin: v.min != null ? v.min : null,
+    gmax: v.max != null ? v.max : null
+  });
+}
+
+async function loadGoogle(kw) {
+  gData = null;
+  const kwEl = document.getElementById('gCardKw');
+  if (kwEl) kwEl.textContent = kw;
+  const st = document.getElementById('gStatus');
+  if (st) { st.style.display = ''; st.textContent = '조회 중…'; }
+  renderGoogleCard();
   try {
-    const res  = await fetch(`/api/myposts?query=${encodeURIComponent(kw)}&blogId=${encodeURIComponent(blogId)}`);
-    const json = await res.json();
-    const items = json.items || [];
-    if (badgeEl) {
-      badgeEl.textContent = items.length > 0 ? items.length+'개' : '없음';
-      if (!items.length) badgeEl.classList.add('zero');
-      else badgeEl.classList.remove('zero');
+    const json = await fetchGoogle(kw);
+    gLoadedKw = kw;
+    if (json.error) {
+      gData = { seed: null, ideas: [], msg: json.message || '구글 데이터를 가져오지 못했습니다.' };
+      if (st) st.textContent = '조회 불가';
+    } else {
+      gData = { seed: json.seed || null, ideas: json.ideas || [] };
+      if (st) st.textContent = json.cached ? '캐시' : '완료';
+      patchRecentGoogle(kw, json.seed);
+      renderRecent();
     }
-    const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-    const moreUrl  = isMobile
-      ? `https://m.blog.naver.com/PostSearchList.naver?blogId=${blogId}&orderType=sim&pageAccess=direct&periodType=all&searchText=${encodeURIComponent(kw)}`
-      : `https://blog.naver.com/PostSearchList.naver?blogId=${blogId}&searchText=${encodeURIComponent(kw)}`;
-    let html = !items.length ? '<div class="mypost-empty">연관 포스팅이 없습니다.</div>'
-      : items.map(item => `
-        <a class="mypost-item" href="${item.link}" target="_blank" rel="noopener">
-          <span class="mypost-icon">📝</span>
-          <div class="mypost-info">
-            <div class="mypost-title">${item.title.replace(/<[^>]+>/g,'')}</div>
-            <div class="mypost-desc">${(item.description||'').replace(/<[^>]+>/g,'').slice(0,60)}...</div>
-          </div>
-        </a>`).join('');
-    html += `<a class="mypost-more" href="${moreUrl}" target="_blank" rel="noopener">🔍 ${blogName}'s "${kw}" 포스팅 →</a>`;
-    listEl.innerHTML = html;
-  } catch(e) {
-    const el = document.getElementById(mypostId);
-    if (el) el.innerHTML = '<div class="mypost-empty">불러오기 실패</div>';
-    const be = document.getElementById('badge-mp-' + mypostId);
-    if (be) { be.textContent = '오류'; be.classList.add('zero'); }
+  } catch (e) {
+    gData = { seed: null, ideas: [], msg: '구글 데이터를 가져오지 못했습니다.' };
+    if (st) st.textContent = '조회 실패';
+  }
+  renderGoogleCard();
+}
+
+function renderGoogleCard() {
+  const vol    = document.getElementById('gVolBody');
+  const comp   = document.getElementById('gCompBody');
+  const season = document.getElementById('gSeasonBody');
+  const idea   = document.getElementById('gIdeaBody');
+  if (!vol) return;
+
+  /* 로딩 */
+  if (!gData) {
+    vol.innerHTML = '<div class="g-top">'
+      + ['검색량','경쟁도','페이지 상단 입찰가'].map(l =>
+          `<div><div class="gl">${l}</div><div class="gv"><span class="loading-pill"></span></div></div>`
+        ).join('') + '</div>';
+    comp.innerHTML   = '<div class="list-empty">불러오는 중…</div>';
+    season.innerHTML = '<div class="list-empty">불러오는 중…</div>';
+    trendBadge('gTrendBadge', null);
+    idea.innerHTML   = '<div class="list-empty">불러오는 중…</div>';
+    setFold('gIdeaCard', 'gIdeaFold', 0);
+    return;
+  }
+
+  /* 데이터 없음 / 오류 */
+  if (!gData.seed) {
+    const msg = gData.msg || '이 키워드의 구글 데이터가 없습니다.';
+    vol.innerHTML = `<div class="list-empty">${msg}</div>`;
+    comp.innerHTML = season.innerHTML = idea.innerHTML = '<div class="list-empty">-</div>';
+    trendBadge('gTrendBadge', null);
+    setFold('gIdeaCard', 'gIdeaFold', 0);
+    return;
+  }
+
+  const sd  = gData.seed;
+  const idx = sd.competitionIndex;
+  const cpc = (sd.cpc.low != null || sd.cpc.high != null)
+    ? `${gWon(sd.cpc.low) || '-'} ~ ${gWon(sd.cpc.high) || '-'}` : '-';
+
+  /* ── 행 1 · 검색량 ── */
+  vol.innerHTML = `<div class="g-top">
+    <div><div class="gl">월간 검색량</div>
+      <div class="gv"><em>${volRange(sd.volume) || '-'}</em><small>구간 표시</small></div></div>
+    <div><div class="gl">경쟁도</div>
+      <div class="gv">${compLabel(idx)}<small>${idx != null ? idx + ' / 100' : '지수 없음'}</small></div></div>
+    <div><div class="gl">페이지 상단 입찰가</div>
+      <div class="gv">${cpc}<small>과거 실적 기준</small></div></div>
+  </div>`;
+
+  /* ── 행 2 · 경쟁도 지수 ── */
+  comp.innerHTML = idx == null
+    ? '<div class="list-empty">경쟁도 지수가 제공되지 않는 키워드입니다.</div>'
+    : `<div class="comp-wrap">
+        <div class="comp-top"><span class="comp-label">경쟁 정도 <em>${compLabel(idx)}</em></span><b>${idx}</b></div>
+        <div class="comp-track"><i class="comp-fill google" style="width:${Math.max(2, Math.min(100, idx))}%"></i></div>
+        <div class="comp-x"><span>0 · 경쟁 낮음</span><span>100 · 경쟁 높음</span></div>
+        <div class="comp-note">해당 키워드에 광고를 집행하는 광고주 밀도</div>
+      </div>`;
+
+  /* ── 행 3 · 12개월 계절성 ──
+     monthlySearchVolumes는 월별 실제 검색 수라 네이버 트렌드와 같은 방식으로
+     전분기 대비를 계산할 수 있다. 막대 높이는 최고점 대비 상대값으로 그린다. */
+  const mv = (sd.monthly || []).filter(m => m.searches != null);
+  if (mv.length) {
+    const vals = mv.map(m => m.searches);
+    const max  = Math.max(...vals) || 1;
+    const min  = Math.min(...vals);
+    const peak = mv.reduce((a, b) => (b.searches > a.searches ? b : a), mv[0]);
+    const pkM  = MONTH_NUM[peak.month] || '?';
+
+    trendBadge('gTrendBadge', quarterDiff(vals));
+
+    const gDiff = quarterDiff(vals);
+    const gDir  = gDiff == null ? '완만한 추세' : gDiff > 10 ? '상승 추세' : gDiff < -10 ? '하락 추세' : '보합 추세';
+    const seasonal = max > 0 && (max - min) / max > 0.4;
+
+    /* 사실 줄 — 네이버와 같은 문법으로 맞춘다.
+       진폭(최저 대비 배수)은 비율이라 구글 절대 검색 수가 드러나지 않는다.
+       구글 응답에는 year가 함께 오므로 연도를 그대로 쓸 수 있다. */
+    const ymOf   = m => `${m.year}-${String(MONTH_NUM[m.month] || 1).padStart(2, '0')}`;
+    const trough = mv.reduce((a, b) => (b.searches < a.searches ? b : a), mv[0]);
+    const gAmp   = min > 0 ? max / min : null;
+    const peakYm = ymOf(peak);
+    const gFact  = `최고점 <b>${ymShort(peakYm)}</b>`
+      + (gAmp && isFinite(gAmp) ? ` · 최저 ${ymShort(ymOf(trough))} 대비 <b>${gAmp.toFixed(1)}배</b>` : '');
+    const gSeason = nextSeason(peakYm, new Date());
+    const gRead  = seasonal
+      ? `${peakPhrase(peakYm, mv.indexOf(peak), mv.length, gDir)}. `
+        + (gSeason.current
+          ? '지금이 성수기입니다. 발행을 서두르는 것이 유리합니다.'
+          : `다음 성수기는 ${gSeason.peak}이므로 ${gSeason.prep}부터 콘텐츠를 선점하는 것이 유리합니다.`)
+      : `연중 편차가 크지 않은 ${gDir} 키워드입니다. 시즌보다 꾸준한 발행과 콘텐츠 품질이 승부처입니다.`;
+
+    season.innerHTML = `<div class="mchart google">
+      <div class="mtitle">월별 검색량 · 최고점 100% 환산</div>
+      <div class="mbars">${mv.map(m =>
+        `<i class="${m === peak ? 'peak' : ''}" style="height:${Math.max(4, (m.searches - min) / Math.max(max - min, 1) * 90 + 10)}%"
+            title="${m.year}년 ${MONTH_NUM[m.month]}월"></i>`).join('')}</div>
+      <div class="mx">${mv.map(m => `<span>${MONTH_NUM[m.month] || ''}</span>`).join('')}</div>
+    </div>
+    <div class="trend-sub">
+      <div class="ts-fact">${gFact}</div>
+      <div class="ts-read">${gRead}</div>
+    </div>`;
+  } else {
+    trendBadge('gTrendBadge', null);
+    season.innerHTML = '<div class="list-empty">계절성 데이터가 없습니다.</div>';
+  }
+
+  /* ── 행 4 · 연관 키워드 ──
+     네이버 연관 키워드와 다르게 나오는 것이 정상이다(출처·산출 기준이 다름). */
+  if (gData.ideas.length) {
+    idea.innerHTML = gData.ideas.map((r, i) => `
+      <div class="kw-row${i >= FOLD_N ? ' fold-row' : ''}"
+           onclick="searchFromRecent('${r.kw.replace(/'/g, "\\'")}')">
+        <div class="kw-name">${r.kw}</div>
+        <div class="kw-meta">
+          <span><b>${volRange(r.volume) || '-'}</b> 검색</span>
+          <span>경쟁 ${compLabel(r.competitionIndex)}${r.competitionIndex != null ? ` · ${r.competitionIndex}` : ''}</span>
+          ${r.cpc.high != null ? `<span>~${gWon(r.cpc.high)}</span>` : ''}
+        </div>
+      </div>`).join('');
+    setFold('gIdeaCard', 'gIdeaFold', gData.ideas.length);
+  } else {
+    idea.innerHTML = '<div class="list-empty">구글 기준 연관 키워드가 없습니다.<br>검색량이 매우 적은 키워드일 수 있습니다.</div>';
+    setFold('gIdeaCard', 'gIdeaFold', 0);
   }
 }
 
-async function loadTrend(kw, rankId) {
-  const wrapEl  = document.getElementById('trend-' + rankId);
-  const badgeEl = document.getElementById('badge-' + rankId);
-  const sumEl   = document.getElementById('trend-sum-' + rankId);
-  if (!wrapEl) return;
+/* 네이버 부가 조회 묶음 — 같은 키워드로 두 번 호출하지 않는다 */
+/* 네이버 3·5행 — 트렌드·상위10·내 포스팅.
+   진입 가드는 호출자(loadNaver)가 nLoadedKw로 쥐고 있으므로 여기서는 두지 않는다.
+   여기에도 가드를 두면 loadNaver가 이미 세운 값 때문에 통째로 건너뛴다. */
+function loadNaverExtras(kw) {
+  if (!kw) return;
+  loadTrend(kw);
+  loadPublishToday(kw);
+  loadMyPosts(kw);
+}
+
+/* ═══ 발행 현황 ═══
+   네이버 상위 10을 내린 동안 경쟁 강도를 대신 보여준다.
+   sort=date는 발행일 내림차순이라는 단순한 규칙이라 해석 여지가 없다.
+   정확도순과 달리 실제 노출 순서를 흉내 내지 않으므로 오해를 만들지 않는다.
+
+   자동 조회는 1페이지(100건)만 한다. 100건이 전부 오늘이면 그 이상은
+   사용자가 눌렀을 때만 이어서 센다 — 검색 1회 = /api/blog 1회를 지킨다. */
+const PUB_PAGE = 100, PUB_MAX_START = 901;
+const _MON = { Jan:'01', Feb:'02', Mar:'03', Apr:'04', May:'05', Jun:'06',
+               Jul:'07', Aug:'08', Sep:'09', Oct:'10', Nov:'11', Dec:'12' };
+let pubState = null;
+
+/* lastBuildDate가 "Thu, 27 Aug 2026 14:25:47 +0900" 형태로 오므로
+   여기서 날짜를 뽑으면 브라우저 시간대와 무관하게 KST 기준이 된다. */
+function parseBuildDate(s) {
+  const m = String(s || '').match(/(\d{1,2}) (\w{3}) (\d{4}) (\d{2}):(\d{2})/);
+  if (!m) {
+    const d = new Date();
+    const p = n => String(n).padStart(2, '0');
+    return { ymd: `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}`,
+             label: `${d.getMonth()+1}월 ${d.getDate()}일 ${p(d.getHours())}:${p(d.getMinutes())} 기준`,
+             hour: d.getHours() + d.getMinutes()/60 };
+  }
+  const mon = _MON[m[2]] || '01';
+  return {
+    ymd:   `${m[3]}${mon}${String(m[1]).padStart(2,'0')}`,
+    label: `${parseInt(mon,10)}월 ${parseInt(m[1],10)}일 ${m[4]}:${m[5]} 기준`,
+    hour:  parseInt(m[4],10) + parseInt(m[5],10)/60
+  };
+}
+/* 경과 일수를 소수로 돌려준다.
+   postdate에는 날짜만 있으므로 "오늘 자정부터 조회 시각까지"만 시간을 알 수 있다.
+   가장 오래된 글이 N일 전이면 (N일 + 오늘 경과시간)이 실제 소요 시간이다.
+   정수로 올림·반올림하면 0.6일이 1일이 되어 하루 평균이 크게 왜곡된다. */
+function exactDays(todayYmd, oldestYmd, hourNow) {
+  const p = s => new Date(+s.slice(0,4), +s.slice(4,6)-1, +s.slice(6,8));
+  const whole = Math.round((p(todayYmd) - p(oldestYmd)) / 86400000);
+  return whole + (hourNow || 0) / 24;
+}
+/* 소요 시간 표기 — 하루 미만은 시간으로 말해야 정보가 남는다 */
+function spanText(d) {
+  if (d == null || !isFinite(d)) return '-';
+  if (d < 1)  return `약 ${Math.max(1, Math.round(d * 24))}시간`;
+  if (d < 10) return `약 ${d.toFixed(1)}일`;
+  return `약 ${fmtNum(Math.round(d))}일`;
+}
+function perDayText(n, d) {
+  if (d == null || !isFinite(d) || d <= 0) return '';
+  const v = n / d;
+  /* 10편 미만은 소수 한 자리로 — 8.3과 8.7이 둘 다 "9편꼴"이 되면
+     100건 기준과 1,000건 기준이 같은 값처럼 보여 비교가 무의미해진다. */
+  return `하루 ${v < 10 ? v.toFixed(1) : fmtNum(Math.round(v))}편꼴`;
+}
+async function pubFetch(kw, start) {
+  const res  = await fetch(`/api/blog?query=${encodeURIComponent(kw)}&display=${PUB_PAGE}&start=${start}&sort=date`);
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || '조회 실패');
+  return json;
+}
+
+async function loadPublishToday(kw) {
+  const body = document.getElementById('pubBody');
+  const st   = document.getElementById('pubStatus');
+  if (!body) return;
+  pubState = null;
+  body.innerHTML = '<div class="pub-today"><div class="gl">오늘 발행</div>'
+    + '<div class="gv"><span class="loading-pill"></span></div></div>'
+    + '<div class="g-top">'
+    + ['100건 소요','1,000건 소요','기회 지수'].map(l =>
+        `<div><div class="gl">${l}</div><div class="gv"><span class="loading-pill"></span></div></div>`).join('')
+    + '</div>';
+  if (st) { st.style.display = ''; st.textContent = '조회 중…'; }
+
+  try {
+    const json  = await pubFetch(kw, 1);
+    const items = json.items || [];
+    const at    = parseBuildDate(json.lastBuildDate);
+    const seen  = new Set();
+    let today = 0, oldest = null;
+    for (const it of items) {
+      if (seen.has(it.link)) continue;
+      seen.add(it.link);
+      if (it.postdate === at.ymd) today++;
+      if (it.postdate) oldest = it.postdate;
+    }
+    pubState = {
+      kw, at,
+      todayCount: today,
+      /* 100건이 전부 오늘이면 그 뒤에도 더 있다 — "100건 이상"으로만 말한다.
+         정확한 수를 세려면 페이지를 최대 9번 더 넘겨야 하는데,
+         경쟁 강도는 아래 소요일수가 이미 말해주므로 그 호출을 하지 않는다. */
+      todayCapped: today >= items.length && items.length >= PUB_PAGE,
+      span100: oldest ? exactDays(at.ymd, oldest, at.hour) : null,
+      span1000: undefined,          // undefined=미조회 · null=조회 불가
+      total: json.total || 0
+    };
+    if (st) st.textContent = '완료';
+    renderPublish();
+    /* 1,000건 소요 — start=901 한 번이면 된다. 그 페이지의 가장 오래된
+       발행일만 있으면 되므로 사이 페이지를 훑을 필요가 없다.
+       총 문서가 1,000건에 못 미치면 호출 자체를 아낀다. */
+    loadSpan1000(kw);
+  } catch (e) {
+    if (st) st.textContent = '조회 실패';
+    body.innerHTML = '<div class="list-empty">발행 현황을 불러오지 못했습니다.</div>';
+  }
+}
+
+async function loadSpan1000(kw) {
+  const s = pubState;
+  if (!s || s.kw !== kw) return;
+  if (s.total < PUB_MAX_START + PUB_PAGE - 1) { s.span1000 = null; renderPublish(); return; }
+  try {
+    const json  = await pubFetch(kw, PUB_MAX_START);
+    if (!pubState || pubState.kw !== kw) return;
+    const items = json.items || [];
+    let oldest = null;
+    for (const it of items) if (it.postdate) oldest = it.postdate;
+    s.span1000 = oldest ? exactDays(s.at.ymd, oldest, s.at.hour) : null;
+  } catch (e) {
+    s.span1000 = null;
+  }
+  renderPublish();
+}
+
+/* ── 기회 지수 ──
+   월간 검색량(수요) ÷ 30일 환산 발행량(공급).
+   발행량은 "N건이 며칠 걸렸나"에서 역산한다 — 오늘 발행 수는 하루가
+   진행 중이라 조회 시각에 따라 흔들리지만, 소요일수는 그렇지 않다.
+
+   주의 — 이건 "편당 예상 유입"이 아니다. 상위 노출이 대부분을 가져가므로
+   실제 편차는 매우 크다. 평균값을 유입 예상치처럼 보여주면 오해를 만든다.
+   그래서 등급을 앞에 세우고 수치는 뭉개서 작게 병기한다.
+
+   모집단도 다르다 — 검색량은 네이버 전체 검색 수, 발행량은 블로그 글 수다.
+   카페·지식iN·플레이스는 빠져 있다. 절대값이 아니라 시장의 붐빔 정도로 읽는다. */
+const OPP_TIERS = [
+  { min: 100, grade: '매우 좋음', cls: 'a' },
+  { min:  30, grade: '좋음',     cls: 'b' },
+  { min:  10, grade: '보통',     cls: 'c' },
+  { min:   0, grade: '포화',     cls: 'd' }
+];
+/* 검색량이 아주 적으면 비율만으로는 뜻이 뒤집힌다.
+   검색량 60 · 30일 9.7편이면 지수가 6이라 "포화"로 떨어지는데,
+   실제로는 공급 과잉이 아니라 수요 자체가 없는 키워드다.
+   종로맛집(53,820 / 8,257편)의 6.5와 같은 값이지만 상황은 정반대다.
+   그래서 비율을 계산하기 전에 검색량 규모부터 본다. */
+const OPP_MIN_VOLUME = 100;
+function opportunity(sum, monthly) {
+  if (!sum || !monthly) return null;
+  if (sum < OPP_MIN_VOLUME) {
+    return { grade: '수요 미미', cls: 'x', value: null, monthly: Math.round(monthly) };
+  }
+  /* 표본이 너무 적으면(30일 환산 5편 미만) 나눗셈이 폭주한다 */
+  if (monthly < 5) return { grade: '측정 불가', cls: 'x', value: null };
+  const v = sum / monthly;
+  const t = OPP_TIERS.find(x => v >= x.min) || OPP_TIERS[OPP_TIERS.length - 1];
+  return { grade: t.grade, cls: t.cls, value: v, monthly: Math.round(monthly) };
+}
+/* 정밀한 값이 아니므로 자릿수를 뭉갠다 (41 → 약 40, 7.3 → 약 7) */
+function oppRough(v) {
+  if (v == null) return '';
+  const r = v >= 100 ? Math.round(v / 10) * 10
+          : v >= 10  ? Math.round(v / 5) * 5
+          : Math.round(v);
+  return `약 ${fmtNum(r)}회`;
+}
+
+
+function renderPublish() {
+  const body = document.getElementById('pubBody');
+  const s = pubState;
+  if (!body || !s) return;
+
+  const todayTxt = s.todayCapped ? '100건 이상' : `${fmtNum(s.todayCount)}건`;
+
+  /* 30일 환산 발행량 — 표본이 큰 1,000건 쪽을 우선한다.
+     둘 다 없으면 오늘 발행 수로 하한만 잡는다. */
+  let monthly = null;
+  if (s.span1000 != null && s.span1000 > 0)      monthly = 1000 / s.span1000 * 30;
+  else if (s.span100 != null && s.span100 > 0)   monthly = 100  / s.span100  * 30;
+
+  const sum = mainRow ? (mainRow.pc || 0) + (mainRow.mo || 0) : null;
+  const opp = opportunity(sum, monthly);
+  const stair = opp && opp.cls !== 'x'
+    ? `<div class="opp-stair opp-${opp.cls}">${[1,2,3,4].map(n =>
+        `<i style="height:${n * 25}%"></i>`).join('')}</div>` : '';
+  const oppCell = !opp
+    ? `<div class="gv">-<small>검색량 필요</small></div>`
+    : `<div class="gv"><em class="opp opp-${opp.cls}">${opp.grade}</em>${stair}<small>${
+        opp.value != null       ? oppRough(opp.value) + ' / 편'
+      : opp.grade === '수요 미미' ? `월 검색 ${fmtNum(sum)}회`
+      :                            '표본이 부족합니다'}</small></div>`;
+
+  const c1000 = s.span1000 === undefined
+    ? `<div class="gv"><span class="loading-pill"></span></div>`
+    : s.span1000 == null
+    ? `<div class="gv">-<small>총 ${fmtNum(s.total)}건 · 측정 범위 밖</small></div>`
+    : `<div class="gv"><em class="n">${spanText(s.span1000)} 소요</em><small>${perDayText(1000, s.span1000)}</small></div>`;
+
+  /* 오늘 발행 — 라벨과 숫자를 왼쪽에 묶고, 기준 시각은 오른쪽으로 뗀다.
+     셋을 한 덩어리로 오른쪽에 몰면 무게중심이 어긋난다. */
+  body.innerHTML = `
+  <div class="pub-today">
+    <div class="pt-main"><span class="gl">오늘 발행</span><em class="n">${todayTxt}</em></div>
+    <div class="pt-at">${s.at.label} · 자정 이후 진행 중</div>
+  </div>
+  <div class="g-top">
+    <div><div class="gl">100건 발행</div>
+      <div class="gv"><em class="n">${spanText(s.span100)} 소요</em><small>${perDayText(100, s.span100)}</small></div></div>
+    <div><div class="gl">1,000건 발행</div>${c1000}</div>
+    <div><div class="gl">기회 지수</div>${oppCell}</div>
+  </div>`;
+}
+
+/* ── 소스 토글 ── */
+function setSource(src) {
+  if ((src === 'google' || src === 'both') && !window.GOOGLE_ENABLED) return;
+  source = src;
+  document.querySelectorAll('.source-toggle button').forEach(b =>
+    b.classList.toggle('active', b.dataset.src === src));
+
+  /* 각 소스를 처음 보는 시점에만 호출한다.
+     같은 키워드로 토글을 오가도 재호출하지 않는다. */
+  const wantG = (src === 'google' || src === 'both');
+  const wantN = (src !== 'google');
+  if (wantG && window.GOOGLE_ENABLED && currentKw && gLoadedKw !== currentKw) {
+    loadGoogle(currentKw);
+  }
+  if (wantN && currentKw && nLoadedKw !== currentKw) {
+    /* 검색량까지 포함해서 부른다. 구글 모드로 검색했다면 이 시점이
+       네이버 API를 처음 부르는 순간이다. */
+    loadNaver(currentKw).catch(e => log('fail', '네이버 조회 실패: ' + e.message));
+  }
+  applySourceView();
+}
+/* common.js의 checkGoogleFlag()가 /api/google-keyword?ping=1 응답을 받은 뒤 호출한다.
+   이 핸들러가 없으면 API가 enabled:true를 돌려줘도 토글이 '준비 중'에 머문다. */
+window.onGoogleFlagReady = function(enabled) {
+  document.querySelectorAll('.source-toggle button[data-src="google"], .source-toggle button[data-src="both"]')
+    .forEach(b => {
+      b.disabled = !enabled;
+      b.title = enabled ? '' : 'Google 검색량 연동 준비 중';
+    });
+  const b1 = document.getElementById('gBadge1');
+  const b2 = document.getElementById('gBadge2');
+  if (b1) b1.style.display = enabled ? 'none' : '';
+  if (b2) b2.style.display = enabled ? 'none' : '';
+  /* 승인되어도 기본은 네이버로 둔다.
+     기본을 통합으로 두면 검색할 때마다 구글 API가 호출되어
+     일일 오퍼레이션을 사용자가 보지도 않는 데이터에 소모한다.
+     구글·통합을 직접 선택한 시점에만 호출한다. */
+};
+
+/* 소스 토글은 검색량 표뿐 아니라 해당 소스로 채워지는 카드 전체를 제어한다.
+   좌우 행이 대칭이므로 네이버/구글 카드를 짝지어 관리한다. */
+/* top10Card는 임시 중단이라 목록에서 뺀다 (CSS로 감춤 · 마크업은 유지) */
+const NAVER_CARDS  = ['volCard', 'nCompCard', 'trendCard', 'relCard', 'pubCard', 'mypostCard'];
+const GOOGLE_CARDS = ['gVolCard', 'gCompCard', 'gSeasonCard', 'gIdeaCard'];
+
+/* 히어로 문구는 보고 있는 소스를 따라간다.
+   구글만 보는 사용자에게 네이버 안내가 떠 있으면 화면과 설명이 어긋난다.
+   정적 HTML에는 네이버 버전을 두어 크롤러가 초기 상태만 수집하게 한다 —
+   세 벌이 모두 색인되면 중복으로 읽힌다. <h1>은 이 페이지의 우선순위
+   키워드라 소스와 무관하게 고정한다. */
+const HERO_TEXT = {
+  naver:  ['네이버 검색광고 · 데이터랩',
+           '네이버 키워드 검색량 조회부터 12개월 트렌드, 연관 키워드까지 한 번에 확인하세요.'],
+  google: ['구글 광고 키워드 플래너',
+           '구글 검색량 구간과 경쟁도, 페이지 상단 입찰가로 키워드의 가치를 확인하세요.'],
+  both:   ['네이버 검색광고 · 데이터랩 · 구글 광고',
+           '네이버와 구글 지표를 같은 행에 나란히 놓고 비교하세요.'],
+};
+function applyHeroText() {
+  const [eyebrow, sub] = HERO_TEXT[source] || HERO_TEXT.naver;
+  const e = document.getElementById('heroEyebrow');
+  const s = document.getElementById('heroSub');
+  if (e) e.textContent = eyebrow;
+  if (s) s.textContent = sub;
+}
+
+function applySourceView() {
+  applyHeroText();
+  const gOn = window.GOOGLE_ENABLED && (source === 'google' || source === 'both');
+  const nOn = source !== 'google';
+
+  document.querySelectorAll('.gcol').forEach(el => el.style.display = gOn ? '' : 'none');
+  document.querySelectorAll('.ncol').forEach(el => el.style.display = nOn ? '' : 'none');
+  NAVER_CARDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = nOn ? '' : 'none';
+  });
+  GOOGLE_CARDS.forEach(id => {
+    const el = document.getElementById(id);
+    /* CSS 기본이 display:none이므로 ''(초기화)가 아니라 block을 명시한다 */
+    if (el) el.style.display = gOn ? 'block' : 'none';
+  });
+
+  /* 데스크톱 그리드가 소스 모드에 따라 배치를 바꾼다 (common.css) */
+  const rp = document.getElementById('resultsPanel');
+  if (rp) {
+    rp.classList.remove('mode-naver', 'mode-google', 'mode-both');
+    rp.classList.add(gOn ? (nOn ? 'mode-both' : 'mode-google') : 'mode-naver');
+  }
+
+  renderVolume();
+  renderNaverComp();
+  renderRelated();
+  renderRecent();
+  renderGoogleCard();
+}
+
+/* ── 네이버 검색량 (3분할 블록) ──
+   구글 광고 지표 카드와 같은 표기 방식으로 맞춘다.
+   표(헤더행+데이터행)와 3분할 블록이 좌우로 섞이면 눈이 두 번 적응해야 한다.
+   키워드는 카드 제목으로 올려 첫 칸부터 '월간 검색량'이 마주보게 한다. */
+function renderVolume() {
+  const box = document.getElementById('volBody');
+  if (!box || !mainRow) return;
+  const kwEl = document.getElementById('nCardKw');
+  if (kwEl) kwEl.textContent = mainRow.kw;
+
+  const total = mainRow.pc + mainRow.mo;
+  const moPct = total > 0 ? Math.round(mainRow.mo / total * 100) : 0;
+
+  box.innerHTML = `<div class="g-top">
+    <div><div class="gl">월간 검색량</div>
+      <div class="gv"><em class="n">${fmtNum(total)}</em><small>PC + 모바일 합계</small></div></div>
+    <div><div class="gl">PC</div>
+      <div class="gv">${fmtNum(mainRow.pc)}<small>${100 - moPct}%</small></div></div>
+    <div><div class="gl">모바일</div>
+      <div class="gv">${fmtNum(mainRow.mo)}<small>${moPct}%</small></div></div>
+  </div>`;
+  document.getElementById('volFoot').textContent = '네이버 검색광고 · 최근 30일 기준';
+}
+
+/* ── 네이버 경쟁도 지수 ──
+   compIdx는 높음/중간/낮음 3단계뿐이라 구글의 0~100 지수와 나란히 놓을 수 없다.
+   같은 응답에 들어 있는 plAvgDepth(월평균 노출 광고 수, 0~15)를 100점으로 환산해
+   형태를 맞춘다. 산출 근거가 다르므로 카드 안에 근거를 명시한다. */
+const NAVER_MAX_DEPTH = 15;   // 네이버 검색광고 최대 노출 광고 수
+
+/* 최근 3개월 평균과 그 직전 3개월 평균을 비교한다.
+   네이버(데이터랩 상대 지표)와 구글(월별 실제 검색 수) 모두
+   같은 방식으로 계산할 수 있어 배지를 공유한다. */
+function quarterDiff(values) {
+  if (!values || values.length < 6) return null;
+  const r = values.slice(-3), p = values.slice(-6, -3);
+  const rAvg = r.reduce((a, b) => a + b, 0) / r.length;
+  const pAvg = p.reduce((a, b) => a + b, 0) / Math.max(p.length, 1);
+  if (pAvg <= 0) return null;
+  return ((rAvg - pAvg) / pAvg) * 100;
+}
+function trendBadge(elId, diff) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  if (diff == null) { el.style.display = 'none'; return; }
+  el.style.display = '';
+  const sign = diff >= 0 ? '+' : '';
+  if (diff > 10) {
+    el.className = 'trend-badge up';
+    el.textContent = `상승 ${sign}${diff.toFixed(0)}% · 전분기 대비`;
+  } else if (diff < -10) {
+    el.className = 'trend-badge down';
+    el.textContent = `하락 ${diff.toFixed(0)}% · 전분기 대비`;
+  } else {
+    el.className = 'trend-badge flat';
+    el.textContent = `보합 ${sign}${diff.toFixed(0)}% · 전분기 대비`;
+  }
+}
+
+/* 경쟁도 라벨은 화면에 함께 띄우는 지수에서 만든다.
+   네이버 compIdx(3단계)와 구글 competition은 각각 자체 알고리즘 산물이라
+   같은 카드의 0~100 지수와 경계가 어긋난다 — "중간인데 20"처럼 보인다.
+   한 숫자에서 라벨과 게이지가 함께 나와야 앞뒤가 맞는다.
+   구간은 15칸 게이지 눈금에 맞춰 끊었다 (광고 0~3 / 4~8 / 9개 이상). */
+function compLabel(idx) {
+  if (idx == null || !isFinite(idx)) return '-';
+  return idx >= 60 ? '높음' : idx >= 25 ? '중간' : '낮음';
+}
+
+function renderNaverComp() {
+  const box = document.getElementById('nCompBody');
+  if (!box) return;
+  if (!mainRow) { box.innerHTML = ''; return; }
+
+  const depth = mainRow.depth;
+
+  if (depth == null) {
+    box.innerHTML = `<div class="comp-wrap">
+      <div class="comp-top"><span class="comp-label">경쟁 정도</span><b>-</b></div>
+      <div class="comp-note">노출 광고 수 데이터가 없어 지수를 계산할 수 없습니다.</div>
+    </div>`;
+    return;
+  }
+
+  const idx = Math.max(0, Math.min(100, Math.round(depth / NAVER_MAX_DEPTH * 100)));
+  box.innerHTML = `<div class="comp-wrap">
+    <div class="comp-top"><span class="comp-label">경쟁 정도 <em>${compLabel(idx)}</em></span><b>${idx}</b></div>
+    <div class="comp-track"><i class="comp-fill naver" style="width:${Math.max(2, idx)}%"></i></div>
+    <div class="comp-x"><span>0 · 경쟁 낮음</span><span>100 · 경쟁 높음</span></div>
+    <div class="comp-note">월평균 노출 광고 수 <b>${depth}</b>개 / 최대 ${NAVER_MAX_DEPTH}개 기준</div>
+  </div>`;
+}
+
+/* ── 네이버 연관 키워드 (카드형 리스트) ──
+   구글 연관 키워드와 같은 문법으로 맞춰 좌우를 나란히 읽을 수 있게 한다.
+   표(4열)는 좁은 폭에서 키워드가 어절 단위로 쪼개졌다. */
+function renderRelated() {
+  const box = document.getElementById('relBody');
+  if (!box) return;
+  if (!relatedRows.length) {
+    box.innerHTML = '<div class="list-empty">연관 키워드가 없습니다</div>';
+    setFold('relCard', 'relFold', 0);
+    return;
+  }
+  box.innerHTML = relatedRows.map((r, i) => `
+    <div class="kw-row${i >= FOLD_N ? ' fold-row' : ''}"
+         onclick="searchFromRecent('${r.kw.replace(/'/g,"\\'")}')">
+      <div class="kw-name">${r.kw}</div>
+      <div class="kw-meta">
+        <span><b>${fmtNum(r.pc + r.mo)}</b> 검색</span>
+        <span>PC ${fmtNum(r.pc)} · 모바일 ${fmtNum(r.mo)}</span>
+        ${r.comp && r.comp !== '-' ? `<span>경쟁 ${r.comp}</span>` : ''}
+      </div>
+    </div>`).join('');
+  setFold('relCard', 'relFold', relatedRows.length);
+}
+
+function exportRelatedCSV() {
+  if (!relatedRows.length) { toast('저장할 연관 키워드가 없습니다'); return; }
+  downloadCSV('연관키워드',
+    ['기준 키워드','연관 키워드','N PC','N 모바일','합계'],
+    relatedRows.map(r => [currentKw, r.kw, r.pc, r.mo, r.pc + r.mo]));
+}
+
+/* ── 트렌드 차트 (+ 계절성 실행 조언) ── */
+async function loadTrend(kw) {
+  const wrap = document.getElementById('trendWrap');
+  wrap.innerHTML = '<div class="load-box show"><div class="spinner"></div></div>';
   try {
     const res  = await fetch('/api/trend', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({keyword:kw}) });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error || '오류');
     const results = json.results?.[0]?.data || [];
-    if (!results.length) { wrapEl.innerHTML='<div class="trend-loading">데이터 없음</div>'; badgeEl.textContent='데이터 없음'; return; }
+    if (!results.length) { wrap.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:13px;text-align:center">트렌드 데이터가 없습니다</div>'; return; }
+
     const values = results.map(d => d.ratio);
-    const labels = results.map(d => d.period.slice(0,7));
-    const maxVal = Math.max(...values, 1);
-    const minVal = Math.min(...values);
-    const recent3 = values.slice(-3); const prev3 = values.slice(-6,-3);
-    const rAvg = recent3.reduce((a,b)=>a+b,0)/recent3.length;
-    const pAvg = prev3.reduce((a,b)=>a+b,0)/Math.max(prev3.length,1);
-    const diff = ((rAvg-pAvg)/Math.max(pAvg,1))*100;
-    let badgeCls, badgeTxt;
-    if (diff>10){badgeCls='trend-up';badgeTxt=`📈 상승 +${diff.toFixed(0)}%`;}
-    else if(diff<-10){badgeCls='trend-down';badgeTxt=`📉 하락 ${diff.toFixed(0)}%`;}
-    else{badgeCls='trend-flat';badgeTxt=`➡️ 보합 ${diff>=0?'+':''}${diff.toFixed(0)}%`;}
-    badgeEl.className='trend-badge '+badgeCls; badgeEl.textContent=badgeTxt;
-    const W=600,H=90,padL=8,padR=8,padT=16,padB=28;
-    const chartW=W-padL-padR,chartH=H-padT-padB,n=values.length;
-    const xPos=i=>padL+(i/(n-1))*chartW;
-    const yPos=v=>padT+chartH-((v-minVal)/Math.max(maxVal-minVal,1))*chartH;
-    const pts=values.map((v,i)=>`${xPos(i)},${yPos(v)}`).join(' ');
-    const fillPath=`M${xPos(0)},${yPos(values[0])} `+values.map((v,i)=>`L${xPos(i)},${yPos(v)}`).join(' ')+` L${xPos(n-1)},${H-padB} L${xPos(0)},${H-padB} Z`;
-    const xLabels=labels.map((lbl,i)=>{if(i%3!==0&&i!==n-1)return '';return `<text x="${xPos(i)}" y="${H-padB+14}" text-anchor="middle" font-size="9" fill="#999" font-family="Roboto,sans-serif">${lbl.slice(5,7)}월</text>`;}).join('');
-    const dots=values.map((v,i)=>{const isLast=i===n-1;const isPeak=v===maxVal;const r=isPeak||isLast?5:3.5;const fill=isPeak||isLast?'#1428a0':'#fff';const sw=isPeak||isLast?2.5:2;return `<circle cx="${xPos(i)}" cy="${yPos(v)}" r="${r}" fill="${fill}" stroke="#1428a0" stroke-width="${sw}" style="cursor:pointer" onmouseenter="showTrendTip(event,'${labels[i]}  ${v.toFixed(1)}%')" onmouseleave="hideTrendTip()"/>`;}).join('');
-    const peakIdx=values.indexOf(maxVal);
-    const peakLabel=`<text x="${xPos(peakIdx)}" y="${yPos(maxVal)-10}" text-anchor="middle" font-size="10" fill="#1428a0" font-family="Roboto,sans-serif" font-weight="700">${maxVal.toFixed(1)}%</text>`;
-    wrapEl.innerHTML=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="display:block"><defs><linearGradient id="tg-${rankId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1428a0" stop-opacity="0.18"/><stop offset="100%" stop-color="#1428a0" stop-opacity="0.01"/></linearGradient></defs><line x1="${padL}" y1="${padT}" x2="${W-padR}" y2="${padT}" stroke="#e5e5e5" stroke-width="1" stroke-dasharray="3,3"/><line x1="${padL}" y1="${padT+chartH/2}" x2="${W-padR}" y2="${padT+chartH/2}" stroke="#e5e5e5" stroke-width="1" stroke-dasharray="3,3"/><line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="#e0e0e0" stroke-width="1"/><path d="${fillPath}" fill="url(#tg-${rankId})"/><polyline points="${pts}" fill="none" stroke="#1428a0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${xLabels}${dots}${peakLabel}</svg><div class="trend-tooltip" id="ttip-${rankId}"></div>`;
-    wrapEl.style.height='auto';
-    const peak=results.reduce((a,b)=>a.ratio>b.ratio?a:b);
-    const diffCls=diff>10?'up':diff<-10?'down':'';
-    const diffStr=(diff>=0?'+':'')+diff.toFixed(0)+'%';
-    sumEl.innerHTML=`최고: <b>${peak.ratio.toFixed(1)}%</b> (${peak.period.slice(0,7)}) · 전분기 대비 <span class="${diffCls}"><b>${diffStr}</b></span>`;
-  } catch(e) {
-    wrapEl.innerHTML=`<div class="trend-loading" style="color:var(--red)">트렌드 로드 실패: ${e.message}</div>`;
+    const labels = results.map(d => d.period.slice(0, 7));
+    const maxVal = Math.max(...values, 1), minVal = Math.min(...values);
+    const n = values.length;
+
+    /* 전분기 대비 — 배지는 카드 헤더에 표시한다 */
+    const diff = quarterDiff(values);
+    trendBadge('nTrendBadge', diff);
+
+    /* 막대 차트 — 구글 계절성과 같은 형태로 통일한다.
+       데이터랩은 최고점을 100%로 둔 상대 지표라 월별 이산값이며,
+       꺾은선은 연속량을 암시해 오해를 부른다. */
+    const peakIdx   = values.indexOf(maxVal);
+    const troughIdx = values.indexOf(minVal);
+    const peakYm    = labels[peakIdx];
+    const troughYm  = labels[troughIdx];
+    const isSeasonal = (maxVal - minVal) > 40;
+    const dir = diff == null ? '완만한 추세' : diff > 10 ? '상승 추세' : diff < -10 ? '하락 추세' : '보합 추세';
+
+    /* 사실 줄 — 구글 계절성 카드와 같은 문법.
+       데이터랩은 최고월을 100으로 둔 상대 지표라 최고점 값 자체는 항상 100이다.
+       (100%)는 수치가 아니라 "이 눈금은 절대량이 아니다"라는 표시로 남긴다.
+       실제 정보량은 최저 대비 배수(진폭)가 갖는다. */
+    const amp = minVal > 0 ? maxVal / minVal : null;
+    const nFact = `최고점 <b>${ymShort(peakYm)}</b>(100%)`
+      + (amp && isFinite(amp) ? ` · 최저 ${ymShort(troughYm)} 대비 <b>${amp.toFixed(1)}배</b>` : '');
+    const season = nextSeason(peakYm, new Date());
+    const nRead = isSeasonal
+      ? `${peakPhrase(peakYm, peakIdx, n, dir)}. `
+        + (season.current
+          ? '지금이 성수기입니다. 발행을 서두르는 것이 유리합니다.'
+          : `다음 성수기는 ${season.peak}이므로 ${season.prep}부터 선점 포스팅을 권장합니다.`)
+      : `연중 검색량 편차가 크지 않은 ${dir} 키워드입니다. 시즌보다 콘텐츠 품질과 꾸준한 발행이 승부처입니다.`;
+
+    const bars = values.map((v, i) => {
+      const h = Math.max(4, ((v - minVal) / Math.max(maxVal - minVal, 1)) * 90 + 10);
+      return `<i class="${i === peakIdx ? 'peak' : ''}" style="height:${h}%"
+                 title="${labels[i]} ${v.toFixed(1)}%"></i>`;
+    }).join('');
+    const xs = labels.map(l => `<span>${parseInt(l.slice(5,7))}</span>`).join('');
+
+    wrap.innerHTML = `
+      <div class="mchart naver">
+        <div class="mtitle">월별 상대 검색량 · 최고점 100%</div>
+        <div class="mbars" style="--cols:${n}">${bars}</div>
+        <div class="mx" style="--cols:${n}">${xs}</div>
+      </div>
+      <div class="trend-sub">
+        <div class="ts-fact">${nFact}</div>
+        <div class="ts-read">${nRead}</div>
+      </div>`;
+  } catch (e) {
+    wrap.innerHTML = `<div style="padding:20px;color:var(--red);font-size:13px">트렌드 로드 실패: ${e.message}</div>`;
   }
 }
-function showTrendTip(e, text) {
-  const el=e.target.closest('.trend-chart-wrap')?.querySelector('[id^="ttip-"]');
-  if (!el) return;
-  el.textContent=text; el.style.display='block';
-  const rect=e.target.closest('.trend-chart-wrap').getBoundingClientRect();
-  el.style.left=(e.clientX-rect.left)+'px'; el.style.top=(e.clientY-rect.top)+'px';
+
+/* ── 상위 10 바 차트 (display=100 1회 호출 → 화면 10, CSV 100) ── */
+
+/* 네이버 링크 경로 첫 조각이 항상 블로그 ID인 것은 아니다.
+   구형 뷰어 경로(PostView.naver 등)에서는 시스템 이름이 들어온다. */
+const NAVER_RESERVED = new Set([
+  'postview', 'postlist', 'prologue', 'bloghome', 'postmain',
+  'blogmain', 'postthumbnaillist', 'guestbook', 'memolog'
+]);
+
+/* 블로그 ID 추출.
+   글 링크(link)는 네이버가 형식을 여러 번 바꿔 왔고 지금도 4가지가 섞여 나온다.
+   반면 bloggerlink는 "블로그 홈 주소" 전용 필드라 형식이 훨씬 안정적이다.
+   그래서 bloggerlink를 먼저 보고, 없을 때만 글 링크를 파싱한다. */
+function extractBlogId(link, bloggerlink) {
+  for (const src of [bloggerlink, link]) {
+    const s = String(src || '');
+    if (!s) continue;
+    /* ① blogId 쿼리 — 구형 경로에서 가장 확실한 단서 */
+    let m = s.match(/[?&]blogId=([A-Za-z0-9_-]+)/i);
+    if (m) return m[1].toLowerCase();
+    /* ② 경로형 blog.naver.com/아이디 */
+    m = s.match(/blog\.naver\.com\/([A-Za-z0-9_-]+)/);
+    if (m && !NAVER_RESERVED.has(m[1].toLowerCase())) return m[1].toLowerCase();
+  }
+  return '';
 }
-function hideTrendTip() { document.querySelectorAll('[id^="ttip-"]').forEach(el=>el.style.display='none'); }
+/* 네이버 블로그 글의 고유 키(blogId/글번호)를 뽑는다.
+   같은 글이라도 검색 API·RSS·모바일·구형 경로가 제각각이라
+   링크 문자열을 그대로 비교하면 동일 글을 놓친다. */
+function postKey(link) {
+  const u = String(link || '');
+  let m = u.match(/blog\.naver\.com\/([A-Za-z0-9_-]+)\/(\d+)/);
+  if (m) return m[1].toLowerCase() + '/' + m[2];
 
-function showErr(html) { const el=document.getElementById('errBox'); el.innerHTML=html; el.classList.add('show'); }
-
-function exportCSV() {
-  if (!data.length) return;
-  const rows=[['키워드','PC 월간','모바일 월간','합계','경쟁도']];
-  data.forEach(d=>rows.push([d.kw,d.pc,d.mo,d.pc+d.mo,d.comp]));
-  const blob=new Blob(['\uFEFF'+rows.map(r=>r.join(',')).join('\n')],{type:'text/csv;charset=utf-8;'});
-  Object.assign(document.createElement('a'),{href:URL.createObjectURL(blob),download:`키워드분석_${new Date().toISOString().slice(0,10)}.csv`}).click();
-  log('ok','CSV 파일로 저장됐습니다');
+  const lg = u.match(/[?&]logNo=(\d+)/i);
+  if (lg) {
+    const bq = u.match(/[?&]blogId=([A-Za-z0-9_-]+)/i);
+    if (bq) return bq[1].toLowerCase() + '/' + lg[1];
+    const bp = u.match(/blog\.naver\.com\/([A-Za-z0-9_-]+)/);
+    if (bp && !NAVER_RESERVED.has(bp[1].toLowerCase())) return bp[1].toLowerCase() + '/' + lg[1];
+  }
+  return null;   // 네이버 블로그 글이 아니면 매칭 대상 아님
 }
-function copyJSON() {
-  if (!data.length) return;
-  navigator.clipboard.writeText(JSON.stringify(data,null,2)).then(()=>log('ok','JSON이 클립보드에 복사됐습니다'));
+
+/* 내 블로그 판정 — 양쪽 모두 값이 있을 때만 비교한다.
+   extractBlogId()는 네이버 블로그가 아니면 ''를 돌려주므로,
+   단순 === 비교를 쓰면 미설정 상태('')와 맞아떨어져 오탐이 난다. */
+function isMyBlog(blogId, myId) {
+  return !!myId && !!blogId && blogId === myId;
+}
+async function loadTop100(kw) {
+  const wrap = document.getElementById('top10Wrap');
+  wrap.innerHTML = '<div class="load-box show"><div class="spinner"></div></div>';
+  top100 = [];
+  try {
+    const res  = await fetch(`/api/blog?query=${encodeURIComponent(kw)}&display=100`);
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || '오류');
+    top100 = (json.items || []).map((it, i) => ({
+      rank: i + 1,
+      title: (it.title || '').replace(/<[^>]+>/g, ''),
+      blogger: it.bloggername || '',
+      link: it.link || '',
+      postdate: it.postdate || '',
+      blogId: extractBlogId(it.link, it.bloggerlink)
+    }));
+    if (!top100.length) { wrap.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:13px;text-align:center">검색 결과가 없습니다</div>'; return; }
+
+    const myId = getMyBlogId();
+    const ten  = top100.slice(0, 10);
+    wrap.innerHTML = ten.map(p => {
+      const me = isMyBlog(p.blogId, myId);
+      return `<div class="bar-row">
+        <div class="bar-rank ${me?'me':''}">${p.rank}</div>
+        <div class="bar-body">
+          <div class="bar-label ${me?'me':''}">
+            <a href="${p.link}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">${p.title}</a>
+            <span class="author">${p.blogger}${me?' (내 블로그)':''}</span>
+          </div>
+          <div class="bar-line">
+            <div class="bar-track"><div class="bar-fill ${me?'me':''}" id="barfill-${p.rank}" style="width:0%"></div></div>
+            <div class="bar-val" id="barval-${p.rank}">–</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('')
+    + `<div class="legend">
+        <span><i style="background:#2E4BC6"></i>경쟁 블로그</span>
+        ${myId ? `<span><i style="background:#D9500F"></i>내 블로그 (${myId})</span>` : ''}
+        <span>막대 = 활동지수 추정치</span>
+        <button class="csv-btn" style="margin-left:auto" id="actBtn" onclick="loadActivityGauges()">활동지수 조회</button>
+      </div>`;
+
+    /* loadTop100과 loadMyPosts는 병렬로 시작하므로 어느 쪽이 먼저 끝날지 알 수 없다.
+       내 포스팅이 먼저 그려졌다면 top100이 비어 있어 순위가 붙지 않는다.
+       여기서 다시 그려 순위를 채운다. */
+    if (myPosts) renderMyPosts();
+  } catch (e) {
+    wrap.innerHTML = `<div style="padding:20px;color:var(--red);font-size:13px">상위 포스팅 로드 실패: ${e.message}</div>`;
+  }
+}
+/* 활동지수 온디맨드 조회 — 상위 10 블로그만, 80ms 간격 순차 */
+/* 활동지수는 블로그마다 별도 조회가 필요하고 80ms 딜레이가 붙어 있어
+   검색 때 자동 실행하지 않는다. 버튼을 눌렀을 때만 순차 조회한다.
+   조회할 수 없는 경우(네이버 외 블로그·오류)를 값으로 구분해 표시한다. */
+async function loadActivityGauges() {
+  const btn = document.getElementById('actBtn');
+  if (btn) { btn.disabled = true; btn.textContent = '조회 중…'; }
+  const ten = top100.slice(0, 10);
+  let done = 0, skipped = 0;
+
+  const setVal = (rank, text, cls) => {
+    const val = document.getElementById('barval-' + rank);
+    if (!val) return;
+    val.textContent = text;
+    val.className = 'bar-val' + (cls ? ' ' + cls : '');
+  };
+
+  for (const p of ten) {
+    /* 네이버 블로그가 아니면 blogstats 조회 자체가 불가능하다.
+       "네이버 외"라고만 쓰면 정말 타 플랫폼인지, 링크 형식을 못 읽은 것인지
+       구분되지 않는다. 실제 호스트를 그대로 보여준다. */
+    if (!p.blogId) {
+      let host = '';
+      try { host = new URL(p.link).hostname.replace(/^(www|m)\./, ''); } catch (e) {}
+      setVal(p.rank, host || '주소 없음', 'na');
+      const val = document.getElementById('barval-' + p.rank);
+      if (val) val.title = p.link || '링크 없음';
+      skipped++;
+      continue;
+    }
+
+    setVal(p.rank, '…', 'na');
+    try {
+      const res  = await fetch(`/api/blogstats?blogId=${encodeURIComponent(p.blogId)}`);
+      const json = await res.json();
+      if (!res.ok) throw new Error('stat');
+      const r30   = json.stats?.recent30 || 0;
+      const score = Math.min(Math.round(r30 / 30 * 100), 100);
+      const fill  = document.getElementById('barfill-' + p.rank);
+      if (fill) fill.style.width = score + '%';
+      setVal(p.rank, score, '');
+      done++;
+    } catch (e) {
+      setVal(p.rank, '조회 실패', 'na');
+    }
+    if (btn) btn.textContent = `조회 중… ${done + skipped}/${ten.length}`;
+    await new Promise(r => setTimeout(r, 80));
+  }
+
+  if (btn) { btn.textContent = '조회 완료'; }
+  /* 전부 건너뛰었다면 링크 형식이 예상과 다른 것이다.
+     "완료"만 띄우면 원인을 알 수 없으므로 구분해서 알린다. */
+  if (!done && skipped === ten.length) {
+    toast('⚠️ 활동지수를 조회할 블로그를 찾지 못했습니다 (네이버 블로그 링크 형식 확인 필요)', 3600);
+    console.warn('[activity] blogId 추출 실패', top100.slice(0, 3).map(p => ({ link: p.link, blogId: p.blogId })));
+    return;
+  }
+  toast(skipped
+    ? `✅ 활동지수 ${done}개 조회 완료 · ${skipped}개는 네이버 블로그가 아니라 제외`
+    : `✅ 상위 10 활동지수 조회 완료`);}
+function exportTop100CSV() {
+  if (!top100.length) { toast('먼저 키워드를 분석하세요'); return; }
+  const myId = getMyBlogId();
+  downloadCSV('상위100포스팅',
+    ['순위','제목','블로그명','링크','발행일','내 블로그'],
+    top100.map(p => [p.rank, p.title, p.blogger, p.link, p.postdate, isMyBlog(p.blogId, myId) ? 'Y' : '']));
 }
 
+/* ── 내 블로그 포스팅 ── */
+/* 원래는 RSS와 검색 상위 100위를 합쳐 찾고 순위 배지를 붙였다.
+   2026-08-27 현재 상위 100위 조회를 중단해 top100이 항상 비어 있으므로
+   rankOf()는 null만 돌려주고 배지도 붙지 않는다.
+   복구할 때 loadNaverExtras의 호출 한 줄만 되살리면 원래대로 동작한다. */
+async function loadMyPosts(kw) {
+  const listEl = document.getElementById('mypostList');
+  const meta   = document.getElementById('mypostMeta');
+  const blogId = getMyBlogId();
+  myPosts = null;
 
-/* ── 페이지 훅 (공통 common.js에서 호출) ── */
+  if (!blogId) {
+    meta.textContent = '미설정';
+    listEl.innerHTML = '<div class="mypost-empty">우측 <b>블로그 설정</b>에서 내 블로그 ID를 저장하면 이 키워드와 관련된 내 포스팅과 검색 순위를 함께 보여드립니다.</div>';
+    return;
+  }
+
+  meta.textContent = `${blogId} · "${kw}"`;
+  listEl.innerHTML = '<div class="load-box show" style="padding:18px"><div class="spinner"></div></div>';
+
+  try {
+    const res  = await fetch(`/api/myposts?query=${encodeURIComponent(kw)}&blogId=${encodeURIComponent(blogId)}`);
+    const json = await res.json();
+    myPosts = (json.items || []).slice(0, 5);
+    renderMyPosts();
+  } catch (e) {
+    myPosts = null;
+    listEl.innerHTML = '<div class="mypost-empty">내 포스팅을 불러오지 못했습니다</div>';
+  }
+}
+
+function renderMyPosts() {
+  const listEl = document.getElementById('mypostList');
+  const meta   = document.getElementById('mypostMeta');
+  const blogId = getMyBlogId();
+  if (!listEl || !myPosts) return;
+
+  /* 상위 100위에서 같은 글을 찾아 순위를 붙인다.
+     네이버는 같은 글이라도 경로가 여러 형태로 온다 (postKey 참조).
+     링크로 못 찾으면 제목으로 한 번 더 대조한다. */
+  const tnorm = t => String(t || '').replace(/<[^>]+>/g, '').replace(/\s+/g, '').toLowerCase();
+  const rankOf = it => {
+    const k = postKey(it.link);
+    if (k) {
+      const hit = top100.find(t => postKey(t.link) === k);
+      if (hit) return hit.rank;
+    }
+    const tk = tnorm(it.title);
+    if (tk) {
+      const hit = top100.find(t => tnorm(t.title) === tk);
+      if (hit) return hit.rank;
+    }
+    return null;
+  };
+
+  const ranked = myPosts.map(it => ({ ...it, rank: rankOf(it) }));
+  const best   = ranked.reduce((a, r) => (r.rank != null && (a == null || r.rank < a) ? r.rank : a), null);
+
+  meta.textContent = `${blogId} · "${currentKw}" · ${ranked.length}건`
+    + (best != null ? ` · 최고 ${best}위` : '');
+
+  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  const moreUrl = isMobile
+    ? `https://m.blog.naver.com/PostSearchList.naver?blogId=${blogId}&orderType=sim&pageAccess=direct&periodType=all&searchText=${encodeURIComponent(currentKw)}`
+    : `https://blog.naver.com/PostSearchList.naver?blogId=${blogId}&searchText=${encodeURIComponent(currentKw)}`;
+
+  /* 순위 관련 표기는 상위 100위 조회를 중단한 동안 함께 감춘다.
+     조회하지 않는데 "확인 중…"이 남아 있으면 영원히 기다리는 것처럼 보인다. */
+  listEl.innerHTML = (ranked.length
+    ? `<div class="mypost-src">블로그 RSS에서 찾은 <b>${ranked.length}건</b> · 오래된 글은 아래 링크에서 확인하세요</div>`
+      + ranked.map(it => `
+      <a class="mypost-row" href="${it.link}" target="_blank" rel="noopener">
+        <div class="mypost-title">
+          ${it.rank != null ? `<span class="mypost-rank">${it.rank}위</span>` : ''}
+          ${it.title.replace(/<[^>]+>/g,'')}
+        </div>
+        <div class="mypost-desc">${(it.description||'').replace(/<[^>]+>/g,'').slice(0,70)}…</div>
+      </a>`).join('')
+    : '')   /* "없습니다" 단정은 검색 API 정확도 문제로 사실과 다를 수 있어 표시하지 않는다 */
+    + `<a class="mypost-more" href="${moreUrl}" target="_blank" rel="noopener">${blogId}의 "${currentKw}" 전체 포스팅 보기 →</a>`;
+}
+
+/* ── 페이지 훅 ── */
 window.pageReset = function() {
-  kws = []; data = [];
-  document.getElementById('resultsPanel')?.classList.remove('show');
-  document.getElementById('loadingWrap')?.classList.remove('show');
-  document.getElementById('errBox')?.classList.remove('show');
-  const kwInp = document.getElementById('kwInp');
-  if (kwInp) { kwInp.value = ''; kwInp.focus(); }
-  document.getElementById('kwClear')?.classList.remove('show');
-  log('ok', '준비 완료 — 키워드를 입력하고 검색하세요');
+  currentKw = ''; mainRow = null; relatedRows = []; top100 = []; gData = null; myPosts = null;
+  gLoadedKw = null; nLoadedKw = null; pubState = null;
+  document.getElementById('resultsPanel').classList.remove('show');
+  document.getElementById('loadingWrap').classList.remove('show');
+  document.getElementById('errBox').classList.remove('show');
+  const inp = document.getElementById('kwInp');
+  inp.value = ''; inp.focus();
+  document.getElementById('kwClear').classList.remove('show');
 };
 window.onBlogSettingChanged = function() {
-  // 블로그 ID 변경 시 "내 포스팅" 섹션이 옛 ID 기준이므로 결과 초기화
-  window.pageReset();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (currentKw) { loadMyPosts(currentKw); }
 };
-log('ok', '준비 완료 — 키워드를 입력하고 검색하세요');
 
+/* ── 초기화 ── */
+renderRecent();
+checkGoogleFlag();
 </script>
 </body>
 </html>

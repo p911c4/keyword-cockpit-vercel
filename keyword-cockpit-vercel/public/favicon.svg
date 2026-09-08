@@ -1,1 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect x="0.75" y="0.75" width="30.5" height="30.5" rx="7.5" fill="#FAFAF8" stroke="#D5DAE2" stroke-width="1.5"></rect><path d="M7.5 20 A8.5 8.5 0 0 1 24.5 20" fill="none" stroke="#3E4450" stroke-width="3" stroke-linecap="round"></path><path d="M16 20 L19.5 14.6" stroke="#D9500F" stroke-width="3" stroke-linecap="round"></path><circle cx="16" cy="20" r="2.6" fill="#D9500F"></circle></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Keyword Cockpit">
+  <!-- 파비콘용 — 테두리선은 없애고 밝은 배경만 남겼다.
+       배경까지 지우면 다크 테마 탭에서 잉크색 아크가 묻힌다. -->
+  <rect width="32" height="32" rx="7.5" fill="#FAFAF8"/>
+  <path d="M6 20.5 A10 10 0 0 1 26 20.5" fill="none" stroke="#3E4450" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M16 20.5 L20.2 14" stroke="#D9500F" stroke-width="3.4" stroke-linecap="round"/>
+  <circle cx="16" cy="20.5" r="3" fill="#D9500F"/>
+</svg>

@@ -1,432 +1,1655 @@
-:root {
-  --bg: #ffffff;
-  --bg2: #f4f4f4;
-  --bg3: #fafafa;
-  --border: #e5e5e5;
-  --border2: #d0d0d0;
-  --blue: #1428a0;
-  --blue2: #1a34c8;
-  --blue-light: #e8ebfc;
-  --blue-pale: #f0f2fd;
-  --text: #1a1a1a;
-  --text2: #444444;
-  --text3: #888888;
-  --green: #00b200;
-  --green-bg: #e6f7e6;
-  --red: #c00;
-  --red-bg: #fff0f0;
-  --amber: #b06000;
-  --amber-bg: #fff8e6;
-  --shadow-sm: 0 1px 4px rgba(0,0,0,0.08);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.10);
-  --radius: 8px;
-}
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-html{font-size:15px}
-body{background:var(--bg2);color:var(--text);font-family:'Noto Sans KR','Roboto',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+/* ═══════════════════════════════════════════════════════════════════════
+   Keyword Cockpit — common.css  v3.10
+   1단계 토큰 + 색 체계 · 2단계 카드 위계 · 3단계 그리드 · 4단계 상태 표현
+   + 경쟁도 게이지를 두 형태로 분리 (v3.7)
+   + 상단 블록 폭을 결과 그리드에 정렬 · 좌우 카드 내부 행 정렬 · 구글 블루 (v3.8)
+   + 소스색을 플랫폼 브랜드로 — 네이버 초록 / 구글 블루 (v3.9)
 
-/* ── Topbar ── */
-.topbar{background:var(--blue);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,0.15)}
-.topbar-brand{display:flex;align-items:center;gap:10px;cursor:pointer}
-.topbar-logo{width:28px;height:28px;display:flex;align-items:center;justify-content:center}
-.topbar-name{color:#fff;font-size:16px;font-weight:700;letter-spacing:-0.3px}
-.topbar-status{display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.75);font-weight:300}
-.status-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.3);flex-shrink:0}
-.status-dot.live{background:#4cff8f;animation:blink 2.5s infinite}
+   v3.9의 색 역할 — 세 가지가 섞이지 않게 직분을 나눠 둔다.
+     오렌지 #D9500F — 이 도구 자신. 탭·버튼·링크·포켓·진행 표시만.
+     네이버 초록 #03C75A — 네이버에서 온 데이터 표식.
+     구글 블루 #4285F4 — 구글에서 온 데이터 표식.
+   초록은 이제 "상승·양호"를 뜻하지 않는다. 한 색이 두 뜻을 가질 수 는 없으므로
+   상승 배지는 잉크 + 화살표로 바꿈다.
 
-/* ── 탭 네비게이션 ── */
-.tab-nav{background:var(--bg);border-bottom:2px solid var(--border);position:sticky;top:56px;z-index:49;box-shadow:var(--shadow-sm)}
-.tab-nav-inner{max-width:780px;margin:0 auto;display:flex;padding:0 16px}
-.tab-btn{font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:600;color:var(--text3);background:none;border:none;border-bottom:3px solid transparent;padding:14px 16px;cursor:pointer;transition:color 0.2s,border-color 0.2s;display:flex;align-items:center;gap:6px;letter-spacing:0.1px;margin-bottom:-2px;white-space:nowrap}
-.tab-btn:hover{color:var(--text)}
-.tab-btn.active{color:var(--blue);border-bottom-color:var(--blue)}
-.tab-icon{font-size:15px}
+   변경 요약
+     · 주조색을 네 갈래(오렌지·네이버 초록·구글 파랑·네이비)에서
+       두 갈래(오렌지 · 잉크)로 줄였다. 소스 구분은
+       [색(오렌지 vs 잉크)] + [라벨] + [질감(솔리드 vs 해치)] 3축으로 이중화했다.
+     · 카드를 1차 / 2차 / 참고 3단 위계로 나눴다. 클래스명을 바꿀 수 없으므로
+       위계는 변하지 않는 id 선택자로 지정한다 (HTML 수정 불필요).
+     · 타이포·여백 스케일을 변수로 두고 브레이크포인트에서 변수만 갈아끼운다.
+       모바일/PC 두 벌이 아니라 한 시스템의 두 단계다.
+     · 기존 변수명(--naver --google --navy --blue 등)은 별칭으로 남겨
+       다른 페이지와 JS 인라인 스타일이 깨지지 않게 했다.
+     · 상태 표현을 6종으로 정리했다. "비어 있는 이유"를 세 갈래로 나눈다.
+       정상 결과(데이터 없음·조회 불가)=중성 잉크 /
+       우리 쪽 제약(한도 초과)=앰버 / 실패(오류)=레드.
+       색약 대응으로 점의 형태(찬 점·빈 점·각진 점·깜박임)를 함께 쓴다.
+       로딩은 전역 스피너 하나가 아니라 카드별 골격(.skel-*)을 쓴다.
+     · v3.7 — 두 경쟁도를 같은 막대 두 개(질감만 다름)에서
+       아예 다른 형태로 갈랐다. 네이버는 15칸을 세는 개수 게이지,
+       구글은 낮음·중간·높음 위의 위치 마커. 세는 것과 재는 것은
+       눈에 즉시 다르게 보이므로 6-3을 문구가 아니라 구조로 지킨다.
+       마크업 수정은 필요 없다 (눈금은 오버레이, 마커는 채움의 오른쪽 끝).
+     · v3.10 — 세 곳만 손댔다. 나머지 규칙은 v3.9 그대로다.
+       ① 최근 검색에 네이버 vs 구글 비중 바(.rc-bar). 두 수치가 같은 행에
+          놓이는 자리는 이 표뿐이라, 체급 비교는 여기서만 가능하다.
+          구글 쪽은 구간에서 파생한 근사값이므로 해치 질감으로 성격을 가른다.
+       ② 12개월 막대 아래 문장을 해석 팁 박스(.trend-sub)로 승격.
+          옅은 소스 틴트 + 좌측 3px 소스색 띠. 앞줄 사실 / 뒷줄 해석 2단.
+       ③ 두 팁 박스가 margin-top:auto로 바닥에 붙는다 —
+          좌우 문장 길이가 달라도 같은 선에서 끝난다(3-1 픽셀 정렬 유지).
+   ═══════════════════════════════════════════════════════════════════════ */
 
-/* ── 탭 패널 ── */
-.tab-panel{display:none}
-.tab-panel.active{display:block}
+:root{
+  /* ── 확정 브랜드 색 (로고·파비콘·워드마크) ── */
+  --dark:#14181F;
+  --orange:#D9500F;
+  --orange-soft:#FF8A5C;
+  --light:#FAFAF8;
 
-/* ── Layout ── */
-.page{max-width:780px;margin:0 auto;padding:28px 16px 80px}
+  /* ── 잉크 램프 — 브랜드 다크에서 파생한 차가운 중성 ── */
+  --ink-900:#14181F;
+  --ink-800:#222832;
+  --ink-700:#333B48;
+  --ink-600:#4A5361;
+  --ink-500:#6B7381;
+  --ink-400:#8A8F99;
+  --ink-300:#B4B8C0;
+  --ink-200:#D9DBE0;
+  --ink-100:#EBECEF;
 
-/* ── Hero ── */
-.hero{background:var(--blue);border-radius:var(--radius);padding:28px 28px 24px;margin-bottom:16px;color:#fff;animation:fadeUp 0.4s ease both}
-.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:8px}
-.hero-title{font-size:clamp(22px,4vw,30px);font-weight:700;line-height:1.2;letter-spacing:-0.5px;margin-bottom:6px}
-.hero-sub{font-size:13px;color:rgba(255,255,255,0.7);font-weight:300;line-height:1.6}
+  /* ── 종이 램프 — 배경 #FAFAF8 계열의 따뜻한 중성 ── */
+  --paper-000:#FFFFFF;
+  --paper-050:#FAFAF8;
+  --paper-100:#F5F3EF;
+  --paper-200:#EFEDE8;
+  --paper-300:#E3E1DC;
+  --paper-400:#C9C6BF;
 
-/* ── Card ── */
-.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;box-shadow:var(--shadow-sm);overflow:hidden;animation:fadeUp 0.4s ease both}
-.card-header{padding:14px 20px;border-bottom:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;justify-content:space-between}
-.card-title{font-size:13px;font-weight:700;color:var(--text);letter-spacing:0.2px;display:flex;align-items:center;gap:8px}
-.card-title::before{content:'';width:3px;height:14px;background:var(--blue);border-radius:2px;flex-shrink:0}
-.card-body{padding:20px}
+  /* ── 오렌지 램프 ── */
+  --orange-050:#FDF2EB;
+  --orange-100:#FBE1D3;
+  --orange-200:#F6C1A5;
+  --orange-300:#FF8A5C;
+  --orange-500:#D9500F;
+  --orange-600:#B8410A;
+  --orange-700:#8D3207;
 
-/* ── Input ── */
-.kw-row{display:flex;gap:8px}
-.input{background:var(--bg);border:1.5px solid var(--border2);border-radius:6px;padding:11px 14px;font-family:'Noto Sans KR',sans-serif;font-size:14px;color:var(--text);outline:none;transition:border-color 0.15s,box-shadow 0.15s;width:100%}
-.input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(20,40,160,0.1)}
-.input::placeholder{color:#bbb}
+  /* ── 의미 색 ── */
+  --text:#2B2F38;
+  --text-strong:var(--ink-900);
+  --muted:var(--ink-400);
+  --border:var(--paper-300);
+  --border-soft:var(--paper-200);
+  --surface:var(--paper-000);
+  --surface-sunk:var(--paper-100);
 
-/* ── Buttons ── */
-.btn{font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:600;border:none;border-radius:6px;cursor:pointer;padding:10px 20px;transition:all 0.15s;white-space:nowrap;letter-spacing:0.2px}
-.btn-primary{background:var(--blue);color:#fff}
-.btn-primary:hover{background:var(--blue2);box-shadow:var(--shadow-md);transform:translateY(-1px)}
-.btn-primary:active{transform:translateY(0)}
-.btn-outline{background:transparent;color:var(--text2);border:1.5px solid var(--border2)}
-.btn-outline:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-pale)}
-.btn-sm{padding:7px 14px;font-size:12px}
+  /* ── 네이버 초록 램프 (v3.9) ──
+     500이 네이버 브랜드 원본. 흰 바탕 대비가 2.2:1로 텍스트에 못 쓰므로
+     수치·제목은 700·800을 쓴다. 원본은 면·마커·칸에만. */
+  --ngreen-050:#EAF9F0;
+  --ngreen-100:#CDF0DC;
+  --ngreen-200:#9FE3BC;
+  --ngreen-300:#4FD488;
+  --ngreen-500:#03C75A;
+  --ngreen-700:#03793A;
+  --ngreen-800:#05602F;
 
-/* ── Loading ── */
-.loading-wrap{display:none;padding:48px 20px;flex-direction:column;align-items:center;gap:16px}
-.loading-wrap.show{display:flex}
-.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite}
-.loading-txt{font-size:13px;color:var(--text3);font-weight:300}
+  /* ── 구글 블루 램프 (v3.8) ──
+     500이 Google Blue. 600·700은 흰 바탕에서 본문 대비를 확보하기 위한 단계이며
+     Google Blue 원본(#4285F4)은 흰 바탕 본문 텍스트로 쓰지 않는다(대비 3.2:1). */
+  --blue-050:#EEF4FE;
+  --blue-100:#D7E5FC;
+  --blue-200:#AFC9F8;
+  --blue-300:#7BA6F2;
+  --blue-500:#4285F4;
+  --blue-600:#1B5FCE;
+  --blue-700:#14479C;
 
-/* ── Error ── */
-.errbox{background:var(--red-bg);border:1px solid rgba(200,0,0,0.2);border-radius:var(--radius);padding:16px 20px;margin-bottom:14px;font-size:13px;line-height:1.7;color:var(--red);display:none}
-.errbox.show{display:block}
-.errbox code{background:rgba(200,0,0,0.08);padding:1px 6px;border-radius:3px;font-size:12px;font-family:monospace}
+  /* ── 소스 구분 (축 1 — 색) ──
+     두 소스 모두 자기 플랫폼 브랜드 색을 입는다. 사용자가 네이버·구글을
+     눈으로 먼저 갈라내기 때문이며, 한쪽만 브랜드색이면 나머지가 임의로 보인다.
+     단, 소스색은 '데이터 표식'에만 쓴다 — 띠·점·게이지·막대·해치·틴트·수치.
+     도구 자신의 색(탭·버튼·링크·진행 표시)은 오렌지로 그대로 둔다. */
+  --src-n:var(--ngreen-500);
+  --src-n-soft:var(--ngreen-100);
+  --src-n-tint:var(--ngreen-050);
+  --src-n-ink:var(--ngreen-700);   /* 흰 바탕·틴트 위 텍스트 전용 */
+  --src-g:var(--blue-500);
+  --src-g-soft:var(--blue-200);
+  --src-g-tint:var(--blue-050);
+  --src-g-ink:var(--blue-700);
 
-/* ── Results ── */
-.results-panel{display:none}
-.results-panel.show{display:block}
-.results-topbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:2px}
-.results-meta{font-size:12px;color:var(--text3)}
-.exp-row{display:flex;gap:6px}
+  /* ── 소스 구분 (축 3 — 질감) ──
+     구글 게이지·막대는 해치를 입힌다.
+     "구간/밀도 기반이라 네이버와 같은 척도로 비교할 수 없다"는 신호이며
+     색약 사용자에게도 색과 무관하게 구분된다. (6-1 · 6-3) */
+  --hatch-g:repeating-linear-gradient(135deg,#4285F4 0 3px,#7BA6F2 3px 6px);
 
-/* ── KW card ── */
-.kwcard{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);margin-top:12px;overflow:hidden;box-shadow:var(--shadow-sm);animation:fadeUp 0.35s ease both;transition:box-shadow 0.2s}
-.kwcard:hover{box-shadow:var(--shadow-md)}
-.kwcard-head{padding:14px 20px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
-.kwname{font-size:18px;font-weight:700;color:var(--text);letter-spacing:-0.3px}
-.comp-pill{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;letter-spacing:0.3px}
-.c-low{background:var(--green-bg);color:var(--green)}
-.c-mid{background:var(--amber-bg);color:var(--amber)}
-.c-high{background:var(--red-bg);color:var(--red)}
-.kwcard-body{padding:18px 20px}
+  /* ── 상태색 (면적을 작게 유지) ──
+     v3.9 — 초록이 소스색이 되었으므로 상태에서는 밀어냈다.
+     "상승·양호"는 잉크 + 화살표가 맡는다. 얐버·레드는 그대로. */
+  --green:var(--ink-600);
+  --amber:#D9820A;
+  --red:#CE2A20;
+  --green-tint:var(--paper-100);
+  --amber-tint:#FBF1E0;
+  --red-tint:#FBEBE9;
+  /* 틴트 위에 얹는 본문용 어두운 단계 — 상태색 원본은 대비가 부족하다 */
+  --amber-ink:#8A5406;
+  --red-ink:#A81E16;
 
-/* ── Stat grid ── */
-.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
-.scell{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px 12px;text-align:center;position:relative;overflow:hidden}
-.scell::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px}
-.scell.pc-cell::after{background:var(--blue)}
-.scell.mo-cell::after{background:#0099cc}
-.scell.tot-cell::after{background:#555}
-.slbl{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:4px}
-.slbl-icon{font-size:12px}
-.snum{font-size:28px;font-weight:700;letter-spacing:-1px;line-height:1;font-family:'Roboto',sans-serif}
-.snum.pc{color:var(--blue)}
-.snum.mo{color:#0099cc}
-.snum.tot{color:var(--text)}
-.sunit{font-size:10px;color:var(--text3);margin-top:5px}
-.ratio-bar-wrap{margin:12px 0 4px;background:var(--border);border-radius:4px;height:5px;overflow:hidden}
-.ratio-bar-inner{height:100%;border-radius:4px;transition:width 0.6s ease}
-.ratio-bar-inner.pc{background:var(--blue)}
-.ratio-bar-inner.mo{background:#0099cc}
-.ratio-summary{display:flex;align-items:center;gap:6px;margin-bottom:14px;font-size:12px;color:var(--text2);background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 12px}
-.ratio-bar-h{flex:1;height:8px;border-radius:4px;overflow:hidden;background:var(--border);display:flex}
-.ratio-pc{height:100%;background:var(--blue);border-radius:4px 0 0 4px;transition:width 0.6s ease}
-.ratio-mo{height:100%;background:#0099cc;border-radius:0 4px 4px 0;transition:width 0.6s ease}
-.ratio-legend{display:flex;gap:8px;flex-shrink:0}
-.ratio-dot{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--text3);font-weight:500}
-.ratio-dot::before{content:'';width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.ratio-dot.pc::before{background:var(--blue)}
-.ratio-dot.mo::before{background:#0099cc}
+  /* ── 타이포 스케일 (맑은 고딕 기준 · 브레이크포인트에서 재정의) ── */
+  --font:'Malgun Gothic','맑은 고딕',-apple-system,BlinkMacSystemFont,sans-serif;
+  --fs-micro:10.5px;
+  --fs-cap:11.5px;
+  --fs-sm:12.5px;
+  --fs-md:13px;
+  --fs-lg:14px;
+  --fs-h2:14.5px;
+  --fs-h1:21px;
+  --fs-metric:27px;      /* 1차 지표 — 네이버 월간 검색량 */
+  --fs-metric-2:16px;    /* 2차 지표 */
+  --lh-tight:1.35;
+  --lh-body:1.75;
+  --lh-read:1.85;
+  /* .g-top 수치 블록의 공통 높이 — 네이버·구글 카드가 같은 값을 읽으므로
+     수치 크기가 달라도 단서 줄이 같은 선에서 끝난다 */
+  --gv-h:calc(var(--fs-metric) * 1.35 + var(--fs-micro) * 1.5 + 6px);
 
-/* ── Related ── */
-.rel-sec{border-top:1px solid var(--border);padding-top:14px}
-.rel-lbl{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px}
-.rel-list{display:flex;flex-wrap:wrap;gap:7px}
-.rtag{display:inline-flex;align-items:center;gap:5px;background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--text2);cursor:pointer;transition:all 0.15s;font-weight:400}
-.rtag:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-pale)}
-.rvol{font-size:10px;color:var(--text3)}
+  /* ── 여백 스케일 (4px 배수) ── */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px; --s8:32px; --s10:40px;
+  --card-x:var(--s4);          /* 카드 좌우 패딩 — 브레이크포인트에서 커진다 */
+  --card-y:var(--s4);
+  --gap:var(--s3);             /* 카드 사이 간격 */
+  --rhythm:var(--s4);          /* 블록 사이 간격 */
 
-/* ── 뉴카 포스팅 (접힌 형태) ── */
-.mypost-sec{border:1.5px solid rgba(20,40,160,0.2);background:var(--blue-pale);border-radius:8px;margin-top:14px;margin-bottom:10px;overflow:hidden}
-.mypost-toggle{width:100%;background:none;border:none;cursor:pointer;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;font-family:'Noto Sans KR',sans-serif;transition:background 0.15s}
-.mypost-toggle:hover{background:rgba(20,40,160,0.06)}
-.mypost-lbl{font-size:12px;font-weight:700;color:var(--blue);letter-spacing:0.3px;display:flex;align-items:center;gap:6px}
-.mypost-lbl-sub{font-size:10px;font-weight:400;color:rgba(20,40,160,0.5);letter-spacing:0;margin-left:2px}
-.mypost-chevron{font-size:12px;color:var(--blue);transition:transform 0.25s;flex-shrink:0}
-.mypost-chevron.open{transform:rotate(180deg)}
-.mypost-body{display:none;padding:0 16px 14px;border-top:1px solid rgba(20,40,160,0.12)}
-.mypost-body.open{display:block}
-.mypost-list{display:flex;flex-direction:column;gap:6px;margin-top:12px}
-.mypost-item{display:flex;align-items:flex-start;gap:8px;padding:9px 10px;background:#fff;border:1px solid rgba(20,40,160,0.12);border-radius:6px;text-decoration:none;transition:all 0.15s}
-.mypost-item:hover{border-color:var(--blue);box-shadow:0 2px 8px rgba(20,40,160,0.1)}
-.mypost-icon{font-size:14px;flex-shrink:0;margin-top:1px}
-.mypost-info{flex:1;min-width:0}
-.mypost-title{font-size:13px;font-weight:500;color:var(--text);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.mypost-item:hover .mypost-title{color:var(--blue)}
-.mypost-desc{font-size:11px;color:var(--text3);margin-top:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.mypost-empty{font-size:12px;color:var(--text3);padding:8px 0}
-.mypost-more{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;margin-top:8px;background:var(--blue);color:#fff;border-radius:6px;text-decoration:none;font-size:12px;font-weight:600;transition:all 0.15s}
-.mypost-more:hover{background:var(--blue2);box-shadow:0 2px 8px rgba(20,40,160,0.2)}
-.mypost-loading{font-size:12px;color:var(--text3);display:flex;align-items:center;gap:6px;margin-top:10px}
-.mypost-count-badge{font-size:10px;font-weight:600;background:var(--blue);color:#fff;border-radius:20px;padding:1px 8px;margin-left:4px}
-.mypost-count-badge.zero{background:var(--text3)}
+  /* ── 반경 · 그림자 ── */
+  --r-xs:5px; --r-sm:7px; --r-md:10px; --r-lg:13px; --r-pill:999px;
+  --sh-0:none;
+  --sh-1:0 1px 2px rgba(20,24,31,.05);
+  --sh-2:0 2px 10px rgba(20,24,31,.07);
+  --sh-3:0 18px 50px rgba(20,24,31,.22);
 
-/* ── Rank ── */
-.rank-sec{border-top:1px solid var(--border);padding-top:14px;margin-top:14px}
-.rank-lbl{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
-.rank-load-btn{font-family:'Noto Sans KR',sans-serif;font-size:11px;font-weight:600;color:var(--blue);background:var(--blue-pale);border:1px solid rgba(20,40,160,0.2);border-radius:4px;padding:3px 10px;cursor:pointer;transition:all 0.15s}
-.rank-load-btn:hover{background:var(--blue);color:#fff}
-.rank-load-btn:disabled{opacity:0.5;cursor:not-allowed}
-.rank-list{display:flex;flex-direction:column;gap:6px}
-.rank-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;text-decoration:none;transition:all 0.15s}
-.rank-item:hover{border-color:var(--blue);background:var(--blue-pale)}
-.rank-num{font-size:12px;font-weight:700;color:#fff;background:var(--blue);border-radius:4px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Roboto',sans-serif}
-.rank-info{flex:1;min-width:0}
-.rank-title{font-size:13px;font-weight:500;color:var(--text);line-height:1.4;margin-bottom:3px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.rank-item:hover .rank-title{color:var(--blue)}
-.rank-desc{font-size:11px;color:var(--text3);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.rank-blogger{font-size:10px;color:var(--text3);margin-top:2px}
-.rank-empty{font-size:12px;color:var(--text3);padding:12px;text-align:center}
-.rank-loading{font-size:12px;color:var(--text3);padding:12px;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px}
-.rank-spinner{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0}
-
-/* ── 트렌드 ── */
-.trend-sec{border-top:1px solid var(--border);padding-top:14px;margin-bottom:16px}
-.trend-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:6px}
-.trend-lbl{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px}
-.trend-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px}
-.trend-up{background:var(--green-bg);color:var(--green)}
-.trend-down{background:var(--red-bg);color:var(--red)}
-.trend-flat{background:var(--amber-bg);color:var(--amber)}
-.trend-chart-wrap{position:relative;width:100%;height:120px}
-.trend-chart-wrap svg{width:100%;height:100%;overflow:visible}
-.trend-loading{height:120px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;color:var(--text3)}
-.trend-summary{font-size:12px;color:var(--text2);margin-top:10px;line-height:1.6}
-.trend-summary b{color:var(--blue)}
-.trend-summary .up{color:var(--green);font-weight:700}
-.trend-summary .down{color:var(--red);font-weight:700}
-.trend-tooltip{position:absolute;background:var(--text);color:#fff;font-size:11px;padding:4px 8px;border-radius:4px;pointer-events:none;white-space:nowrap;z-index:20;display:none;transform:translate(-50%,-100%);margin-top:-6px;font-family:'Roboto',monospace}
-
-/* ── 최근 검색 ── */
-.recent-wrap{margin-top:14px;display:none}
-.recent-wrap.show{display:block}
-.recent-label{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:0.3px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
-.recent-clear{font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;padding:0;font-family:'Noto Sans KR',sans-serif;transition:color 0.15s}
-.recent-clear:hover{color:var(--red)}
-.recent-list{display:flex;flex-wrap:wrap;gap:7px}
-.recent-tag{display:inline-flex;align-items:center;gap:6px;background:var(--bg2);border:1.5px solid var(--border2);border-radius:20px;padding:6px 12px;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;transition:all 0.15s}
-.recent-tag:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-pale)}
-.recent-tag .rtag-icon{font-size:11px;opacity:0.5}
-.recent-tag .rtag-del{font-size:14px;opacity:0.35;line-height:1;transition:opacity 0.15s;margin-left:2px}
-.recent-tag .rtag-del:hover{opacity:1;color:var(--red)}
-
-/* ── 블로그 지수 탭 ── */
-.bi-hero{background:linear-gradient(135deg,#1428a0 0%,#1a34c8 100%);border-radius:var(--radius);padding:24px 28px;margin-bottom:16px;color:#fff;animation:fadeUp 0.4s ease both}
-.bi-hero-title{font-size:20px;font-weight:700;letter-spacing:-0.4px;margin-bottom:4px}
-.bi-hero-sub{font-size:12px;color:rgba(255,255,255,0.7);font-weight:300}
-
-/* 활동 지표 카드 */
-.bi-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
-.bi-stat-cell{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:18px 12px;text-align:center;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
-.bi-stat-cell::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--blue)}
-.bi-stat-num{font-size:26px;font-weight:700;font-family:'Roboto',sans-serif;line-height:1;margin-bottom:5px}
-.bi-stat-lbl{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:0.5px;text-transform:uppercase}
-.bi-stat-sub{font-size:11px;color:var(--text3);margin-top:4px}
-/* 활동 지수 게이지 */
-.bi-gauge-wrap{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:14px;box-shadow:var(--shadow-sm)}
-.bi-gauge-title{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
-.bi-gauge-bar{height:12px;background:var(--bg2);border-radius:6px;overflow:hidden;margin-bottom:8px}
-.bi-gauge-fill{height:100%;border-radius:6px;transition:width 0.8s ease}
-.bi-gauge-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--text3)}
-.bi-last-date{font-size:12px;color:var(--text3);text-align:center;padding:8px;background:var(--bg3);border-radius:6px;margin-bottom:14px}
-
-/* 키워드 순위 조회 */
-.bi-kw-input-row{display:flex;gap:8px;margin-bottom:14px}
-.bi-rank-result{display:flex;flex-direction:column;gap:6px}
-.bi-rank-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:6px;text-decoration:none;box-shadow:var(--shadow-sm);transition:all 0.15s}
-.bi-rank-item:hover{border-color:var(--blue);background:var(--blue-pale)}
-.bi-rank-badge{font-size:11px;font-weight:700;color:#fff;border-radius:5px;min-width:36px;height:26px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Roboto',sans-serif}
-.bi-rank-badge.top3{background:var(--blue)}
-.bi-rank-badge.top10{background:#0099cc}
-.bi-rank-badge.other{background:var(--text3)}
-.bi-rank-info{flex:1;min-width:0}
-.bi-rank-title{font-size:13px;font-weight:500;color:var(--text);line-height:1.4;margin-bottom:2px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.bi-rank-item:hover .bi-rank-title{color:var(--blue)}
-.bi-rank-desc{font-size:11px;color:var(--text3);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.bi-rank-empty{font-size:13px;color:var(--text3);text-align:center;padding:24px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius)}
-.bi-loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:32px;font-size:13px;color:var(--text3)}
-
-/* ── 입력창 X 버튼 ── */
-.input-wrap{position:relative;flex:1;display:flex;align-items:center}
-.input-wrap .input{padding-right:36px;width:100%}
-.input-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;background:var(--border2);border:none;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:12px;color:var(--text3);line-height:1;padding:0;transition:all 0.15s;flex-shrink:0}
-.input-clear:hover{background:var(--text3);color:#fff}
-.input-clear.show{display:flex}
-
-/* ── 블로그 레벨 배지 ── */
-.bi-level-wrap{display:flex;align-items:center;gap:14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:14px;box-shadow:var(--shadow-sm)}
-.bi-level-badge{font-size:13px;font-weight:700;color:#fff;border-radius:8px;padding:6px 16px;letter-spacing:0.5px;white-space:nowrap;flex-shrink:0}
-.bi-level-info{flex:1}
-.bi-level-name{font-size:15px;font-weight:700;color:var(--text);letter-spacing:-0.2px}
-.bi-level-desc{font-size:11px;color:var(--text3);margin-top:2px}
-.lv1{background:#aaaaaa}.lv2{background:#88aa44}.lv3{background:#44aa66}
-.lv4{background:#2299aa}.lv5{background:#1177cc}.lv6{background:#1428a0}
-.lv7{background:#7733cc}.lv8{background:#cc3366}.lv9{background:#cc6600}
-
-/* ── 블로그 ID 입력 ── */
-.bi-id-row{display:flex;gap:8px;margin-bottom:16px;align-items:center}
-.bi-id-prefix{font-size:13px;color:var(--text3);white-space:nowrap;flex-shrink:0}
-
-/* ── 설정 버튼 ── */
-.topbar-settings{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:#fff;font-size:12px;font-weight:600;font-family:'Noto Sans KR',sans-serif;padding:5px 12px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:5px}
-.topbar-settings:hover{background:rgba(255,255,255,0.22)}
-.topbar-settings-txt{display:inline}
-
-/* ── 설정 모달 ── */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
-.modal-overlay.show{display:flex}
-.modal{background:#fff;border-radius:12px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,0.3);overflow:hidden;animation:fadeUp 0.25s ease both}
-.modal-header{background:var(--blue);padding:18px 22px;display:flex;align-items:center;justify-content:space-between}
-.modal-title{color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
-.modal-close{background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:28px;height:28px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s;line-height:1}
-.modal-close:hover{background:rgba(255,255,255,0.3)}
-.modal-body{padding:24px 22px}
-.modal-label{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.modal-desc{font-size:11px;color:var(--text3);margin-bottom:14px;line-height:1.6}
-.modal-input-row{display:flex;gap:8px;align-items:center;margin-bottom:6px}
-.modal-prefix{font-size:12px;color:var(--text3);white-space:nowrap;flex-shrink:0}
-.modal-saved{font-size:11px;color:var(--green);margin-top:8px;display:none}
-.modal-saved.show{display:block}
-.modal-footer{padding:16px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
-.modal-current{background:var(--blue-pale);border:1px solid rgba(20,40,160,0.2);border-radius:6px;padding:10px 14px;font-size:12px;color:var(--blue);margin-bottom:16px;display:flex;align-items:center;gap:6px}
-
-/* ── 노출 레이더 ── */
-.radar-hero{background:var(--blue);border-radius:var(--radius);padding:24px 28px;margin-bottom:16px;color:#fff;animation:fadeUp 0.4s ease both}
-.radar-hero-title{font-size:20px;font-weight:700;letter-spacing:-0.4px;margin-bottom:4px}
-.radar-hero-sub{font-size:12px;color:rgba(255,255,255,0.7);font-weight:300}
-/* 블로그 ID 상태 표시 */
-.radar-blogid-bar{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;font-size:13px;box-shadow:var(--shadow-sm)}
-.radar-blogid-val{font-weight:700;color:var(--blue)}
-.radar-blogid-hint{font-size:11px;color:var(--text3)}
-/* 스캔 컨트롤 */
-.radar-scan-wrap{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:14px;box-shadow:var(--shadow-sm)}
-.radar-scan-btn{font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;background:var(--blue);color:#fff;border:none;border-radius:8px;padding:14px 28px;cursor:pointer;width:100%;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:0.2px}
-.radar-scan-btn:hover{background:var(--blue2);transform:translateY(-1px);box-shadow:var(--shadow-md)}
-.radar-scan-btn:disabled{background:var(--text3);cursor:not-allowed;transform:none}
-.radar-progress{margin-top:14px;display:none}
-.radar-progress.show{display:block}
-.radar-progress-bar-wrap{background:var(--border);border-radius:6px;height:8px;overflow:hidden;margin-bottom:6px}
-.radar-progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),#0099cc);border-radius:6px;transition:width 0.3s ease}
-.radar-progress-txt{font-size:12px;color:var(--text3);text-align:center}
-/* 결과 리스트 */
-.radar-results{display:flex;flex-direction:column;gap:10px}
-.radar-item{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm);animation:fadeUp 0.3s ease both}
-.radar-item-head{padding:12px 16px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.radar-post-title{font-size:13px;font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.radar-post-title a{color:inherit;text-decoration:none}
-.radar-post-title a:hover{color:var(--blue)}
-.radar-kw-tags{display:flex;flex-wrap:wrap;gap:5px;padding:10px 16px 6px}
-.radar-kw-tag{display:inline-flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--text2)}
-.radar-rank-badge{font-size:11px;font-weight:700;color:#fff;border-radius:4px;padding:2px 8px;white-space:nowrap}
-.radar-rank-badge.top3{background:var(--blue)}
-.radar-rank-badge.top10{background:#0099cc}
-.radar-rank-badge.out{background:var(--text3)}
-.radar-rank-badge.scanning{background:var(--amber)}
-.radar-rank-badge.error{background:var(--red)}
-.radar-empty{font-size:13px;color:var(--text3);text-align:center;padding:32px}
-.radar-kw-row{display:flex;align-items:center;gap:8px;padding:0 16px 10px;flex-wrap:wrap}
-.radar-kw-result{font-size:12px;color:var(--text2)}
-
-.radar-page-tab{font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:600;flex:1;padding:9px;text-align:center;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--bg);color:var(--text3);cursor:pointer;transition:all 0.15s}
-.radar-page-tab:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-pale)}
-.radar-page-tab.active{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 2px 8px rgba(20,40,160,0.25)}
-.radar-page-tab.scanning{background:var(--blue-pale);color:var(--blue);border-color:var(--blue);border-style:dashed}
-.radar-page-tab.scanning .tab-spinner{display:inline-block;animation:hourglass 1.2s steps(1) infinite;margin-right:3px}
-.radar-page-tab.done{background:var(--green-bg);color:var(--green);border-color:var(--green)}
-.radar-page-tab.done.active{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 2px 8px rgba(20,40,160,0.25)}
-@keyframes hourglass{0%{content:'⏳'}50%{content:'⌛'}100%{content:'⏳'}}
-
-/* ── Console ── */
-.console{position:fixed;bottom:0;left:0;right:0;background:var(--text);padding:10px 20px;display:flex;align-items:center;gap:10px;font-size:12px;color:rgba(255,255,255,0.7);z-index:10;box-shadow:0 -2px 12px rgba(0,0,0,0.15);pointer-events:none}
-.cdot{width:6px;height:6px;border-radius:50%;background:#555;flex-shrink:0}
-.cdot.ok{background:#4cff8f}
-.cdot.busy{background:#ffc107;animation:blink 0.5s infinite}
-.cdot.fail{background:#ff6060}
-
-/* ── 태블릿 ── */
-@media(max-width:768px){
-  .page{padding:20px 12px 80px}
-  .hero{padding:22px 18px}
-  .sgrid{grid-template-columns:repeat(3,1fr)}
-  .bi-stat-grid{grid-template-columns:repeat(3,1fr)}
+  /* ── 하위 호환 별칭 — 기존 CSS·JS 인라인 스타일 보호 ── */  --naver:var(--src-n);
+  --google:var(--src-g);
+  --navy:var(--ink-700);
+  --blue:var(--ink-600);
 }
 
-/* ── 모바일 ── */
-@media(max-width:600px){
-  html{font-size:16px}
-  .topbar{padding:0 12px;height:52px}
-  .topbar-name{font-size:13px}
-  .topbar-status{font-size:11px;gap:4px}
-  .topbar-settings{padding:5px 8px}
-  .topbar-settings-txt{display:none}
-  .tab-btn{padding:12px 10px;font-size:12px;gap:4px}
-  .tab-icon{font-size:13px}
-  .page{padding:16px 12px 70px}
-  .hero{padding:20px 16px 18px;margin-bottom:12px}
-  .hero-title{font-size:21px}
-  .hero-sub{font-size:12px}
-  .card-header{padding:12px 16px}
-  .card-body{padding:16px}
-  .kw-row{flex-direction:column;gap:10px}
-  .kw-row .btn{width:100%;padding:13px}
-  .input{padding:13px 14px;font-size:16px}
-  .bi-kw-input-row{flex-direction:column}
-  .bi-kw-input-row .btn{width:100%}
-  .bi-id-row{flex-wrap:wrap;gap:6px}
-  .bi-id-row .btn{width:100%}
-  .bi-id-prefix{font-size:11px}
-  .kwcard-head{padding:12px 14px}
-  .kwname{font-size:17px}
-  .kwcard-body{padding:14px}
-  .sgrid{grid-template-columns:repeat(3,1fr);gap:7px}
-  .scell{padding:11px 6px}
-  .slbl{font-size:9px}
-  .snum{font-size:19px}
-  .bi-stat-grid{grid-template-columns:1fr 1fr;gap:8px}
-  .bi-stat-num{font-size:22px}
-  /* 노출 레이더 모바일 */
-  .radar-kw-row{flex-direction:column;gap:6px}
-  .radar-scan-btn{width:100%;padding:13px}
-  .console{padding:9px 14px;font-size:11px}
+/* ═══════════ 리셋 · 베이스 ═══════════ */
+*{margin:0;padding:0;box-sizing:border-box;font-family:var(--font);}
+html,body{overflow-x:clip;max-width:100%;}
+@supports not (overflow:clip){body{overflow-x:hidden;}}
+body{
+  background:var(--light);color:var(--text);
+  font-size:var(--fs-md);line-height:var(--lh-body);
+  padding:var(--s6) var(--s4) var(--s10);
+  max-width:760px;margin:0 auto;
+  -webkit-text-size-adjust:100%;
+  text-wrap:pretty;
+}
+a{color:var(--orange-600);text-decoration:none;}
+a:hover{color:var(--orange-700);text-decoration:underline;}
+:focus-visible{outline:2px solid var(--orange-500);outline-offset:2px;}
+::selection{background:var(--orange-100);}
+svg text{font-family:var(--font);}
+button{font-family:var(--font);}
+
+/* ═══════════ 아이콘 — 단색 인라인 SVG (마스크 방식) ═══════════
+   이모지를 대체한다. currentColor를 따라가므로 상태별 색이 자동으로 맞는다.
+   외부 라이브러리 의존 없음. HTML은 <span class="ico ico-search"></span> 형태.  */
+.ico{
+  display:inline-block;width:1em;height:1em;flex-shrink:0;
+  background:currentColor;vertical-align:-.13em;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  -webkit-mask-position:center;mask-position:center;
+  -webkit-mask-size:100% 100%;mask-size:100% 100%;
+}
+.ico-lg{width:1.15em;height:1.15em;}
+.ico-search{-webkit-mask-image:var(--i-search);mask-image:var(--i-search);}
+.ico-bars{-webkit-mask-image:var(--i-bars);mask-image:var(--i-bars);}
+.ico-radar{-webkit-mask-image:var(--i-radar);mask-image:var(--i-radar);}
+.ico-sliders{-webkit-mask-image:var(--i-sliders);mask-image:var(--i-sliders);}
+.ico-clock{-webkit-mask-image:var(--i-clock);mask-image:var(--i-clock);}
+.ico-trend{-webkit-mask-image:var(--i-trend);mask-image:var(--i-trend);}
+.ico-download{-webkit-mask-image:var(--i-download);mask-image:var(--i-download);}
+.ico-link{-webkit-mask-image:var(--i-link);mask-image:var(--i-link);}
+.ico-users{-webkit-mask-image:var(--i-users);mask-image:var(--i-users);}
+.ico-doc{-webkit-mask-image:var(--i-doc);mask-image:var(--i-doc);}
+.ico-compass{-webkit-mask-image:var(--i-compass);mask-image:var(--i-compass);}
+.ico-book{-webkit-mask-image:var(--i-book);mask-image:var(--i-book);}
+.ico-help{-webkit-mask-image:var(--i-help);mask-image:var(--i-help);}
+.ico-gauge{-webkit-mask-image:var(--i-gauge);mask-image:var(--i-gauge);}
+:root{
+  --i-search:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round'%3E%3Ccircle cx='6.9' cy='6.9' r='4.3'/%3E%3Cpath d='M10.1 10.1 14 14'/%3E%3C/svg%3E");
+  --i-bars:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3E%3Crect x='2' y='9' width='3' height='5' rx='1'/%3E%3Crect x='6.5' y='5' width='3' height='9' rx='1'/%3E%3Crect x='11' y='2' width='3' height='12' rx='1'/%3E%3C/svg%3E");
+  --i-radar:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round'%3E%3Ccircle cx='8' cy='8' r='1.6' fill='%23000' stroke='none'/%3E%3Cpath d='M11.2 4.8a4.5 4.5 0 0 1 0 6.4'/%3E%3Cpath d='M13.4 2.6a7.6 7.6 0 0 1 0 10.8'/%3E%3Cpath d='M4.8 11.2a4.5 4.5 0 0 1 0-6.4'/%3E%3C/svg%3E");
+  --i-sliders:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M2 5.5h12M2 10.5h12'/%3E%3Ccircle cx='6' cy='5.5' r='1.9' fill='%23fff'/%3E%3Ccircle cx='10.5' cy='10.5' r='1.9' fill='%23fff'/%3E%3C/svg%3E");
+  --i-clock:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round'%3E%3Ccircle cx='8' cy='8' r='6'/%3E%3Cpath d='M8 4.6V8l2.6 1.7'/%3E%3C/svg%3E");
+  --i-trend:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 11.5 6 7.5l3 2.5 5-6'/%3E%3Cpath d='M10.4 4h3.6v3.6'/%3E%3C/svg%3E");
+  --i-download:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 2v7.5'/%3E%3Cpath d='M5 7l3 3 3-3'/%3E%3Cpath d='M2.5 13h11'/%3E%3C/svg%3E");
+  --i-link:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round'%3E%3Cpath d='M6.3 9.7 9.7 6.3'/%3E%3Cpath d='M9 4.6l1-1a2.9 2.9 0 0 1 4.1 4.1l-1.6 1.6'/%3E%3Cpath d='M7 11.4l-1 1a2.9 2.9 0 0 1-4.1-4.1l1.6-1.6'/%3E%3C/svg%3E");
+  --i-users:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round'%3E%3Ccircle cx='6' cy='5.4' r='2.6'/%3E%3Cpath d='M1.6 13.4a4.6 4.6 0 0 1 8.8 0'/%3E%3Cpath d='M11 3.2a2.4 2.4 0 0 1 0 4.4'/%3E%3Cpath d='M12.2 9.6a4 4 0 0 1 2.3 3.3'/%3E%3C/svg%3E");
+  --i-doc:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 2h6l3 3v9h-9z'/%3E%3Cpath d='M9.2 2.2V5h2.8'/%3E%3Cpath d='M5.6 8.6h4.8M5.6 11.2h3.2'/%3E%3C/svg%3E");
+  --i-compass:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23000' stroke-width='1.6' stroke-linejoin='round'%3E%3Ccircle cx='8' cy='8' r='6'/%3E%3Cpath d='M10.6 5.4 9.1 9.1 5.4 10.6 6.9 6.9z' fill='%23000' stroke='none'/%3E%3C/svg%3E");
+  --i-book:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 3.6C6.6 2.6 4.9 2.4 2.6 2.6v9.2c2.3-.2 4 0 5.4 1 1.4-1 3.1-1.2 5.4-1V2.6c-2.3-.2-4 0-5.4 1z'/%3E%3Cpath d='M8 3.6v9.2'/%3E%3C/svg%3E");
+  --i-help:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round'%3E%3Ccircle cx='8' cy='8' r='6'/%3E%3Cpath d='M6.2 6.2a1.85 1.85 0 1 1 2.6 1.7c-.5.3-.8.7-.8 1.3'/%3E%3Ccircle cx='8' cy='11.4' r='.85' fill='%23000' stroke='none'/%3E%3C/svg%3E");
+  --i-gauge:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round'%3E%3Cpath d='M2.4 11.6a5.9 5.9 0 1 1 11.2 0'/%3E%3Cpath d='M8 11.6 11 6.6'/%3E%3C/svg%3E");
 }
 
-@media(max-width:380px){
-  .hero-title{font-size:19px}
-  .sgrid{grid-template-columns:1fr 1fr;gap:8px}
-  .snum{font-size:22px}
+/* ═══════════ 브랜드 헤더 ═══════════ */
+.brand{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:var(--s3);margin-bottom:var(--s5);
+}
+.brand-left{display:flex;align-items:center;gap:var(--s2);min-width:0;}
+.brand-left img,.brand-icon{height:28px;width:28px;flex-shrink:0;display:block;}
+.brand-left h1,.brand h1{
+  font-size:var(--fs-h2);letter-spacing:.2px;color:var(--dark);
+  white-space:nowrap;line-height:1;font-weight:bold;
+}
+.brand-meta,.brand .ver{
+  font-size:var(--fs-micro);color:var(--ink-400);font-weight:normal;
+  letter-spacing:.2px;
+}
+.brand-settings{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 12px;border:1px solid var(--border);border-radius:var(--r-sm);
+  background:var(--surface);color:var(--ink-500);
+  font-size:var(--fs-cap);font-weight:bold;cursor:pointer;white-space:nowrap;
+  transition:border-color .15s,color .15s;
+}
+.brand-settings:hover{border-color:var(--orange-500);color:var(--orange-600);}
+@media(max-width:480px){.brand-meta{display:none;}}
+
+/* ═══════════ 메인 탭 ═══════════
+   구획선 대신 배경 대비로만 활성 상태를 표현한다. */
+.main-tabs{
+  display:flex;gap:2px;background:var(--paper-200);
+  border-radius:var(--r-md);padding:3px;margin-bottom:var(--s5);
+  position:sticky;top:6px;z-index:10;
+}
+.main-tabs button,.main-tabs a{
+  flex:1;padding:9px 0;border:none;background:transparent;
+  border-radius:var(--r-sm);font-size:var(--fs-md);font-weight:bold;
+  color:var(--ink-500);cursor:pointer;text-align:center;text-decoration:none;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  transition:background .15s,color .15s;
+}
+.main-tabs a:hover{color:var(--ink-800);text-decoration:none;}
+.main-tabs button.active,.main-tabs a.active{
+  background:var(--surface);color:var(--orange-600);box-shadow:var(--sh-1);
 }
 
-@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+/* ═══════════ 히어로 ═══════════ */
+.hero{padding:var(--s2) 2px var(--s4);}
+.hero-eyebrow{
+  font-size:var(--fs-micro);font-weight:bold;letter-spacing:.9px;
+  color:var(--ink-400);text-transform:uppercase;margin-bottom:var(--s2);
+}
+.hero-title{
+  font-size:var(--fs-h1);font-weight:bold;color:var(--dark);
+  letter-spacing:-.4px;line-height:1.25;margin-bottom:6px;
+}
+.hero-sub{font-size:var(--fs-lg);color:var(--ink-500);line-height:1.6;max-width:56ch;}
+
+/* ═══════════ 검색 ═══════════ */
+.search-row{display:flex;gap:var(--s2);margin-bottom:var(--s3);}
+.inp-wrap{position:relative;flex:1;display:flex;min-width:0;}
+.inp-wrap input{width:100%;padding-right:36px;}
+.search-row input{
+  flex:1;min-width:0;padding:12px 14px;
+  border:1.5px solid var(--border);border-radius:var(--r-md);
+  font-size:var(--fs-lg);background:var(--surface);color:var(--text);
+  transition:border-color .15s,box-shadow .15s;
+}
+.search-row input::placeholder{color:var(--ink-300);}
+.search-row input:focus{
+  outline:none;border-color:var(--orange-500);
+  box-shadow:0 0 0 3px var(--orange-050);
+}
+.search-row button{
+  padding:12px 22px;background:var(--orange-500);color:#fff;border:none;
+  border-radius:var(--r-md);font-size:var(--fs-lg);font-weight:bold;cursor:pointer;
+  transition:background .15s;
+}
+.search-row button:hover{background:var(--orange-600);}
+.search-row button:active{background:var(--orange-700);}
+.inp-clear{
+  position:absolute;right:9px;top:50%;transform:translateY(-50%);
+  width:21px;height:21px;border-radius:50%;border:none;
+  background:var(--paper-200);color:var(--ink-500);font-size:13px;line-height:1;
+  cursor:pointer;display:none;align-items:center;justify-content:center;
+}
+.inp-clear:hover{background:var(--paper-300);}
+.inp-clear.show{display:flex;}
+
+/* ═══════════ 소스 토글 (축 2 — 라벨) ═══════════
+   점 색만으로 구분하던 것을 글자 색·활성 배경까지 소스별로 맞춘다.
+   네이버=오렌지 / 구글=잉크 / 통합=반반. */
+.source-toggle{
+  display:inline-flex;align-items:center;
+  background:var(--paper-200);border-radius:var(--r-md);padding:3px;
+  margin-bottom:var(--rhythm);
+}
+.source-toggle button{
+  display:flex;align-items:center;gap:6px;line-height:1;
+  padding:9px 16px;border:none;background:transparent;border-radius:var(--r-sm);
+  font-size:var(--fs-md);font-weight:bold;color:var(--ink-500);cursor:pointer;
+  transition:background .18s,color .18s;
+}
+.source-toggle button .dot{width:7px;height:7px;border-radius:2px;background:var(--ink-300);}
+.source-toggle button[data-src="naver"] .dot{background:var(--src-n);}
+.source-toggle button[data-src="google"] .dot{background:var(--src-g);}
+.source-toggle button[data-src="both"] .dot{
+  background:linear-gradient(90deg,var(--src-n) 50%,var(--src-g) 50%);
+}
+.source-toggle button:hover:not(:disabled){color:var(--ink-800);}
+.source-toggle button.active{background:var(--surface);box-shadow:var(--sh-1);}
+.source-toggle button[data-src="naver"].active{color:var(--src-n-ink);}
+.source-toggle button[data-src="google"].active{color:var(--src-g-ink);}
+.source-toggle button[data-src="both"].active{color:var(--ink-800);}
+.source-toggle button:disabled{cursor:not-allowed;opacity:.45;}
+.source-toggle button .badge{padding:2px 6px;font-size:var(--fs-micro);margin-left:2px;}
+
+/* ═══════════ 결과 그리드 ═══════════ */
+.results{display:none;}
+.results.show{display:grid;gap:var(--gap);align-items:start;}
+
+/* ═══════════ 카드 — 3단 위계 ═══════════
+   클래스명을 바꿀 수 없으므로 위계는 id로 지정한다.
+     1차  #volCard                                   — 큰 수치 · 오렌지 · 그림자
+     2차  #gVolCard #nCompCard #gCompCard
+          #trendCard #gSeasonCard #top10Card         — 기본
+     참고 #recentCard #relCard #gIdeaCard #mypostCard — 가라앉은 배경 · 그림자 없음 */
+/* 카드는 세로 플렉스다. 같은 행의 두 카드가 늘어날 때
+   출처 표기(.foot)가 양쪽 모두 바닥에 붙어 같은 선에서 끝난다. */
+.card{
+  display:flex;flex-direction:column;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);overflow:hidden;
+  margin-bottom:var(--rhythm);box-shadow:var(--sh-1);
+}
+.card-head{
+  display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:var(--s2);
+  padding:var(--s3) var(--card-x);min-height:46px;
+}
+.card-head h2{
+  display:flex;align-items:center;gap:7px;
+  font-size:var(--fs-h2);color:var(--dark);line-height:var(--lh-tight);
+  letter-spacing:-.1px;
+}
+.card-head h2 small{
+  font-size:var(--fs-cap);color:var(--ink-400);font-weight:normal;letter-spacing:0;
+}
+.card-head h2 .ico{color:var(--ink-300);}
+
+/* 1차 정보 — 이 화면에서 가장 큰 목소리 */
+#volCard{box-shadow:var(--sh-2);border-color:var(--paper-400);}
+#volCard .card-head{border-bottom:1px solid var(--border-soft);}
+#volCard .card-head h2{color:var(--ngreen-800);}
+#volCard .card-head h2 .ico{color:var(--ngreen-300);}
+
+/* 참고 정보 — 가라앉히고 헤더를 한 단계 작게 */
+#recentCard,#relCard,#gIdeaCard,#mypostCard{
+  background:var(--paper-050);box-shadow:none;border-color:var(--border-soft);
+}
+#recentCard .card-head,#relCard .card-head,
+#gIdeaCard .card-head,#mypostCard .card-head{min-height:42px;}
+#recentCard .card-head h2,#relCard .card-head h2,
+#gIdeaCard .card-head h2,#mypostCard .card-head h2{
+  font-size:var(--fs-md);color:var(--ink-600);
+}
+
+/* 소스 라벨 — 구글 카드는 헤더 좌측에 얇은 잉크 띠를 둔다 (축 2) */
+#gVolCard .card-head h2::before,#gCompCard .card-head h2::before,
+#gSeasonCard .card-head h2::before,#gIdeaCard .card-head h2::before{
+  content:'';width:3px;height:1em;border-radius:2px;
+  background:var(--src-g);flex-shrink:0;
+}
+#volCard .card-head h2::before,#nCompCard .card-head h2::before,
+#trendCard .card-head h2::before,#relCard .card-head h2::before{
+  content:'';width:3px;height:1em;border-radius:2px;
+  background:var(--src-n);flex-shrink:0;
+}
+#gVolCard,#gCompCard,#gSeasonCard,#gIdeaCard{display:none;}
+
+/* 카드 하단 출처 표기 (6-2) — 항상 보이는 정보이므로 지워지지 않게 둔다.
+   margin-top:auto — 카드가 늘어난 만큼 위쪽 여백이 먹으므로
+   좌우 카드의 출처 줄이 같은 높이에서 끝난다. */
+.foot{
+  margin-top:auto;
+  display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:var(--s2);
+  font-size:var(--fs-micro);color:var(--ink-400);
+  padding:9px var(--card-x);background:var(--surface-sunk);
+  border-top:1px solid var(--border-soft);letter-spacing:.1px;
+}
+.foot a{color:var(--orange-600);font-weight:bold;cursor:pointer;}
+.caption{font-size:var(--fs-sm);color:var(--muted);margin:0 2px var(--s3);line-height:1.7;}
+.caption b{color:var(--orange-600);}
+
+/* ═══════════ 3분할 지표 블록 (.g-top) ═══════════
+   네이버 카드와 구글 카드가 같은 행에 나란히 서므로 세 줄이 서로 맞아야 한다.
+   두 카드의 수치 크기가 다르기 때문에(1차 vs 구간값) 자연 흐름에 맡기면
+   라벨·수치·단서 줄이 전부 어긋난다. 그래서 토큰으로 높이를 고정한다.
+     · 라벨 줄  — 고정 높이
+     · 수치 블록 — 최소 높이 --gv-h (양쪽 카드가 같은 토큰을 읽는다)
+     · 단서 줄  — margin-top:auto 로 아래에 붙는다 → 두 카드의 마지막 줄이 같은 선 */
+.g-top{display:grid;grid-template-columns:repeat(3,1fr);}
+.g-top > div{
+  display:flex;flex-direction:column;
+  padding:var(--s4) 10px;text-align:center;border-left:1px solid var(--border-soft);
+}
+.g-top > div:first-child{border-left:none;}
+.g-top .gl{
+  font-size:var(--fs-micro);color:var(--ink-400);margin-bottom:6px;
+  letter-spacing:.2px;line-height:1.3;
+  min-height:calc(var(--fs-micro) * 1.3);
+}
+.g-top .gv{
+  display:flex;flex-direction:column;flex:1;
+  min-height:var(--gv-h);
+  font-size:var(--fs-metric-2);font-weight:bold;color:var(--text-strong);
+  line-height:var(--lh-tight);word-break:keep-all;
+}
+.g-top .gv small{
+  display:block;font-size:var(--fs-micro);color:var(--ink-400);
+  font-weight:normal;margin-top:auto;padding-top:4px;letter-spacing:.1px;
+}
+.g-top .gv em{font-style:normal;}
+
+/* 1차 지표 — 네이버 월간 검색량 합계만 큰 수치를 갖는다.
+   나머지 칸(PC·모바일)은 보조 수치로 한 단계 내린다. */
+#volBody .g-top > div:first-child{background:var(--src-n-tint);}
+#volBody .g-top .gv em.n,#volBody .g-top > div:first-child .gv{
+  font-size:var(--fs-metric);color:var(--src-n-ink);letter-spacing:-.6px;
+}
+#volBody .g-top > div:first-child .gv small{color:var(--src-n-ink);opacity:.8;}
+#volBody .g-top > div + div .gv{font-size:var(--fs-metric-2);color:var(--ink-700);}
+
+/* 구글 검색량 — 구간이므로 큰 숫자 하나로 강조하지 않는다 (6-1).
+   같은 위치라도 크기를 올리지 않고, 밑줄 + '구간 표시' 라벨로 성격을 드러낸다.
+   수치는 잉크로 둔다. 블루는 카드 띠·틴트·밑줄 같은 표식에만 쓴다. */
+#gVolBody .g-top > div:first-child{background:var(--src-g-tint);}
+#gVolBody .g-top .gv{font-size:var(--fs-lg);color:var(--ink-800);}
+#gVolBody .g-top .gv em{
+  color:var(--ink-800);font-weight:bold;
+  padding:1px 0 2px;border-bottom:2px solid var(--src-g);
+}
+#gVolBody .g-top .gv small{color:var(--ink-400);}
+#gVolBody .g-top > div:first-child .gv small{color:var(--src-g-ink);opacity:.85;}
+
+/* ═══════════ 경쟁도 게이지 ═══════════
+   두 지수는 산출 근거가 다르다 (6-3). 색·질감보다 형태가 강한 신호이므로
+   같은 막대 두 개를 쓰지 않고 아예 다른 물건으로 만든다.
+     네이버 → 15칸 개수 게이지 (월평균 노출 광고 수를 '센다')
+     구글   → 낮음·중간·높음 위의 위치 마커 (광고주 밀도를 '가리킨다')
+   눈금과 마커는 모두 CSS 오버레이라 HTML 수정이 필요 없다. */
+.comp-wrap{padding:var(--s4) var(--card-x);}
+.comp-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:var(--s2);}
+.comp-label{font-size:var(--fs-cap);color:var(--ink-400);}
+.comp-label em{font-style:normal;font-weight:bold;color:var(--ink-700);}
+.comp-top b{font-size:var(--fs-metric-2);color:var(--text-strong);letter-spacing:-.2px;}
+.comp-track{height:9px;background:var(--paper-200);border-radius:var(--r-pill);overflow:hidden;}
+.comp-fill{display:block;height:100%;border-radius:var(--r-pill);}
+.comp-fill.naver{background:var(--src-n);}
+.comp-fill.google{background:var(--hatch-g);}
+.comp-x{
+  display:flex;justify-content:space-between;
+  font-size:var(--fs-micro);color:var(--ink-400);margin-top:5px;
+}
+
+/* ── 네이버 — 개수 게이지 (최대 15칸) ──
+   채움 위에 카드 배경색 눈금을 15등분으로 얹어 '칸'을 만든다.
+   퍼센트 막대가 아니라 세는 물건으로 읽히는 것이 핵심이다. */
+#nCompCard .comp-track{
+  position:relative;height:14px;border-radius:var(--r-xs);
+  background:var(--paper-100);box-shadow:inset 0 0 0 1px var(--border-soft);
+}
+#nCompCard .comp-fill{border-radius:2px;}
+#nCompCard .comp-track::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  border-radius:inherit;
+  background:repeating-linear-gradient(90deg,
+    transparent 0 calc(100% / 15 - 3px),
+    var(--surface) calc(100% / 15 - 3px) calc(100% / 15));
+}
+#nCompCard .comp-top b{color:var(--ink-900);}
+#nCompCard .comp-x{margin-top:7px;}
+
+/* ── 구글 — 위치 마커 ──
+   채움을 지우고 오른쪽 끝만 남긴다. 면적이 없으면 '양'으로 읽히지 않는다.
+   눈금 라벨은 낮음 · 중간 · 높음 세 개 (JS 문구 한 줄). */
+#gCompCard .comp-track{height:8px;overflow:visible;background:var(--paper-200);}
+#gCompCard .comp-fill,
+#gCompCard .comp-fill.google{
+  position:relative;background:transparent;min-width:2px;
+}
+#gCompCard .comp-fill::after{
+  content:'';position:absolute;right:-1.5px;top:-5px;bottom:-5px;width:3px;
+  background:var(--src-g);border-radius:2px;
+}
+#gCompCard .comp-x{margin-top:9px;}
+#gCompCard .comp-x span{flex:1;text-align:center;}
+#gCompCard .comp-x span:first-child{text-align:left;}
+#gCompCard .comp-x span:last-child{text-align:right;}
+/* 구간 추정값이므로 지수는 큰 목소리를 갖지 않는다 (검색량 구간과 같은 이유).
+   '경쟁 정도 높음'을 1차, 지수를 보조로 뒤집는다. */
+#gCompCard .comp-label{font-size:var(--fs-cap);}
+#gCompCard .comp-label em{font-size:var(--fs-metric-2);color:var(--ink-900);letter-spacing:-.2px;}
+#gCompCard .comp-top b{
+  font-size:var(--fs-md);font-weight:normal;color:var(--ink-500);letter-spacing:0;
+}
+#gCompCard .comp-top b::before{content:'지수 ';color:var(--ink-400);}
+.comp-note{
+  font-size:var(--fs-cap);color:var(--ink-400);margin-top:var(--s3);
+  line-height:1.6;padding-top:9px;border-top:1px dashed var(--border-soft);
+}
+.comp-note b{color:var(--ink-700);}
+
+/* ═══════════ 12개월 막대 ═══════════ */
+.mchart{padding:var(--s3) var(--card-x) var(--s4);}
+.mchart .mtitle{font-size:var(--fs-cap);color:var(--ink-400);margin-bottom:var(--s3);}
+.mchart .mtitle b{color:var(--ink-700);}
+.mchart .mbars{
+  display:grid;grid-template-columns:repeat(var(--cols,12),1fr);gap:4px;
+  align-items:end;height:74px;
+}
+.mchart .mbars i{display:block;width:100%;min-height:3px;border-radius:2px 2px 0 0;}
+.mchart .mx{
+  display:grid;grid-template-columns:repeat(var(--cols,12),1fr);gap:4px;
+  margin-top:6px;font-size:var(--fs-micro);color:var(--ink-400);text-align:center;
+}
+.mchart.naver  .mbars i{background:var(--src-n-soft);}
+.mchart.naver  .mbars i.peak{background:var(--src-n);}
+.mchart.google .mbars i{background:var(--src-g-soft);}
+.mchart.google .mbars i.peak{background:var(--hatch-g);}
+/* ── 해석 팁 박스 (v3.10) ──
+   막대 아래 문장을 카드 배경에서 떼어내 옅은 소스 틴트 위에 올린다.
+   앞줄은 사실(최고점·진폭), 뒷줄은 해석. 대시로 잇지 않고 줄로 가른다.
+   margin-top:auto — 좌우 카드의 문장 길이가 달라도 두 박스가 같은 선에서 끝난다.
+   (카드가 세로 플렉스이므로 래퍼에도 flex:1을 줘야 auto가 먹는다) */
+.trend-wrap,#gSeasonBody{display:flex;flex-direction:column;flex:1;}
+.trend-wrap{padding:0;}
+.trend-sub{
+  margin:var(--s2) var(--card-x) var(--s4);margin-top:auto;
+  padding:10px 12px;border-radius:var(--r-sm);
+  background:var(--src-n-tint);border-left:3px solid var(--src-n);
+  font-size:var(--fs-cap);color:var(--ink-600);line-height:1.65;
+}
+.trend-sub b{color:var(--ink-900);}
+.trend-sub .ts-fact{color:var(--ink-900);font-weight:bold;letter-spacing:-.1px;margin-bottom:3px;}
+.trend-sub .ts-read{color:var(--ink-600);}
+#gSeasonBody .trend-sub{background:var(--src-g-tint);border-left-color:var(--src-g);}
+
+/* ═══════════ 연관 키워드 목록 ═══════════ */
+.kw-row{
+  display:block;padding:11px var(--card-x);
+  border-top:1px solid var(--border-soft);cursor:pointer;transition:background .12s;
+}
+.kw-row:first-child{border-top:none;}
+.kw-row:last-child{border-bottom:none;}
+.kw-row:hover{background:var(--surface);}
+#relCard .kw-row:hover,#gIdeaCard .kw-row:hover{background:var(--paper-100);}
+.kw-name{
+  font-size:var(--fs-md);font-weight:bold;color:var(--ink-800);
+  line-height:1.45;word-break:keep-all;overflow-wrap:anywhere;
+}
+.kw-row:hover .kw-name{color:var(--orange-600);}
+.kw-meta{
+  display:flex;flex-wrap:wrap;gap:3px 12px;margin-top:4px;
+  font-size:var(--fs-cap);color:var(--ink-400);
+}
+.kw-meta b{font-weight:bold;color:var(--src-n-ink);}
+#gIdeaBody .kw-meta b{color:var(--ink-700);}
+
+/* ═══════════ 접기 / 펼치기 ═══════════ */
+tr.fold-row{display:none;}
+.unfolded tr.fold-row{display:table-row;}
+div.fold-row{display:none;}
+.unfolded div.fold-row{display:block;}
+.fold-btn{
+  display:block;width:calc(100% - (var(--card-x) * 2));
+  margin:10px var(--card-x);padding:9px;
+  border:1px solid var(--border);border-radius:var(--r-sm);
+  background:var(--surface);font-size:var(--fs-cap);color:var(--ink-500);
+  font-weight:bold;cursor:pointer;transition:.15s;
+}
+.fold-btn:hover{border-color:var(--orange-300);color:var(--orange-600);}
+
+/* ═══════════ 표 ═══════════ */
+table{width:100%;border-collapse:collapse;font-size:var(--fs-md);}
+.card table{max-width:100%;}
+th{
+  color:var(--ink-400);font-size:var(--fs-micro);text-align:right;
+  padding:8px var(--s3);border-bottom:1px solid var(--border-soft);
+  font-weight:normal;white-space:nowrap;background:transparent;
+}
+th:first-child,td:first-child{text-align:left;}
+td{
+  padding:10px var(--s3);border-bottom:1px solid var(--border-soft);
+  text-align:right;white-space:nowrap;
+}
+tr:last-child td{border-bottom:none;}
+td.kw{
+  font-weight:bold;color:var(--ink-800);cursor:pointer;text-align:left;
+  white-space:normal;word-break:keep-all;overflow-wrap:anywhere;max-width:180px;
+}
+td.kw:hover{color:var(--orange-600);}
+td.time{color:var(--ink-500);font-size:var(--fs-cap);}
+td.num-cell{line-height:1.4;}
+td.num-cell strong{display:block;font-size:var(--fs-md);color:var(--ink-800);}
+td.num-cell em.sub{
+  display:block;font-style:normal;font-size:var(--fs-micro);
+  color:var(--ink-400);margin-top:2px;
+}
+.n-col{color:var(--src-n-ink);font-weight:bold;}
+.g-col{color:var(--ink-600);font-weight:bold;}
+#recentCard table{table-layout:fixed;}
+#recentCard th:nth-child(1),#recentCard td:nth-child(1){width:34%;}
+#recentCard td.num-cell,#recentCard th:nth-child(2){text-align:right;}
+#recentCard td.g-col,#recentCard th.gcol{text-align:right;}
+#recentCard td.time,#recentCard th.time-col{text-align:right;width:15%;}
+
+/* ── 최근 검색 · 네이버 vs 구글 비중 바 (v3.10) ──
+   통합 보기에서만 나타난다. 한쪽 값만 있는 행에는 그리지 않는다.
+   폭은 화면에 이미 노출된 구간의 기하 중앙값에서 계산한다 —
+   raw를 쓰면 픽셀 비율에서 정확한 수치가 역산되므로 쓰지 않는다.
+   구글 세그먼트는 해치 — 솔리드 네이버와 같은 정밀도로 읽히면 안 된다. */
+#recentCard tr.rc-bar-row td{border-bottom:none;padding:9px var(--s3) 0;}
+#recentCard tr.rc-bar-row + tr td{padding-top:5px;}
+.rc-bar{
+  display:flex;height:7px;border-radius:var(--r-pill);overflow:hidden;
+  background:var(--paper-200);box-shadow:inset 0 0 0 1px var(--border-soft);
+}
+.rc-bar i{display:block;height:100%;min-width:3px;}
+.rc-bar i.n{background:var(--src-n);}
+.rc-bar i.g{background:var(--hatch-g);}
+
+/* ═══════════ 블로그 상위 10 ═══════════ */
+.bar-wrap{padding:var(--s3) var(--card-x) var(--s4);}
+.bar-row{display:flex;gap:9px;margin-bottom:11px;}
+.bar-row:last-of-type{margin-bottom:0;}
+.bar-rank{
+  width:21px;height:21px;border-radius:var(--r-xs);
+  background:var(--ink-100);color:var(--ink-600);
+  font-size:var(--fs-micro);font-weight:bold;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:1px;
+}
+/* 내 부서 — 네이버 부로그 데이터이므로 초록 표식을 쓴다 */
+.bar-rank.me{background:var(--ngreen-500);color:#fff;}
+.bar-body{flex:1;min-width:0;}
+.bar-label{
+  font-size:var(--fs-sm);color:var(--ink-800);font-weight:bold;
+  line-height:1.45;margin-bottom:4px;word-break:keep-all;
+}
+.bar-label .author{font-weight:normal;color:var(--ink-400);font-size:var(--fs-cap);}
+.bar-label.me,.bar-label.me .author{color:var(--src-n-ink);}
+.bar-line{display:flex;align-items:center;gap:var(--s2);}
+.bar-track{flex:1;height:10px;background:var(--paper-200);border-radius:var(--r-pill);overflow:hidden;}
+.bar-fill{height:100%;background:var(--ink-500);border-radius:var(--r-pill);}
+.bar-fill.me{background:var(--ngreen-500);}
+.bar-val{
+  width:26px;text-align:right;font-size:var(--fs-micro);
+  color:var(--ink-500);font-weight:bold;flex-shrink:0;
+}
+.bar-val.na{
+  font-size:var(--fs-micro);font-weight:normal;color:var(--ink-500);
+  letter-spacing:-.3px;white-space:nowrap;width:auto;min-width:26px;
+}
+.legend{
+  display:flex;gap:var(--s3);flex-wrap:wrap;align-items:center;
+  font-size:var(--fs-micro);color:var(--ink-400);margin-top:var(--s3);
+  padding-top:var(--s3);border-top:1px solid var(--border-soft);
+}
+.legend i{
+  display:inline-block;width:8px;height:8px;border-radius:2px;
+  margin-right:4px;vertical-align:-1px;
+}
+/* JS가 범례 스와치 색을 인라인으로 심는다 (구 파랑/오렌지).
+   팔레트 밖 색이 남지 않도록 여기서 덮는다. */
+.legend span:first-child i{background:var(--ink-500)!important;}
+.legend span:nth-child(2) i{background:var(--ngreen-500)!important;}
+
+/* ═══════════ 내 블로그 포스팅 ═══════════ */
+#mypostList{padding:0!important;}
+.mypost-src{
+  padding:10px var(--card-x);font-size:var(--fs-cap);color:var(--ink-400);
+  background:var(--surface-sunk);border-bottom:1px solid var(--border-soft);
+}
+.mypost-src b{color:var(--ink-700);}
+.mypost-row{
+  display:block;padding:11px var(--card-x);
+  border-bottom:1px solid var(--border-soft);text-decoration:none;
+}
+.mypost-row:hover{background:var(--surface);text-decoration:none;}
+.mypost-title{
+  font-size:var(--fs-md);font-weight:bold;color:var(--ink-800);
+  line-height:1.5;word-break:keep-all;overflow-wrap:anywhere;
+}
+.mypost-rank{
+  display:inline-block;background:var(--ngreen-500);color:#fff;
+  font-size:var(--fs-micro);font-weight:bold;border-radius:var(--r-xs);
+  padding:2px 6px;margin-right:6px;vertical-align:1px;
+}
+.mypost-desc{font-size:var(--fs-cap);color:var(--ink-400);margin-top:3px;line-height:1.5;}
+.mypost-empty{padding:var(--s4);color:var(--ink-400);font-size:var(--fs-sm);line-height:1.7;}
+.mypost-empty b{color:var(--orange-600);}
+.mypost-more{
+  display:block;padding:12px var(--card-x);
+  font-size:var(--fs-cap);font-weight:bold;color:var(--orange-600);
+}
+.mypost-more:hover{text-decoration:underline;}
+
+/* ═══════════════════════════════════════════════════════════════════
+   상태 표현 — 6종 (4단계)
+
+   원칙 1. 상태는 두 자리에만 나타난다.
+           카드 헤더의 배지(.badge)  = 이 카드가 지금 어떤 상태인가
+           카드 본문의 블록(.list-empty / .skel-*) = 이 영역이 왜 비었는가
+           전역 .err-box는 "검색 자체가 실패했을 때"만 쓴다. 구글 한도 초과처럼
+           한쪽만 막힌 상황을 전역 오류로 띄우면 정상 도착한 네이버 데이터까지
+           실패처럼 보인다.
+   원칙 2. 비어 있는 이유를 세 갈래로 나눈다.
+           정상 결과(데이터 없음·조회 불가) → 중성 잉크
+           우리 쪽 제약(일일 한도 초과)      → 앰버
+           실패(오류)                        → 레드
+           앰버·레드는 배지와 한 줄 문장에만 쓰고 면적을 넓히지 않는다.
+   원칙 3. 색 하나에 기대지 않는다. 배지 앞 점의 형태로 한 번 더 구분한다.
+           찬 점=값 있음 / 깜박이는 점=진행 중 / 빈 점=값 없음·비활성 /
+           각진 점=캐시(실시간 아님).
+   원칙 4. 로딩은 스피너보다 골격을 먼저 쓴다. 네이버·구글·트렌드가 따로
+           도착하므로 스피너 하나로는 무엇을 기다리는지 알 수 없고,
+           도착할 때마다 레이아웃이 튄다.
+   ═══════════════════════════════════════════════════════════════════ */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:var(--fs-micro);padding:3px 8px;border-radius:var(--r-pill);
+  font-weight:bold;letter-spacing:.2px;white-space:nowrap;
+  background:var(--paper-200);color:var(--ink-500);
+}
+.badge::before{
+  content:'';width:5px;height:5px;border-radius:50%;
+  background:currentColor;flex-shrink:0;
+}
+.badge.google{background:var(--src-g-tint);color:var(--src-g-ink);}
+/* 완료 — 데이터 자체가 신호다. 가장 조용하게. */
+.badge.done{background:var(--paper-100);color:var(--ink-400);}
+/* 캐시 — 각진 점 = 실시간 요청이 아니라는 표시 */
+.badge.cached{background:var(--paper-200);color:var(--ink-500);}
+.badge.cached::before{border-radius:1px;}
+/* 조회 중 / 부분 완료 — 깜박이는 점 = 진행 중 */
+.badge.wait{background:var(--paper-200);color:var(--ink-500);}
+.badge.partial{background:var(--orange-050);color:var(--orange-600);}
+.badge.wait::before,.badge.partial::before{animation:pulse 1.15s ease-in-out infinite;}
+/* 조회 불가 / 준비 중 — 빈 점 = 값이 없거나 아직 동작하지 않음 */
+.badge.na{background:var(--paper-200);color:var(--ink-500);}
+.badge.soon{background:transparent;color:var(--ink-400);box-shadow:inset 0 0 0 1px var(--border);}
+.badge.na::before,.badge.soon::before{
+  background:transparent;box-shadow:inset 0 0 0 1.5px currentColor;
+}
+/* 한도 초과 — 오류가 아니라 제약. 앰버 한 갈래로만 */
+.badge.limit{background:var(--amber-tint);color:var(--amber-ink);}
+.badge.error{background:var(--red-tint);color:var(--red-ink);}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.22}}
+/* 소스 토글 안의 배지는 점 없이 라벨만 (점이 이미 왼쪽에 있다) */
+.source-toggle button .badge::before{display:none;}
+
+/* 카드 단위 상태 — 형태로도 드러낸다 */
+.card.is-soon{
+  background:var(--paper-050);box-shadow:none;
+  border-style:dashed;border-color:var(--border);
+}
+.card.is-soon .card-head h2{color:var(--ink-500);}
+.card.is-limit .card-head{border-bottom:1px solid var(--amber-tint);}
+
+.trend-badge{
+  display:inline-flex;align-items:center;gap:5px;white-space:nowrap;
+  font-size:var(--fs-cap);font-weight:bold;border-radius:var(--r-pill);
+  padding:4px 10px;background:var(--paper-200);color:var(--ink-500);
+}
+.card-head .trend-badge{margin-bottom:0;}
+/* 상승·하락 — 초록을 소스에 넣은 대가로 상승은 잉크와 화살표가 맡는다 (v3.9) */
+.trend-badge.up{color:var(--ink-700);background:var(--paper-200);}
+.trend-badge.up .ico{color:var(--ink-600);}
+.trend-badge.down{color:var(--red);background:var(--red-tint);}
+.trend-badge.flat{color:var(--ink-500);background:var(--paper-200);}
+.head-link{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:var(--fs-cap);color:var(--orange-600);font-weight:bold;
+  cursor:pointer;white-space:nowrap;
+}
+.head-link:hover{text-decoration:underline;}
+.csv-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 12px;border:1px solid var(--border);border-radius:var(--r-sm);
+  background:var(--surface);color:var(--ink-600);
+  font-size:var(--fs-cap);font-weight:bold;cursor:pointer;transition:.15s;
+}
+.csv-btn:hover{border-color:var(--orange-500);color:var(--orange-600);}
+.csv-btn:disabled{opacity:.45;cursor:not-allowed;}
+.csv-btn svg{width:12px;height:12px;}
+/* ── 비어 있는 영역 ──
+   기본형은 기존 그대로(중립 한 줄). 변형 클래스를 붙이면 위에 이유 라벨이 선다.
+   <div class="list-empty is-limit">구글 일일 조회 한도에 도달했습니다.<small>…</small></div> */
+.list-empty,.bi-empty{
+  padding:26px var(--card-x);text-align:center;
+  font-size:var(--fs-sm);color:var(--ink-400);line-height:1.7;
+}
+.list-empty b,.bi-empty b{color:var(--ink-600);}
+.list-empty small{
+  display:block;margin-top:5px;font-size:var(--fs-micro);
+  color:var(--ink-400);line-height:1.65;
+}
+.list-empty.is-empty,.list-empty.is-na,.list-empty.is-limit,
+.list-empty.is-soon,.list-empty.is-error{
+  display:flex;flex-direction:column;align-items:center;gap:9px;
+}
+.list-empty.is-empty::before,.list-empty.is-na::before,.list-empty.is-limit::before,
+.list-empty.is-soon::before,.list-empty.is-error::before{
+  font-size:var(--fs-micro);font-weight:bold;letter-spacing:.3px;
+  padding:3px 10px;border-radius:var(--r-pill);
+}
+.list-empty.is-empty::before{content:'데이터 없음';background:var(--paper-200);color:var(--ink-500);}
+.list-empty.is-na::before{content:'조회 불가';background:var(--paper-200);color:var(--ink-500);}
+.list-empty.is-limit::before{content:'일일 한도 초과';background:var(--amber-tint);color:var(--amber-ink);}
+.list-empty.is-soon::before{content:'준비 중';background:transparent;color:var(--ink-400);box-shadow:inset 0 0 0 1px var(--border);}
+.list-empty.is-error::before{content:'오류';background:var(--red-tint);color:var(--red-ink);}
+.list-empty .retry{
+  display:inline-flex;align-items:center;gap:6px;margin-top:2px;
+  padding:7px 14px;border:1px solid var(--border);border-radius:var(--r-sm);
+  background:var(--surface);color:var(--ink-600);
+  font-size:var(--fs-cap);font-weight:bold;cursor:pointer;transition:.15s;
+}
+.list-empty .retry:hover{border-color:var(--orange-500);color:var(--orange-600);}
+
+/* ── 진행 중 (부분 완료) ──
+   "노출 없음"이라고 단정하기 전 단계. 문장 안에 인라인으로 들어간다.
+   <span class="state-inline">순위 확인 중…</span> */
+.state-inline{
+  display:inline-flex;align-items:center;gap:5px;
+  font-weight:bold;color:var(--orange-600);white-space:nowrap;
+}
+.state-inline::before{
+  content:'';width:5px;height:5px;border-radius:50%;
+  background:currentColor;animation:pulse 1.15s ease-in-out infinite;
+}
+.state-prog{
+  height:3px;border-radius:var(--r-pill);background:var(--paper-200);
+  overflow:hidden;margin-top:8px;
+}
+.state-prog i{display:block;height:100%;background:var(--orange-300);border-radius:inherit;}
+
+/* ── 로딩 ── */
+.load-box{display:none;padding:32px var(--card-x);text-align:center;color:var(--ink-400);font-size:var(--fs-md);}
+.load-box.show{display:block;}
+.load-box .spinner{margin-bottom:10px;width:24px;height:24px;}
+.load-box small{display:block;margin-top:5px;font-size:var(--fs-cap);color:var(--ink-400);}
+.spinner{
+  width:17px;height:17px;border:2.5px solid var(--paper-200);
+  border-top-color:var(--orange-500);border-radius:50%;
+  animation:spin .7s linear infinite;display:inline-block;vertical-align:middle;
+}
 @keyframes spin{to{transform:rotate(360deg)}}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
-::-webkit-scrollbar{width:5px}
-::-webkit-scrollbar-track{background:var(--bg2)}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
-::-webkit-scrollbar-thumb:hover{background:var(--blue)}
+.loading-pill,.skel-card i,.skel-bars i,.score-skel{
+  background:linear-gradient(90deg,var(--paper-200) 25%,var(--paper-100) 50%,var(--paper-200) 75%);
+  background-size:200% 100%;animation:shim 1.2s infinite;
+}
+.loading-pill{
+  display:inline-block;width:52px;height:12px;border-radius:var(--r-pill);
+}
+@keyframes shim{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
-/* ── 탭 → 페이지 링크 (v1.7 페이지 분리) ── */
-a.tab-btn{text-decoration:none}
+/* 카드별 골격 — 도착할 데이터의 형태를 미리 잡아 둔다 (레이아웃 점프 방지)
+   <div class="skel-card"><i class="metric"></i><i class="w80"></i><i class="w60"></i></div> */
+.skel-card{padding:var(--s4) var(--card-x);display:flex;flex-direction:column;gap:9px;}
+.skel-card i{display:block;height:11px;border-radius:var(--r-xs);width:100%;}
+.skel-card i.metric{height:calc(var(--fs-metric) + 2px);width:52%;border-radius:var(--r-sm);margin-bottom:3px;}
+.skel-card i.w80{width:80%;}
+.skel-card i.w60{width:60%;}
+.skel-card i.w40{width:40%;}
+.skel-bars{
+  display:grid;grid-template-columns:repeat(var(--cols,12),1fr);gap:4px;
+  align-items:end;height:74px;padding:var(--s3) var(--card-x) var(--s4);
+}
+.skel-bars i{display:block;border-radius:2px 2px 0 0;height:44%;}
+.skel-bars i:nth-child(3n){height:72%;}
+.skel-bars i:nth-child(4n){height:58%;}
+.skel-bars i:nth-child(5n){height:88%;}
 
-/* ── 정보 섹션 (사용법·지표 해설·FAQ) ── */
-.seo-sec{max-width:780px;margin:0 auto;padding:8px 16px 0}
-.seo-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:24px 24px 20px;margin-bottom:14px}
-.seo-card h2{font-size:15px;font-weight:700;color:var(--text);letter-spacing:-0.2px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.seo-card h2::before{content:'';width:3px;height:15px;background:var(--blue);border-radius:2px;flex-shrink:0}
-.seo-card h3{font-size:13px;font-weight:700;color:var(--text2);margin:16px 0 6px}
-.seo-card p{font-size:13px;color:var(--text2);line-height:1.85;margin-bottom:10px}
-.seo-card ol,.seo-card ul{padding-left:20px;margin-bottom:10px}
-.seo-card li{font-size:13px;color:var(--text2);line-height:1.85;margin-bottom:4px}
-.seo-card strong{color:var(--text)}
-.seo-table{width:100%;border-collapse:collapse;margin:10px 0 14px;font-size:12.5px}
-.seo-table th{background:var(--bg3);border:1px solid var(--border);padding:8px 10px;text-align:left;font-weight:700;color:var(--text2);white-space:nowrap}
-.seo-table td{border:1px solid var(--border);padding:8px 10px;color:var(--text2);line-height:1.6}
-.seo-faq-q{font-size:13px;font-weight:700;color:var(--text);margin:14px 0 4px}
-.seo-faq-q::before{content:'Q. ';color:var(--blue)}
-.seo-faq-a{font-size:13px;color:var(--text2);line-height:1.85;margin-bottom:6px}
-.seo-faq-a::before{content:'A. ';color:var(--text3);font-weight:700}
+/* ── 오류 (전역) ──
+   검색 자체가 실패한 경우에만. 한쪽 소스만 막힌 상황은 카드 배지로 알린다. */
+.err-box{
+  display:none;background:var(--red-tint);border:1px solid #F0C9C5;
+  border-radius:var(--r-md);padding:var(--s3) var(--s4);
+  font-size:var(--fs-md);color:var(--red-ink);margin-bottom:var(--rhythm);line-height:1.7;
+}
+.err-box.show{display:block;}
+.err-box b{color:var(--red-ink);}
+.err-box small{display:block;margin-top:3px;font-size:var(--fs-cap);color:var(--ink-500);}
+/* 경고 — 실패는 아니지만 결과가 불완전할 때 (예: 구글만 한도 초과) */
+.err-box.warn{background:var(--amber-tint);border-color:#EFDCB4;color:var(--amber-ink);}
+.err-box.warn b{color:var(--amber-ink);}
+.toast{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  background:var(--dark);color:#fff;font-size:var(--fs-sm);
+  padding:10px 18px;border-radius:var(--r-pill);opacity:0;transition:.3s;
+  pointer-events:none;z-index:99;box-shadow:var(--sh-2);
+}
+.toast.show{opacity:1;}
+
+/* ═══════════ 광고 슬롯 (6-4 — 결과 하단 전용) ═══════════ */
+.ad-slot{
+  border:1px dashed var(--paper-400);border-radius:var(--r-md);
+  background:var(--paper-100);padding:var(--s6) var(--s4);
+  text-align:center;margin-bottom:var(--rhythm);
+}
+.ad-slot .ad-tag{font-size:var(--fs-micro);letter-spacing:2px;color:var(--ink-400);font-weight:bold;}
+.ad-slot .ad-note{font-size:var(--fs-cap);color:var(--ink-400);margin-top:4px;}
+
+/* ═══════════ 모달 ═══════════ */
+.modal-overlay{
+  display:none;position:fixed;left:0;top:0;
+  width:100vw;max-width:100vw;height:100%;
+  background:rgba(20,24,31,.45);z-index:100;
+  align-items:center;justify-content:center;padding:var(--s5);overflow-y:auto;
+}
+.modal-overlay.show{display:flex;}
+.modal{
+  background:var(--surface);border-radius:var(--r-lg);width:100%;
+  max-width:min(420px,calc(100vw - 24px));box-shadow:var(--sh-3);
+  overflow:hidden;margin:auto;
+}
+.modal-header{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:var(--s3) var(--s5);border-bottom:1px solid var(--border-soft);
+}
+.modal-title{font-size:var(--fs-lg);font-weight:bold;color:var(--dark);}
+.modal-close{border:none;background:transparent;font-size:20px;color:var(--ink-400);cursor:pointer;line-height:1;}
+.modal-close:hover{color:var(--ink-800);}
+.modal-body{padding:var(--s5);}
+.modal-label{font-size:var(--fs-md);font-weight:bold;color:var(--dark);margin-bottom:6px;}
+.modal-desc{font-size:var(--fs-sm);color:var(--ink-400);line-height:1.7;margin-bottom:var(--s3);}
+.modal-current{
+  font-size:var(--fs-sm);color:var(--text);background:var(--surface-sunk);
+  border:1px solid var(--border-soft);border-radius:var(--r-sm);
+  padding:9px 12px;margin-bottom:var(--s3);
+}
+.modal-input-row{display:flex;align-items:center;gap:6px;}
+.modal-prefix{font-size:var(--fs-sm);color:var(--ink-400);white-space:nowrap;}
+.modal-input-row input{
+  flex:1;padding:10px 12px;border:1.5px solid var(--border);
+  border-radius:var(--r-sm);font-size:var(--fs-md);
+}
+.modal-input-row input:focus{outline:none;border-color:var(--orange-500);}
+.modal-saved{display:none;font-size:var(--fs-sm);color:var(--green);font-weight:bold;margin-top:10px;}
+.modal-saved.show{display:block;}
+.modal-footer{
+  display:flex;justify-content:flex-end;gap:var(--s2);
+  padding:var(--s3) var(--s5);border-top:1px solid var(--border-soft);
+  background:var(--surface-sunk);
+}
+.btn{border-radius:var(--r-sm);font-weight:bold;cursor:pointer;font-size:var(--fs-sm);}
+.btn-primary{padding:9px 18px;background:var(--orange-500);color:#fff;border:none;}
+.btn-primary:hover{background:var(--orange-600);}
+.btn-outline{padding:9px 18px;background:var(--surface);color:var(--ink-600);border:1px solid var(--border);}
+.btn-outline:hover{border-color:var(--orange-500);color:var(--orange-600);}
+.btn-sm{padding:7px 13px;font-size:var(--fs-cap);}
+
+/* ═══════════ 본문 콘텐츠 섹션 ═══════════ */
+.content-sec{
+  background:var(--surface);border:1px solid var(--border-soft);
+  border-radius:var(--r-lg);padding:var(--s6) var(--s5);margin-bottom:var(--rhythm);
+}
+.content-sec h3{
+  display:flex;align-items:center;gap:8px;
+  font-size:var(--fs-h2);color:var(--dark);margin-bottom:var(--s3);
+}
+.content-sec h3 .ico{color:var(--orange-300);}
+.content-sec h4{font-size:var(--fs-md);color:var(--dark);margin:var(--s4) 0 6px;}
+.content-sec p,.content-sec li{font-size:var(--fs-md);line-height:var(--lh-read);color:var(--text);}
+.content-sec ol{padding-left:var(--s5);}
+.content-sec ol li{margin-bottom:6px;}
+.content-sec ol li strong{color:var(--ink-900);}
+.content-sec .hint{
+  font-size:var(--fs-sm);color:var(--ink-500);background:var(--orange-050);
+  border-left:2px solid var(--orange-300);padding:10px 14px;
+  border-radius:0 var(--r-sm) var(--r-sm) 0;margin-top:var(--s3);line-height:1.7;
+}
+dl.metric dt{font-size:var(--fs-md);font-weight:bold;color:var(--dark);margin-top:var(--s3);}
+dl.metric dt:first-child{margin-top:0;}
+dl.metric dd{font-size:var(--fs-sm);line-height:var(--lh-read);color:var(--ink-600);margin-top:3px;}
+details.faq{border-bottom:1px solid var(--border-soft);padding:11px 2px;}
+details.faq:last-of-type{border-bottom:none;}
+details.faq summary{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:var(--fs-md);font-weight:bold;color:var(--dark);
+  cursor:pointer;list-style:none;
+}
+details.faq summary::-webkit-details-marker{display:none;}
+details.faq summary::after{content:"+";color:var(--orange-500);font-size:16px;font-weight:bold;}
+details.faq[open] summary::after{content:"−";}
+details.faq p{font-size:var(--fs-sm);line-height:var(--lh-read);color:var(--ink-600);margin-top:var(--s2);}
+
+/* ═══════════ 정보 페이지 (about / guide / changelog) ═══════════ */
+.seo-sec{padding:0;}
+.seo-card{
+  background:var(--surface);border:1px solid var(--border-soft);
+  border-radius:var(--r-lg);padding:var(--s6) var(--s5);margin-bottom:var(--rhythm);
+}
+.seo-card h2{
+  display:flex;align-items:center;gap:8px;
+  font-size:var(--fs-h2);color:var(--dark);margin-bottom:var(--s3);
+}
+.seo-card h2::before{
+  content:'';width:3px;height:15px;background:var(--orange-500);
+  border-radius:2px;flex-shrink:0;
+}
+.seo-card h3{font-size:var(--fs-md);font-weight:bold;color:var(--dark);margin:var(--s4) 0 6px;}
+.seo-card p{font-size:var(--fs-md);color:var(--text);line-height:var(--lh-read);margin-bottom:10px;}
+.seo-card ol,.seo-card ul{padding-left:var(--s5);margin-bottom:10px;}
+.seo-card li{font-size:var(--fs-md);color:var(--text);line-height:var(--lh-read);margin-bottom:5px;}
+.seo-card strong{color:var(--ink-900);}
+.seo-table{width:100%;border-collapse:collapse;margin:10px 0 var(--s3);font-size:var(--fs-sm);}
+.seo-table th{
+  background:var(--surface-sunk);border:1px solid var(--border-soft);
+  padding:8px 10px;text-align:left;font-weight:bold;color:var(--ink-700);white-space:nowrap;
+}
+.seo-table td{
+  border:1px solid var(--border-soft);padding:8px 10px;color:var(--text);
+  line-height:1.6;text-align:left;white-space:normal;
+}
+.seo-faq-q{font-size:var(--fs-md);font-weight:bold;color:var(--dark);margin:var(--s3) 0 4px;}
+.seo-faq-q::before{content:'Q. ';color:var(--orange-500);}
+.seo-faq-a{font-size:var(--fs-sm);color:var(--ink-600);line-height:var(--lh-read);margin-bottom:6px;}
+.seo-faq-a::before{content:'A. ';color:var(--ink-400);font-weight:bold;}
+
+/* ═══════════ 블로그 지수 페이지 ═══════════ */
+.mini-tabs{display:flex;border-bottom:1px solid var(--border-soft);background:var(--surface-sunk);}
+.mini-tabs button{
+  flex:1;padding:11px 0;border:none;background:transparent;cursor:pointer;
+  font-size:var(--fs-md);font-weight:bold;color:var(--ink-400);line-height:1;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  border-bottom:2px solid transparent;
+}
+.mini-tabs button.active{color:var(--orange-600);border-bottom-color:var(--orange-500);background:var(--surface);}
+.mini-tabs .cnt{
+  font-size:var(--fs-micro);background:var(--paper-200);color:var(--ink-400);
+  border-radius:var(--r-pill);padding:1px 7px;font-weight:bold;
+}
+.mini-tabs button.active .cnt{background:var(--orange-100);color:var(--orange-700);}
+.panel{display:none;}
+.panel.active{display:block;}
+.gauge-grid{display:grid;grid-template-columns:1fr 1fr;}
+.gauge-cell{
+  display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;
+  padding:var(--s4);min-height:168px;text-align:center;
+}
+.gauge-cell + .gauge-cell{border-left:1px solid var(--border-soft);}
+.gauge-cell .glabel{font-size:var(--fs-cap);color:var(--ink-400);margin-bottom:4px;}
+.gauge-cell .gval{font-size:var(--fs-metric);font-weight:bold;color:var(--dark);line-height:1.2;letter-spacing:-.5px;}
+.gauge-cell .gval small{font-size:var(--fs-cap);color:var(--ink-400);font-weight:normal;letter-spacing:0;}
+.lv-badge{
+  display:inline-block;margin-top:var(--s2);font-size:var(--fs-micro);font-weight:bold;
+  padding:3px 12px;border-radius:var(--r-pill);
+  background:var(--src-n-tint);color:var(--src-n-ink);
+}
+.stat-strip{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border-soft);}
+.stat-strip div{padding:var(--s3) var(--s2);text-align:center;border-left:1px solid var(--border-soft);}
+.stat-strip div:first-child{border-left:none;}
+.stat-strip .sv{font-size:var(--fs-metric-2);font-weight:bold;color:var(--ink-800);}
+.stat-strip .sl{font-size:var(--fs-micro);color:var(--ink-400);margin-top:2px;}
+.heat-wrap{padding:var(--s3) var(--card-x) var(--s4);}
+.heat-title{font-size:var(--fs-cap);color:var(--ink-400);margin-bottom:var(--s2);}
+.heat{display:grid;grid-template-columns:repeat(30,1fr);gap:3px;}
+.heat i{aspect-ratio:1;border-radius:2px;background:var(--paper-200);min-width:8px;}
+.heat i.p1{background:var(--ngreen-100);}
+.heat i.p2{background:var(--ngreen-300);}
+.heat i.p3{background:var(--ngreen-500);}
+.rank-pill{display:inline-block;font-size:var(--fs-cap);font-weight:bold;padding:3px 11px;border-radius:var(--r-pill);}
+.rank-pill.top{background:var(--green-tint);color:var(--green);}
+.rank-pill.mid{background:var(--amber-tint);color:var(--amber);}
+.rank-pill.none{background:var(--paper-200);color:var(--ink-400);}
+.inline-search{
+  display:flex;gap:var(--s2);padding:var(--s3) var(--card-x);
+  border-bottom:1px solid var(--border-soft);background:var(--surface-sunk);
+}
+.inline-search input{
+  flex:1;min-width:0;padding:11px 13px;border:1.5px solid var(--border);
+  border-radius:var(--r-sm);font-size:var(--fs-md);background:var(--surface);
+}
+.inline-search input:focus{outline:none;border-color:var(--orange-500);}
+.inline-search button{
+  padding:11px 18px;background:var(--orange-500);color:#fff;border:none;
+  border-radius:var(--r-sm);font-size:var(--fs-md);font-weight:bold;
+  cursor:pointer;white-space:nowrap;
+}
+.inline-search button:hover{background:var(--orange-600);}
+
+/* ═══════════ 노출 레이더 페이지 ═══════════ */
+.radar-summary{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border-soft);}
+.radar-summary div{padding:var(--s3) 6px;text-align:center;border-left:1px solid var(--border-soft);}
+.radar-summary div:first-child{border-left:none;}
+.radar-summary .rv{font-size:var(--fs-metric-2);font-weight:bold;line-height:1.3;color:var(--ink-800);}
+.radar-summary .rl{font-size:var(--fs-micro);color:var(--ink-400);margin-top:2px;}
+.pager{display:flex;gap:var(--s2);padding:var(--s3) var(--card-x);border-bottom:1px solid var(--border-soft);background:var(--surface-sunk);}
+.pager button{
+  flex:1;padding:9px 0;border-radius:var(--r-sm);font-size:var(--fs-cap);font-weight:bold;
+  cursor:pointer;background:var(--surface);color:var(--ink-400);
+  border:1px dashed var(--border);line-height:1;min-height:36px;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+}
+.pager button.done{border:1px solid var(--green);color:var(--green);}
+.pager button.scanning{border:1px dashed var(--orange-500);color:var(--orange-600);}
+.pager button.active{background:var(--dark);color:#fff;border:1px solid var(--dark);}
+.post-item{
+  display:flex;gap:10px;padding:var(--s3) var(--card-x);
+  border-bottom:1px solid var(--border-soft);align-items:center;
+}
+.post-item:last-child{border-bottom:none;}
+.post-body{flex:1;min-width:0;}
+.post-title{font-size:var(--fs-sm);font-weight:bold;color:var(--ink-800);line-height:1.45;word-break:keep-all;}
+.post-date{font-size:var(--fs-cap);color:var(--ink-400);margin-top:3px;}
+.score-wrap{flex-shrink:0;text-align:right;min-width:132px;}
+.score{font-size:var(--fs-lg);font-weight:bold;}
+.s-good{color:var(--green);} .s-ok{color:var(--ink-600);} .s-mid{color:var(--amber);} .s-bad{color:var(--red);}
+.score-label{font-size:var(--fs-micro);color:var(--ink-400);}
+.score-bar{width:100%;height:6px;background:var(--paper-200);border-radius:var(--r-pill);margin-top:5px;overflow:hidden;}
+.score-bar i{display:block;height:100%;border-radius:var(--r-pill);}
+.sb-good{background:var(--green);} .sb-ok{background:var(--ink-500);} .sb-mid{background:var(--amber);} .sb-bad{background:var(--red);}
+.score-skel{
+  width:60px;height:14px;border-radius:7px;margin-left:auto;
+  background:linear-gradient(90deg,var(--paper-200) 25%,var(--paper-100) 50%,var(--paper-200) 75%);
+  background-size:200% 100%;animation:shim 1.2s infinite;
+}
+.stop-row{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:var(--s2);flex-wrap:wrap;
+  padding:var(--s3) var(--card-x);border-top:1px solid var(--border-soft);background:var(--surface-sunk);
+}
+.stop-row .prog{font-size:var(--fs-cap);color:var(--ink-400);}
+.stop-btn{
+  padding:8px 16px;border:1px solid var(--red);border-radius:var(--r-sm);
+  background:var(--surface);color:var(--red);font-size:var(--fs-cap);font-weight:bold;cursor:pointer;
+}
+.stop-btn:hover{background:var(--red);color:#fff;}
+
+/* ═══════════ 푸터 ═══════════ */
+.site-footer{margin-top:var(--s8);padding:var(--s6) 4px var(--s2);border-top:1px solid var(--border);}
+.footer-links{display:flex;gap:var(--s4);flex-wrap:wrap;margin-bottom:var(--s3);}
+.footer-links a{font-size:var(--fs-sm);color:var(--ink-700);font-weight:bold;}
+.footer-links a:hover{color:var(--orange-600);}
+.footer-blog{font-size:var(--fs-sm);color:var(--ink-400);line-height:1.8;margin-bottom:var(--s3);}
+.footer-blog strong{color:var(--ink-700);}
+.footer-legal{font-size:var(--fs-cap);color:var(--ink-400);line-height:1.8;}
+.footer-legal a{color:inherit;}
+
+/* ═══════════════════════════════════════════════════════════════════
+   브레이크포인트 — 390 / 768 / 1024 / 1440
+   같은 HTML에 변수만 갈아끼운다. 별도의 "모바일 디자인"은 없다.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── 390px 이하 — 최소 폭 방어 ── */
+@media(max-width:390px){
+  :root{--card-x:var(--s3);--fs-metric:24px;}
+  body{padding-left:var(--s3);padding-right:var(--s3);}
+  .search-row button{padding:12px 15px;}
+  .source-toggle{display:flex;width:100%;}
+  .source-toggle button{flex:1;justify-content:center;padding:9px 6px;font-size:var(--fs-sm);}
+}
+
+/* ── ~480px — 3분할 블록은 세로로 쌓는다 ── */
+@media(max-width:480px){
+  .g-top{grid-template-columns:1fr;}
+  .g-top > div{border-left:none;border-top:1px solid var(--border-soft);text-align:left;
+    display:flex;align-items:baseline;justify-content:space-between;gap:var(--s3);padding:12px var(--card-x);}
+  .g-top > div:first-child{border-top:none;}
+  .g-top .gl{margin-bottom:0;min-height:0;}
+  .g-top .gv{text-align:right;min-height:0;flex:0 1 auto;}
+  .g-top .gv small{margin-top:2px;padding-top:0;}
+  .modal-overlay{align-items:flex-start;padding:var(--s2);}
+  .modal{max-width:calc(100vw - 16px);margin-top:6vh;}
+  .modal-input-row{flex-direction:column;align-items:stretch;gap:5px;}
+  .modal-input-row input{width:100%;}
+  .gauge-grid{grid-template-columns:1fr;}
+  .gauge-cell + .gauge-cell{border-left:none;border-top:1px solid var(--border-soft);}
+}
+
+/* ── ~560px — 좁은 화면 표 정리 ── */
+@media(max-width:560px){
+  #recentCard th.time-col,#recentCard td.time{display:none;}
+  #recentCard th:nth-child(1),#recentCard td:nth-child(1){width:40%;}
+  #recentCard table td,#recentCard table th{padding-left:9px;padding-right:9px;}
+  td.kw{max-width:none;font-size:var(--fs-sm);}
+  .radar-summary{grid-template-columns:repeat(2,1fr);}
+  .radar-summary div:nth-child(3){border-left:none;}
+  .radar-summary div:nth-child(n+3){border-top:1px solid var(--border-soft);}
+}
+
+/* ── 768px+ 태블릿 — 2열 진입, 좌우 행 대칭이 여기서부터 성립한다 ── */
+@media(min-width:768px){
+  :root{--card-x:var(--s5);--gap:var(--s3);--fs-metric:29px;}
+  body{max-width:100%;padding-left:var(--s6);padding-right:var(--s6);}
+  /* 상단 블록도 결과 그리드와 같은 폭을 쓴다 — 옆줄이 한 개여야
+     가장 먼저 보이는 수직선이 하나로 잡힌다. 본문 가독성은
+     .hero-sub의 56ch 제한이 맡았으니 법엔 폭을 가둘 필요가 없다. */
+  .source-toggle{display:flex;}
+  .source-toggle button{flex:1;justify-content:center;}
+  .results.show{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .results > .card{margin-bottom:0;}
+  #recentCard,#top10Card,#mypostCard,.results > .ad-slot{grid-column:1/-1;}
+
+  /* 통합 보기 — 같은 성격의 지표를 같은 행에 고정한다.
+     자동 배치에 맡기면 카드 높이 차로 행이 어긋난다. */
+  .results.show.mode-both{align-items:stretch;}
+  .results.mode-both #volCard    {grid-column:1;grid-row:1;}
+  .results.mode-both #gVolCard   {grid-column:2;grid-row:1;}
+  .results.mode-both #nCompCard  {grid-column:1;grid-row:2;}
+  .results.mode-both #gCompCard  {grid-column:2;grid-row:2;}
+  .results.mode-both #trendCard  {grid-column:1;grid-row:3;}
+  .results.mode-both #gSeasonCard{grid-column:2;grid-row:3;}
+  .results.mode-both #relCard    {grid-column:1;grid-row:4;}
+  .results.mode-both #gIdeaCard  {grid-column:2;grid-row:4;}
+  .results.mode-both #top10Card  {grid-column:1/-1;grid-row:5;}
+  .results.mode-both #mypostCard {grid-column:1/-1;grid-row:6;}
+  .results.mode-both > .ad-slot  {grid-column:1/-1;grid-row:7;}
+  .results.show.mode-naver,.results.show.mode-google{align-items:start;}
+}
+
+/* ── 1024px+ 데스크톱 — 1급 대상. 스케일을 한 단계 올린다 ── */
+@media(min-width:1024px){
+  :root{
+    --fs-micro:11px; --fs-cap:12px; --fs-sm:13px; --fs-md:13.5px; --fs-lg:15px;
+    --fs-h2:15.5px; --fs-h1:26px; --fs-metric:32px; --fs-metric-2:17px;
+    --card-x:var(--s5); --gap:var(--s4); --rhythm:var(--s5);
+  }
+  body{max-width:1200px;padding:var(--s8) var(--s6) 72px;}
+  .hero{padding:var(--s3) 2px var(--s5);}
+  .content-sec{max-width:none;}
+  .content-sec p,.content-sec li,.content-sec .hint,
+  .content-sec h4,.content-sec dd,.content-sec dt,.faq p{max-width:72ch;}
+  .content-sec h3{font-size:17px;}
+  .mchart .mbars{height:88px;}
+  .bar-track{height:11px;}
+}
+
+/* ── 1440px+ — 폭만 한 단계 늘린다 (타이포는 그대로) ── */
+@media(min-width:1440px){
+  :root{--gap:var(--s5);}
+  body{max-width:1320px;}
+}
+
+/* ── 접근성 ── */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;}
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Keyword Cockpit — common.css v3.11 추가분
+   common.css(v3.10) 맨 아래에 그대로 붙여 넣는다. 위쪽 규칙은 건드리지 않는다.
+
+   5행 재구성 — 구글은 공개 검색 결과를 반환하는 공식 API가 없으므로
+   "구글 블로그 상위 10"의 우측 짝을 만들 수 없다 (인수인계 6-1).
+   빈칸으로 두는 대신 5행의 질문 자체를 바꾼다.
+
+     1~4행  [네이버 | 구글]   — 소스 대칭
+     5행    [경쟁자 | 나]     — 주제 대칭
+
+   좌우가 모두 네이버 초록인 이유가 여기 있다. 소스가 갈리는 행이 아니라
+   "이 키워드의 경쟁 현황"이라는 한 질문의 두 면이다.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── 구글 SERP 부재 안내 ──
+   통합 보기에서만 나타난다. 네이버 단독 보기에서는 물어볼 이유가 없는 질문이다.
+   카드가 아니라 점선 메모로 둔다 — 데이터가 아니라 데이터가 없는 이유이므로
+   카드 위계(1차·2차·참고) 어디에도 들어가면 안 된다. */
+.src-note{display:none;}
+.results.mode-both .src-note{
+  display:block;
+  padding:11px var(--card-x);
+  border-radius:var(--r-md);
+  background:var(--surface-sunk);
+  border:1px dashed var(--border);
+  font-size:var(--fs-cap);color:var(--ink-500);line-height:1.7;
+  word-break:keep-all;overflow-wrap:anywhere;
+}
+.src-note b{color:var(--ink-800);}
+.src-note a{color:var(--orange-600);font-weight:bold;white-space:nowrap;}
+
+/* ── 768px+ — 5행을 좌우로 가른다 ── */
+@media(min-width:768px){
+  /* 통합 보기 — 행 번호를 명시하는 구조이므로 5행 이후를 한 칸씩 민다.
+     안내 메모가 5행 전체 폭, 상위 10과 내 포스팅이 6행 좌우, 광고가 7행. */
+  .results.mode-both #serpNote   {grid-column:1/-1;grid-row:5;}
+  .results.mode-both #top10Card  {grid-column:1;grid-row:6;}
+  .results.mode-both #mypostCard {grid-column:2;grid-row:6;}
+  .results.mode-both > .ad-slot  {grid-column:1/-1;grid-row:7;}
+
+  /* 1~4행은 좌우 픽셀 정렬을 위해 stretch가 필요했지만,
+     5행은 막대 10개와 포스팅 5건이라 높이가 애초에 다르다.
+     늘려서 아래에 빈 면을 만드는 대신 위를 맞춘다. */
+  .results.mode-both #top10Card,
+  .results.mode-both #mypostCard{align-self:start;}
+
+  /* 네이버 단독 보기에서도 같은 짝을 유지한다.
+     768px 기본 규칙이 두 카드를 전체 폭으로 묶어 두므로 풀어 준다
+     (자동 배치로 3행 좌우에 놓인다). */
+  .results.mode-naver #top10Card,
+  .results.mode-naver #mypostCard{grid-column:auto;}
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Keyword Cockpit — common.css v3.12 추가분
+   common.css 맨 아래(v3.11 추가분 다음)에 붙여 넣는다.
+
+   /guide 의 구글 지표 섹션용. 두 가지뿐이다.
+     ① 앵커 이동 시 제목이 뷰포트 최상단에 딱 붙어 잘려 보이는 문제
+     ② 가이드 안의 화면 목업 — 실제 카드 컴포넌트를 그대로 재사용하므로
+        전용 스타일은 만들지 않고 "설명용"임을 드러내는 최소한만 얹는다
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── ① 앵커 여백 ──
+   #google-metrics 로 진입했을 때 h2가 화면 맨 위 선에 붙으면
+   섹션이 시작된 게 아니라 페이지가 잘린 것처럼 보인다. */
+.seo-card[id]{scroll-margin-top:var(--s5);}
+html{scroll-behavior:smooth;}
+
+/* ── ② 가이드 내 화면 목업 ──
+   실제 카드와 같은 클래스를 쓰되, 조작 가능한 UI가 아니라 그림이라는 걸
+   테두리와 캡션으로 알린다. 그림자를 빼는 것만으로 "떠 있는 카드"와 구분된다. */
+.guide-mock{margin:var(--s4) 0 var(--s2);}
+.guide-mock .card{margin-bottom:0;box-shadow:none;border:1px solid var(--border);}
+.guide-mock .card:hover{box-shadow:none;}
+.guide-mock .cap{
+  margin-top:7px;text-align:center;
+  font-size:var(--fs-cap);color:var(--ink-400);
+}
+
+/* 목업은 정적이라 로딩·상태 전환이 없다. 커서가 손가락으로 바뀌면
+   눌러도 되는 것처럼 보이므로 포인터 이벤트를 죽인다. */
+.guide-mock .card{pointer-events:none;user-select:text;}
+
+/* ── ③ 상속 차단 ──
+   목업 카드가 .seo-card 안에 들어가므로 .seo-card h2 규칙이 카드 헤더를 덮는다.
+   그대로 두면 제목이 본문 소제목 크기로 커지고, 좌측 띠가 도구색 오렌지로 서서
+   "구글 카드"라는 신호가 반대로 나간다. 실제 카드 헤더 값으로 되돌린다.
+   실제 카드는 #gVolCard 로 파란 띠를 얻지만 그 id에는 display:none 이 걸려 있어
+   목업에 쓸 수 없다. 그래서 같은 선언을 .guide-mock 스코프로 다시 세운다. */
+.guide-mock .card-head h2{
+  font-size:var(--fs-h2);color:var(--dark);
+  line-height:var(--lh-tight);letter-spacing:-.1px;margin-bottom:0;gap:7px;
+}
+.guide-mock .card-head h2::before{background:var(--src-g);height:1em;}
+.guide-mock .card-head h2 small{
+  font-size:var(--fs-cap);color:var(--ink-400);font-weight:normal;letter-spacing:0;
+}
+
+/* 목업이 여러 개 연속된다. 카드마다 캡션이 붙으므로 아래 여백을 조금 넉넉히. */
+.guide-mock + .guide-mock{margin-top:var(--s5);}
+.guide-mock .trend-badge{pointer-events:none;}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Keyword Cockpit — common.css v3.13 추가분
+   common.css 맨 아래(v3.12 추가분 다음)에 붙여 넣는다.
+
+   최근 검색 빈칸 채우기 버튼.
+   검색 시점에 보지 않은 소스는 값이 없다. 그 자리를 "-"로만 두면
+   데이터가 없는 것인지 아직 안 부른 것인지 구분되지 않는다.
+   눌러서 그 칸 하나만 채우게 한다 — 호출 1회로 끝나므로 낭비가 없다.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.rc-fill{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:22px;height:22px;padding:0;
+  border:1px dashed var(--border);border-radius:var(--r-pill);
+  background:transparent;color:var(--ink-400);
+  font-size:13px;line-height:1;font-weight:bold;
+  cursor:pointer;transition:.15s;
+}
+.rc-fill:hover{
+  border-style:solid;border-color:var(--orange-600);
+  color:var(--orange-600);background:var(--paper-050);
+}
+.rc-fill:focus-visible{outline:2px solid var(--orange-600);outline-offset:2px;}
+/* 조회 중에는 버튼이 아니라 상태 표시다 — 커서도 테두리도 없앤다 */
+.rc-fill.is-busy{
+  border:none;background:none;color:var(--ink-300);
+  cursor:default;letter-spacing:1px;
+}
+/* 숫자 칸은 우측 정렬이므로 버튼도 그 선에 맞춘다 */
+#recentCard td.num-cell .rc-fill,
+#recentCard td.g-col .rc-fill{vertical-align:middle;}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Keyword Cockpit — common.css v3.14 추가분
+   common.css 맨 아래(v3.13 추가분 다음)에 붙여 넣는다.
+   v3.13 추가분의 .rc-fill 규칙은 여기서 덮어쓰므로 지우지 않아도 된다.
+
+   ① 최근 검색 빈칸 → 사각 버튼에서 텍스트 링크로
+   ② 네이버 블로그 상위 10 임시 중단 (마크업은 남기고 감추기만)
+   ③ 발행 현황 카드가 그 자리에 들어감
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── ① 조회 링크 ──
+   표 안에 사각 버튼이 뜨면 데이터가 아니라 UI 잔재처럼 보인다.
+   숫자가 들어올 자리에 같은 크기로 앉히고, 점선 밑줄로만 클릭을 알린다. */
+.rc-fill{
+  display:inline;width:auto;height:auto;padding:0;margin:0;
+  border:none;background:none;border-radius:0;box-shadow:none;
+  font-size:var(--fs-cap);font-weight:normal;line-height:inherit;
+  color:var(--orange-600);
+  border-bottom:1px dotted var(--orange-600);
+  cursor:pointer;transition:.15s;
+}
+.rc-fill:hover{color:var(--orange-700, var(--orange-600));border-bottom-style:solid;}
+.rc-fill:focus-visible{outline:2px solid var(--orange-600);outline-offset:2px;border-radius:2px;}
+.rc-fill.is-busy{
+  color:var(--ink-400);border-bottom:none;cursor:default;
+}
+
+/* ── ② 상위 10 임시 중단 ──
+   삭제하지 않는다. 네이버 검색 API가 정상화되면 이 한 줄만 지우면 돌아온다.
+   (2026-08-27 · 정확도순 결과가 실제 노출 순서와 어긋나 신뢰할 수 없음) */
+#top10Card{display:none !important;}
+
+/* 순위 안내는 통합 보기 전용이 아니라 모든 보기에서 필요해졌다 */
+.results .src-note{display:block;}
+
+/* ── ③ 발행 현황 카드 ── */
+#pubBody .g-top > div:first-child{background:var(--src-n-tint);}
+#pubBody .g-top .gv em.n{color:var(--src-n-ink);}
+.pub-more{
+  padding:9px var(--card-x) 11px;text-align:center;
+  border-top:1px solid var(--border-soft);
+}
+
+@media(min-width:768px){
+  /* 6행 좌측이 상위 10에서 발행 현황으로 바뀐다 */
+  .results.mode-both #pubCard   {grid-column:1;grid-row:6;}
+  .results.mode-both #pubCard,
+  .results.mode-both #mypostCard{align-self:start;}
+  .results.mode-naver #pubCard,
+  .results.mode-naver #mypostCard{grid-column:auto;}
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Keyword Cockpit — common.css v3.15 추가분
+   common.css 맨 아래(v3.14 추가분 다음)에 붙여 넣는다.
+
+   기회 지수 = 월간 검색량 ÷ 30일 환산 발행량.
+   네이버 경쟁도(15칸 개수 게이지)·구글 경쟁도(위치 마커)와 산출 근거가
+   또 다르므로 형태를 세 번째로 나눈다 — 4단 계단.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+#pubBody .g-top .gv em.opp{
+  font-size:var(--fs-h3, 17px);font-weight:bold;letter-spacing:-.2px;
+  border-bottom:none;padding:0;
+}
+.opp-a{color:var(--src-n-ink);}          /* 매우 좋음 */
+.opp-b{color:var(--src-n);}              /* 좋음 */
+.opp-c{color:var(--ink-600);}            /* 보통 */
+.opp-d{color:var(--ink-400);}            /* 포화 */
+.opp-x{color:var(--ink-300);font-weight:normal;font-size:var(--fs-cap);}
+
+/* 4단 계단 — 등급 단계를 형태로 한 번 더 말한다 */
+.opp-stair{
+  display:flex;align-items:flex-end;gap:2px;
+  height:14px;margin:5px auto 0;width:34px;
+}
+.opp-stair i{
+  flex:1;display:block;border-radius:1px;
+  background:var(--paper-200);
+}
+.opp-stair.opp-a i          {background:var(--src-n);}
+.opp-stair.opp-b i:nth-child(-n+3){background:var(--src-n);}
+.opp-stair.opp-c i:nth-child(-n+2){background:var(--ink-500);}
+.opp-stair.opp-d i:nth-child(1)   {background:var(--ink-400);}
+
+@media(max-width:480px){
+  .opp-stair{width:28px;height:12px;}
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Keyword Cockpit — common.css v3.16 추가분
+   common.css 맨 아래(v3.15 추가분 다음)에 붙여 넣는다.
+
+   ① 모바일 3분할 블록 — 가운데 정렬 유지
+   ② 순위 안내를 광고 영역 바로 위로 (6행)
+   ③ 광고 영역 임시 숨김 (애드센스 미신청 상태)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── ① 모바일 3분할 ──
+   기존 규칙은 480px 이하에서 "라벨 왼쪽 / 값 오른쪽" 한 줄로 바뀌는데,
+   값·단서·계단이 오른쪽으로 몰려 카드마다 무게중심이 어긋나 보였다.
+   세로로 쌓되 가운데 정렬을 유지하는 편이 세 칸의 균형이 잡힌다.
+   (검색량 · 발행 현황 · 구글 광고 지표 카드가 이 배치를 공유한다) */
+@media(max-width:600px){
+  .g-top{grid-template-columns:1fr;}
+  .g-top > div{
+    display:flex;flex-direction:column;align-items:center;text-align:center;
+    padding:var(--s4) 10px;
+    border-left:none;border-top:1px solid var(--border-soft);
+  }
+  .g-top > div:first-child{border-top:none;}
+  .g-top .gl{margin-bottom:6px;min-height:0;}
+  /* 세로로 쌓이면 데스크톱의 min-height가 빈 공간만 늘린다 */
+  .g-top .gv{
+    align-items:center;text-align:center;
+    flex:0 1 auto;min-height:0;
+  }
+  .g-top .gv small{margin-top:4px;padding-top:0;}
+  .opp-stair{margin:5px auto 0;}
+}
+
+/* ── ② 순위 안내 위치 ──
+   결과 카드들 사이에 끼어 있으면 읽는 흐름을 끊는다.
+   결과를 다 본 뒤, 광고 영역 바로 위에서 읽히도록 마지막 행으로 내린다. */
+@media(min-width:768px){
+  .results.mode-both #pubCard   {grid-column:1;grid-row:5;}
+  .results.mode-both #mypostCard{grid-column:2;grid-row:5;}
+  .results.mode-both #serpNote  {grid-column:1/-1;grid-row:6;}
+  .results.mode-both > .ad-slot {grid-column:1/-1;grid-row:7;}
+}
+
+/* ── ③ 광고 영역 임시 숨김 ──
+   애드센스 승인 신청 전이라 자리만 잡아 둔 상태다. 빈 점선 상자가
+   결과 흐름을 끊고 "미완성"으로 보이므로 승인 전까지 감춘다.
+   승인 후 이 한 줄만 지우면 원래 자리로 돌아온다. */
+.ad-slot{display:none !important;}
+
+/* ── ④ 발행 현황 — 오늘 발행 분리 (v3.17) ──
+   "오늘 발행"은 하루가 진행 중인 값이고, 아래 셋은 완결된 값이다.
+   같은 3분할 안에 두면 서로 다른 성격이 섞여 혼동을 만든다.
+   전체 폭 한 줄로 빼고, 라벨 왼쪽 / 값 오른쪽 배치로 아래와 리듬을 가른다. */
+.pub-today{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:var(--s3);padding:12px var(--card-x);
+  background:var(--src-n-tint);
+  border-bottom:2px solid var(--border);
+}
+/* 라벨+숫자는 왼쪽 한 덩어리, 기준 시각만 오른쪽으로 뗀다.
+   .g-top .gv em 의 font-style:normal 이 여기까지 닿지 않으므로 직접 해제한다.
+   기울임체로 나오던 원인. */
+.pub-today .pt-main{
+  display:flex;align-items:baseline;gap:10px;min-width:0;
+}
+.pub-today .pt-main .gl{
+  margin:0;min-height:0;flex:0 0 auto;
+}
+.pub-today .pt-main em.n{
+  font-style:normal !important;font-weight:bold;
+  font-size:var(--fs-metric-2);line-height:1.2;
+  letter-spacing:-.3px;color:var(--src-n-ink);
+}
+.pub-today .pt-at{
+  font-size:var(--fs-cap);color:var(--ink-500);text-align:right;
+  white-space:nowrap;flex:0 0 auto;
+}
+@media(max-width:420px){
+  /* 좁은 화면에서는 기준 시각을 아랫줄로 내린다 */
+  .pub-today{flex-wrap:wrap;}
+  .pub-today .pt-at{width:100%;text-align:left;margin-top:4px;white-space:normal;}
+}
+
+/* 3분할 칸의 값도 기울임 방지 — 소요 시간이 em.n 으로 들어간다 */
+#pubBody .g-top .gv em.n{
+  font-style:normal !important;font-weight:bold;
+  font-size:var(--fs-metric-2);color:var(--ink-900);
+}
+/* 아래 3분할은 첫 칸 강조를 쓰지 않는다 — 강조는 위 줄이 맡는다 */
+#pubBody .g-top > div:first-child{background:transparent;}
+@media(max-width:600px){
+  /* 세로로 쌓이는 아래 칸들과 달리 이 줄은 한 줄을 유지한다 */
+  .pub-today{padding:11px var(--card-x);}
+}
+
+/* ═══ v3.17 — 노출 레이더 정렬 ═══════════════════════════════════
+   ① 등급 분포가 560px 이하에서 2×2로 접히면서 세로가 길어지고,
+      nth-child로 잡아둔 구분선 규칙이 4열 기준과 어긋나 선이 남았다.
+      네 칸을 그대로 두는 편이 세로도 짧고 구분선 규칙도 하나로 끝난다.
+   ② 포스팅 항목이 align-items:center라 제목이 2~3줄이면
+      오른쪽 점수 블록이 가운데로 밀려 줄이 안 맞았다.
+   ③ .score-kw는 정의가 없어 본문 크기 그대로 나왔다.
+   ══════════════════════════════════════════════════════════════ */
+
+@media(max-width:560px){
+  .radar-summary{grid-template-columns:repeat(4,1fr);}
+  /* 4열로 되돌렸으므로 2열용 예외 규칙을 원상복구한다 */
+  .radar-summary div:nth-child(3){border-left:1px solid var(--border-soft);}
+  .radar-summary div:nth-child(n+3){border-top:none;}
+  .radar-summary div{padding:10px 2px;}
+  .radar-summary .rv{font-size:var(--fs-md);}
+  .radar-summary .rl{font-size:10px;line-height:1.35;margin-top:3px;}
+}
+
+/* 제목 줄 수가 달라도 첫 줄끼리 맞물리게 한다 */
+.post-item{align-items:flex-start;}
+.score-kw{
+  font-size:var(--fs-micro);color:var(--ink-600);
+  margin-top:3px;word-break:break-all;
+}
+
+@media(max-width:600px){
+  /* 좁은 화면에서는 좌우로 나누지 않는다 — 오른쪽 칸이 눌리면
+     막대와 문구 폭이 항목마다 달라져 정렬이 무너진다. */
+  .post-item{flex-direction:column;gap:6px;}
+  .score-wrap{
+    min-width:0;width:100%;text-align:left;
+    display:flex;align-items:baseline;gap:8px;
+  }
+  .score-wrap .score-kw{margin:0 0 0 auto;text-align:right;}
+  .score-wrap .score-bar{width:100%;}
+  .score-skel{margin-left:0;}
+}
