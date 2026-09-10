@@ -92,27 +92,43 @@ module.exports = async (req, res) => {
     ]);
 
     // 키워드 검색 횟수 (오늘/7일/30일/누적) — page_views와 동일한 방식으로 search_logs 집계
+    /* event is null 인 행만 검색이다. 소스 전환(event='switch')이 같은
+       테이블에 들어오므로, 이 조건을 빼면 검색 수가 부풀려진다. */
+    const SEARCH_ONLY = 'event=is.null';
     const [kwTotal, kwToday, kwWeek, kwMonth] = await Promise.all([
-      supabaseCount('search_logs?select=created_at'),
-      supabaseCount(`search_logs?select=created_at&created_at=gte.${todayStart}`),
-      supabaseCount(`search_logs?select=created_at&created_at=gte.${week}`),
-      supabaseCount(`search_logs?select=created_at&created_at=gte.${month}`),
+      supabaseCount(`search_logs?select=created_at&${SEARCH_ONLY}`),
+      supabaseCount(`search_logs?select=created_at&${SEARCH_ONLY}&created_at=gte.${todayStart}`),
+      supabaseCount(`search_logs?select=created_at&${SEARCH_ONLY}&created_at=gte.${week}`),
+      supabaseCount(`search_logs?select=created_at&${SEARCH_ONLY}&created_at=gte.${month}`),
     ]);
 
     // 인기 키워드 TOP 20 (전체) — limit을 넉넉히 잡아 누적 검색량이 많아도 전체 기간을 반영
     const kwAll = await supabaseQuery(
-      'search_logs?select=keyword&order=created_at.desc&limit=20000'
+      `search_logs?select=keyword,source&${SEARCH_ONLY}&order=created_at.desc&limit=20000`
     );
 
     // 키워드 집계
     const kwCount = {};
     (kwAll || []).forEach(r => {
-      kwCount[r.keyword] = (kwCount[r.keyword] || 0) + 1;
+      const e = kwCount[r.keyword] || (kwCount[r.keyword] =
+        { count: 0, naver: 0, google: 0, both: 0, unknown: 0 });
+      e.count++;
+      e[r.source || 'unknown']++;
     });
     const topKeywords = Object.entries(kwCount)
-      .sort((a,b) => b[1]-a[1])
+      .sort((a,b) => b[1].count - a[1].count)
       .slice(0, 20)
-      .map(([keyword, count]) => ({ keyword, count }));
+      .map(([keyword, v]) => ({ keyword, ...v }));
+
+    /* ── 소스별 집계 ──
+       2026-09 이전 기록에는 source가 없다. null은 unknown으로 묶어
+       "기록 전"으로 표시한다 — 0으로 처리하면 과거가 사라진 것처럼 보인다. */
+    const srcCount = (rows) => {
+      const o = { naver: 0, google: 0, both: 0, unknown: 0 };
+      (rows || []).forEach(r => { o[r.source || 'unknown']++; });
+      return o;
+    };
+    const sourceTotals = srcCount(kwAll);
 
     // 최근 30일 일별 페이지뷰 (KST 기준 날짜로 집계)
     // limit을 넉넉히 명시 — Supabase REST 기본 응답 제한(보통 1000행)에 걸려
@@ -138,18 +154,26 @@ module.exports = async (req, res) => {
 
     // 최근 30일 일별 검색 횟수 (KST 기준 날짜로 집계, 페이지뷰와 동일 구조)
     const kwDaily = await supabaseQuery(
-      `search_logs?select=created_at&created_at=gte.${month}&order=created_at.asc&limit=20000`
+      `search_logs?select=created_at,source&${SEARCH_ONLY}&created_at=gte.${month}&order=created_at.asc&limit=20000`
     );
     const kwDailyMap = {};
     for (let i = 29; i >= 0; i--) {
       const key = toKSTDateString(kstDaysAgoStartUTC(i));
       kwDailyMap[key] = 0;
     }
+    const kwDailySrc = {};
+    for (const k of Object.keys(kwDailyMap)) {
+      kwDailySrc[k] = { naver: 0, google: 0, both: 0, unknown: 0 };
+    }
     (kwDaily || []).forEach(r => {
       const key = toKSTDateString(r.created_at);
-      if (kwDailyMap[key] !== undefined) kwDailyMap[key]++;
+      if (kwDailyMap[key] !== undefined) {
+        kwDailyMap[key]++;
+        kwDailySrc[key][r.source || 'unknown']++;
+      }
     });
-    const dailySearches = Object.entries(kwDailyMap).map(([date, count]) => ({ date, count }));
+    const dailySearches = Object.entries(kwDailyMap)
+      .map(([date, count]) => ({ date, count, ...kwDailySrc[date] }));
 
     // 30일 검색 평균
     const monthSearchAvg = dailySearches.length
@@ -158,10 +182,29 @@ module.exports = async (req, res) => {
 
     // 최근 검색 키워드 20개
     const recentKw = await supabaseQuery(
-      'search_logs?select=keyword,created_at&order=created_at.desc&limit=20'
+      `search_logs?select=keyword,created_at,source&${SEARCH_ONLY}&order=created_at.desc&limit=20`
     );
 
+    /* ── 소스 전환 ──
+       결과를 보고 있는 상태에서 토글을 옮긴 기록. 검색 후 실제로
+       다른 소스를 봤는지가 여기서 나온다. */
+    const switches = await supabaseQuery(
+      `search_logs?select=source,from_source,created_at&event=eq.switch&created_at=gte.${month}&limit=20000`
+    );
+    const switchPairs = {};
+    (switches || []).forEach(r => {
+      const k = `${r.from_source}\u2192${r.source}`;
+      switchPairs[k] = (switchPairs[k] || 0) + 1;
+    });
+    const sourceSwitches = Object.entries(switchPairs)
+      .sort((a,b) => b[1]-a[1])
+      .map(([pair, count]) => ({ pair, count }));
+    const switchTotal = (switches || []).length;
+
     return res.status(200).json({
+      sourceTotals,
+      sourceSwitches,
+      switchTotal,
       pageviews: {
         total:  pvTotal  || 0,
         today:  pvToday  || 0,
