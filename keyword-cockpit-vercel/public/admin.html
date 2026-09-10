@@ -107,6 +107,15 @@ section{animation:kc-fade .5s ease both}
 
 /* 키워드 리스트 */
 .kw-item{display:flex;align-items:center;gap:14px;padding:9px 0;border-bottom:1px solid #f1f2f5}
+/* 소스 카드는 "1,240회 · 62%"가 들어가므로 기본 46px로는 잘린다 */
+#srcList .kw-count{width:96px}
+#switchList .kw-count{width:56px}
+/* 키워드별 소스 내역 — 항목 아래 한 줄로 붙인다 */
+.kw-src{
+  display:flex;gap:10px;flex-wrap:wrap;
+  margin:-2px 0 8px 34px;font-size:11px;letter-spacing:-.1px;
+}
+
 .kw-item:last-child{border-bottom:none}
 .kw-rank{flex:none;width:24px;height:24px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;background:#eef1f6;color:#8a93a0}
 .kw-rank.top{background:var(--accent);color:#fff}
@@ -238,6 +247,29 @@ section{animation:kc-fade .5s ease both}
       </div>
     </section>
 
+    <!-- 소스별 이용 현황 -->
+    <section class="two-col">
+      <div class="list-card">
+        <div class="section-title" style="margin-bottom:6px">
+          <span class="section-title-bar"></span>
+          <span class="section-title-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="7" height="16" rx="1.5"></rect><rect x="14" y="4" width="7" height="16" rx="1.5"></rect></svg></span>
+          <span class="section-title-text">소스별 검색</span>
+          <span class="section-title-tag">누적</span>
+        </div>
+        <div id="srcList"><div class="loading">로딩 중...</div></div>
+      </div>
+
+      <div class="list-card">
+        <div class="section-title" style="margin-bottom:6px">
+          <span class="section-title-bar"></span>
+          <span class="section-title-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-3-3"></path><path d="M20 16H7l3 3"></path></svg></span>
+          <span class="section-title-text">소스 전환</span>
+          <span class="section-title-tag">30일</span>
+        </div>
+        <div id="switchList"><div class="loading">로딩 중...</div></div>
+      </div>
+    </section>
+
     <!-- 키워드 통계 -->
     <section class="two-col">
       <div class="list-card">
@@ -341,6 +373,17 @@ function statCard(iconName, label, value, caption) {
     <div class="stat-num">${Number(value||0).toLocaleString()}</div>
     <div class="stat-cap">${caption}</div>
   </div>`;
+}
+
+/* 키워드별 소스 내역. 한 소스로만 조회된 키워드는 배지를 생략한다 —
+   전부 붙이면 목록이 시끄러워지고 정보량도 없다. */
+function srcBadges(k) {
+  const S = [['naver','네이버','#1FA463'], ['google','구글','#2E4BC6'],
+             ['both','통합','#D9500F'], ['unknown','기록 전','#9AA3B2']];
+  const used = S.filter(([key]) => k[key] > 0);
+  if (used.length < 2) return '';
+  return '<div class="kw-src">' + used.map(([key, label, color]) =>
+    `<span style="color:${color}">${label} ${k[key]}</span>`).join('') + '</div>';
 }
 
 function renderStats(data) {
@@ -483,6 +526,47 @@ function renderStats(data) {
   }
 
   // 인기 키워드
+  /* ── 소스별 검색 ──
+     source가 없던 2026-09 이전 기록은 unknown으로 묶어 "기록 전"으로 보여준다.
+     0으로 처리하면 과거 데이터가 사라진 것처럼 보인다. */
+  const SRC_META = {
+    naver:   { label: '네이버',  color: '#1FA463' },
+    google:  { label: '구글',    color: '#2E4BC6' },
+    both:    { label: '통합 보기', color: '#D9500F' },
+    unknown: { label: '기록 전',  color: '#9AA3B2' },
+  };
+  const st = data.sourceTotals || {};
+  const stTotal = Object.values(st).reduce((a, b) => a + b, 0);
+  document.getElementById('srcList').innerHTML = stTotal
+    ? Object.keys(SRC_META).filter(k => st[k]).map(k => {
+        const m = SRC_META[k];
+        const pct = Math.round(st[k] / stTotal * 100);
+        return `<div class="kw-item">
+          <div class="kw-text" style="flex:0 0 76px;color:${m.color};font-weight:700">${m.label}</div>
+          <div class="kw-bar-wrap"><span class="kw-bar-fill" style="width:${Math.max(4,pct)}%;background:${m.color}"></span></div>
+          <div class="kw-count">${st[k].toLocaleString()}<span>회 · ${pct}%</span></div>
+        </div>`;
+      }).join('')
+    : '<div class="empty-msg">검색 기록이 없습니다</div>';
+
+  /* ── 소스 전환 ──
+     결과를 보고 있는 상태에서 토글을 옮긴 기록. 검색 후 실제로
+     다른 소스를 봤는지가 여기서 나온다. */
+  const sw = data.sourceSwitches || [];
+  const swMax = sw[0]?.count || 1;
+  const nameOf = s => (SRC_META[s] || {}).label || s;
+  document.getElementById('switchList').innerHTML = sw.length
+    ? sw.slice(0, 8).map(s => {
+        const [a, b] = s.pair.split('\u2192');
+        const pct = Math.max(7, Math.round(s.count / swMax * 100));
+        return `<div class="kw-item">
+          <div class="kw-text" style="flex:0 0 132px">${nameOf(a)} → ${nameOf(b)}</div>
+          <div class="kw-bar-wrap"><span class="kw-bar-fill" style="width:${pct}%"></span></div>
+          <div class="kw-count">${s.count.toLocaleString()}<span>회</span></div>
+        </div>`;
+      }).join('')
+    : '<div class="empty-msg">전환 기록이 없습니다</div>';
+
   const topKw = data.topKeywords || [];
   const maxCnt = topKw[0]?.count || 1;
   document.getElementById('topKwList').innerHTML = topKw.length
@@ -493,7 +577,8 @@ function renderStats(data) {
           <div class="kw-text">${k.keyword}</div>
           <div class="kw-bar-wrap"><span class="kw-bar-fill" style="width:${pct}%"></span></div>
           <div class="kw-count">${k.count}<span>회</span></div>
-        </div>`;
+        </div>
+        ${srcBadges(k)}`;
       }).join('')
     : '<div class="empty-msg">검색 기록이 없습니다</div>';
 
@@ -509,7 +594,7 @@ function renderStats(data) {
             <span class="recent-dot"></span>
             <span class="recent-kw">${k.keyword}</span>
           </span>
-          <span class="recent-time">${timeStr}</span>
+          <span class="recent-time">${k.source ? (({naver:'네이버',google:'구글',both:'통합'})[k.source] + ' · ') : ''}${timeStr}</span>
         </div>`;
       }).join('')
     : '<div class="empty-msg">검색 기록이 없습니다</div>';

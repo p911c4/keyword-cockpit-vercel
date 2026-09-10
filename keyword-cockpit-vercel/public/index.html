@@ -565,7 +565,7 @@ async function doSearch() {
      구글만 보는 사용자에게는 쓰지도 않는 호출이었고
      "구글로 검색했는데 네이버 값이 있다"는 비대칭도 여기서 생겼다. */
   saveRecent({ kw, npc: null, nmo: null, g: null, gmin: null, gmax: null, ts: Date.now() });
-  logSearch(kw);
+  logSearch(kw, source);
 
   const tasks = [];
   if (source !== 'google') tasks.push(loadNaver(kw));
@@ -994,6 +994,9 @@ function renderPublish() {
 /* ── 소스 토글 ── */
 function setSource(src) {
   if ((src === 'google' || src === 'both') && !window.GOOGLE_ENABLED) return;
+  /* 결과를 보고 있는 상태에서의 전환만 기록한다.
+     검색 전 토글은 취향 설정이지 행동이 아니다. */
+  if (currentKw && src !== source) logSourceSwitch(source, src, currentKw);
   source = src;
   document.querySelectorAll('.source-toggle button').forEach(b =>
     b.classList.toggle('active', b.dataset.src === src));

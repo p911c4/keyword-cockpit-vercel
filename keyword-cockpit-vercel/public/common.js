@@ -234,11 +234,23 @@ function logPageView() {
     body: JSON.stringify({ type: 'pageview' })
   }).catch(() => {});
 }
-function logSearch(keyword) {
+/* source는 선택 인자다. 넘기지 않으면 서버가 null로 저장하고
+   관리자 화면에서 "기록 전"으로 묶인다 — 2026-09 이전 기록이 그렇다. */
+function logSearch(keyword, source) {
   fetch('/api/log', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ type: 'search', keyword })
+    body: JSON.stringify({ type: 'search', keyword, source })
+  }).catch(() => {});
+}
+/* 소스 전환 기록 — "구글 지표를 만들었는데 실제로 쓰이는가"에 답한다.
+   네이버로 검색한 뒤 구글로 넘어간 비율이 여기서 나온다. */
+function logSourceSwitch(from, to, keyword) {
+  if (!from || !to || from === to) return;
+  fetch('/api/log', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type: 'switch', keyword, source: to, fromSource: from })
   }).catch(() => {});
 }
 if (document.readyState === 'loading') {
