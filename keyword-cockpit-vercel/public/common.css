@@ -1736,4 +1736,12 @@ html{scroll-behavior:smooth;}
   .content-sec ol,
   .content-sec dl.metric{column-gap:56px;}
 }
- 
+
+/* ── v3.18-a 보완 ──
+   힌트 박스는 다단 바깥 형제라 전체 폭을 써야 한다.
+   72ch 상한이 살아 있어 2단으로 넓어진 목록 아래에서 왼쪽에 붙어 보였다.
+   좌측 오렌지 바 + 배경이 이미 읽는 덩어리를 규정하므로
+   가로로 길어져도 본문 단락처럼 시선이 흩어지지 않는다. */
+@media(min-width:1100px){
+  .content-sec .hint{max-width:none;}
+}
