@@ -1,5 +1,15 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   Keyword Cockpit — common.css  v3.10
+   Keyword Cockpit — common.css v3.18 추가분
+   common.css 맨 아래(v3.17 추가분 다음)에 그대로 붙여 넣는다.
+   위쪽 규칙은 하나도 건드리지 않는다.
+ 
+   PC 본문 좌측 쏠림 정리 — CSS 전용.
+   index.html 은 한 글자도 바뀌지 않는다 (어절 수·DOM·메타 모두 동일).
+ 
+     ① 순위 안내(#serpNote)를 모든 보기에서 전체 폭으로   ← 결함 수정
+     ② 사용법·지표 해설을 1100px 이상에서 2단 조판         ← 가독 개선
+
+Keyword Cockpit — common.css  v3.10
    1단계 토큰 + 색 체계 · 2단계 카드 위계 · 3단계 그리드 · 4단계 상태 표현
    + 경쟁도 게이지를 두 형태로 분리 (v3.7)
    + 상단 블록 폭을 결과 그리드에 정렬 · 좌우 카드 내부 행 정렬 · 구글 블루 (v3.8)
@@ -1653,3 +1663,77 @@ html{scroll-behavior:smooth;}
   .score-wrap .score-bar{width:100%;}
   .score-skel{margin-left:0;}
 }
+
+/* ═══ ① 순위 안내 전체 폭 ═══════════════════════════════════════════════
+ 
+   v3.14 추가분에서 `.results .src-note{display:block}` 으로 안내를
+   모든 보기에 띄웠으나, 전체 폭 규칙은 v3.11·v3.16 에서 정의한
+   `.results.mode-both #serpNote` 에만 걸려 있었다.
+ 
+   결과: 네이버 단독·구글 단독 보기에서 안내가 2단 그리드의 왼쪽 칸
+   하나만 차지하고 오른쪽이 빈 채로 남았다. 통합 보기만 멀쩡했다.
+ 
+   셀렉터 범위만 넓힌다. mode-both 규칙은 클래스가 하나 더 많아
+   구체성이 높으므로 grid-row:6 지정은 그대로 살아 있다.
+   ═══════════════════════════════════════════════════════════════════════ */
+ 
+@media(min-width:768px){
+  .results #serpNote{grid-column:1/-1;}
+}
+ 
+ 
+/* ═══ ② 본문 2단 조판 ═══════════════════════════════════════════════════
+ 
+   1024px 이상에서 p·li·dd·dt 에 max-width:72ch 가 걸려 있다.
+   한 줄이 100자를 넘지 않게 막아 주지만, 카드는 전체 폭이라
+   오른쪽에 400px 넘는 빈 면이 남아 텍스트가 왼쪽으로 쏠려 보인다.
+ 
+   폭을 줄이는 대신 칸을 나눈다. 읽는 줄 길이는 그대로 지키면서
+   화면 폭을 실제로 쓰고, 세로 길이가 절반으로 줄어
+   광고 영역이 접히는 위치도 위로 올라온다.
+ 
+   적용 대상은 `사용법`(ol)과 `지표 해설`(dl.metric) 두 곳이다.
+   FAQ(details.faq)는 제외한다 — 아코디언을 열 때마다 칸 균형이
+   다시 잡히면서 항목이 좌우로 튀어 읽는 자리를 잃는다.
+   ═══════════════════════════════════════════════════════════════════════ */
+ 
+@media(min-width:1100px){
+ 
+  .content-sec ol,
+  .content-sec dl.metric{
+    column-count:2;
+    column-gap:var(--s10, 40px);
+    column-rule:1px solid var(--border-soft);
+  }
+ 
+  /* 한 항목이 두 칸에 걸쳐 잘리면 번호와 본문이 갈라진다 */
+  .content-sec ol > li{break-inside:avoid;page-break-inside:avoid;}
+  .content-sec dl.metric dd{break-inside:avoid;page-break-inside:avoid;}
+  .content-sec dl.metric dt{
+    break-inside:avoid;page-break-inside:avoid;
+    break-after:avoid;page-break-after:avoid;   /* 용어만 남고 설명이 다음 칸으로 넘어가지 않게 */
+  }
+ 
+  /* ol 의 padding-left 는 다단 컨테이너 전체에 한 번만 적용되므로
+     두 번째 칸에서는 번호가 칸 밖으로 밀린다.
+     들여쓰기를 li 로 옮겨 칸마다 같은 여백을 갖게 한다. */
+  .content-sec ol{padding-left:0;}
+  .content-sec ol > li{margin-left:26px;}
+ 
+  /* 칸 폭(약 470px)이 이미 72ch 근처라, 상한이 살아 있으면
+     칸 안에서 또 한 번 오른쪽이 비어 같은 증상이 반복된다. */
+  .content-sec ol > li,
+  .content-sec dl.metric dt,
+  .content-sec dl.metric dd{max-width:none;}
+ 
+  /* 두 칸의 첫 줄 높이를 맞춘다 — dt 의 margin-top 이 살아 있으면
+     오른쪽 칸만 한 줄 내려가 앉은 것처럼 보인다. */
+  .content-sec dl.metric dt:first-child{margin-top:0;}
+}
+ 
+/* 1440px 이상 — 본문 폭이 한 단계 더 넓어지므로 칸 사이를 벌린다 */
+@media(min-width:1440px){
+  .content-sec ol,
+  .content-sec dl.metric{column-gap:56px;}
+}
+ 
