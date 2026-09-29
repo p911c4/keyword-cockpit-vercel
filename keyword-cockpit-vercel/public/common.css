@@ -1766,3 +1766,92 @@ html{scroll-behavior:smooth;}
 @media(min-width:768px){
   #biResults.mode-naver #biActCard{grid-column:1/-1;}
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Keyword Cockpit — common.css v3.20 추가분
+   common.css 맨 아래에 붙여 넣는다. 위쪽 규칙은 건드리지 않는다.
+
+   ① 설명 단락도 2단 조판 — 아래 dl.metric 은 2단인데 위 단락만
+      72ch 상한에 걸려 오른쪽이 비어 보인다. 줄 길이는 그대로 두고
+      칸을 나눠 폭을 채운다. (감싸는 .two-col 이 있는 곳에만 적용)
+   ② 절 제목 위 구분선 — 같은 카드 안에서 화제가 바뀌는 자리를
+      선으로 끊는다. .sec-rule 을 붙인 h4 에만 적용한다.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── ② 절 구분선 (폭 무관) ── */
+.content-sec h4.sec-rule{
+  border-top:1px solid var(--border-soft,#e5e7eb);
+  padding-top:18px;
+  margin-top:24px;
+  /* 1024px 구간에서 h4 에도 max-width:72ch 가 걸려 있다.
+     그대로 두면 구분선이 왼쪽 칸 폭에서 끊겨, 오른쪽 칸 위가 비고
+     윗 단락이 오른쪽 항목에 이어진 것처럼 읽힌다. 선은 전체 폭으로 긋는다. */
+  max-width:none;
+}
+
+/* ── ① 설명 단락 2단 ── */
+@media(min-width:1100px){
+  .content-sec .two-col{
+    column-count:2;
+    column-gap:var(--s10, 40px);
+    column-rule:1px solid var(--border-soft,#e5e7eb);
+  }
+  /* 칸 폭이 이미 72ch 근처라 상한이 살아 있으면 칸 안에서 또 오른쪽이 빈다 */
+  .content-sec .two-col p{
+    max-width:none;
+    break-inside:avoid;
+    page-break-inside:avoid;
+  }
+  .content-sec .two-col p:first-child{margin-top:0;}
+}
+
+@media(min-width:1440px){
+  .content-sec .two-col{column-gap:56px;}
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Keyword Cockpit — common.css v3.21 추가분
+   common.css 맨 아래에 붙여 넣는다. 위쪽 규칙은 건드리지 않는다.
+
+   노출 레이더 — 스캔 카드 정돈.
+
+   좁은 화면에서 CSV 버튼이 카드 헤더에서 줄바꿈되어 실행 버튼과
+   들쭉날쭉하게 보였고, 설명문은 왼쪽 정렬인데 그 아래 안내문만
+   가운데 정렬이라 기준선이 두 개로 읽혔다.
+   버튼 두 개를 한 줄에 두고, 문장은 전부 왼쪽 정렬로 맞춘다.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.radar-actions{
+  padding:16px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.radar-actions #radarScanBtn{padding:12px 22px;font-size:13.5px;}
+
+/* 설명문은 버튼 줄 다음에 흐르되, 넓은 화면에서는 같은 줄에 이어 붙는다 */
+.radar-actions-desc{
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.6;
+  text-align:left;
+}
+
+.radar-empty-msg{
+  padding:26px 16px;
+  color:var(--muted);
+  font-size:13px;
+  text-align:center;
+}
+
+/* ── 모바일 ── */
+@media(max-width:600px){
+  .radar-actions{gap:8px;}
+  /* 버튼 두 개를 한 줄에. 설명문은 줄바꿈시켜 아래로 내린다. */
+  .radar-actions #radarScanBtn{flex:1 1 auto;}
+  .radar-actions .csv-btn{flex:0 0 auto;}
+  .radar-actions-desc{flex:1 0 100%;}
+  /* 문장 기준선을 하나로 — 카드 안 모든 문장을 왼쪽으로 */
+  .radar-empty-msg{text-align:left;padding:20px 16px;}
+}
