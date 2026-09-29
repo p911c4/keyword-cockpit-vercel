@@ -46,23 +46,21 @@
 </div>
 
 <!-- ── 스캔 시작 ── -->
-<div class="card">
+<div class="card" id="radarScanCard">
   <div class="card-head">
     <h2>노출 레이더 <small id="radarTarget">blog.naver.com/-</small></h2>
-    <button class="csv-btn" onclick="exportRadarCSV()">스캔 결과 CSV</button>
   </div>
-  <div style="padding:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-    <button class="btn btn-primary" id="radarScanBtn" onclick="startRadarScan()" style="padding:12px 22px;font-size:13.5px">노출 레이더 스캔 시작</button>
-    <span style="font-size:12px;color:var(--muted);line-height:1.6">최근 포스팅 10개의 해시태그 키워드를 추출하고,<br>검색량 상위 3개와 아직 쓰지 않은 키워드를 확인합니다.</span>
+  <!-- CSV 버튼을 카드 헤더가 아니라 실행 버튼 옆에 둔다.
+       헤더에 두면 좁은 화면에서 줄바꿈되어 실행 버튼과 들쭉날쭉하게 보인다. -->
+  <div class="radar-actions">
+    <button class="btn btn-primary" id="radarScanBtn" onclick="startRadarScan()">노출 레이더 스캔 시작</button>
+    <button class="csv-btn" onclick="exportRadarCSV()">스캔 결과 CSV</button>
+    <span class="radar-actions-desc">최근 포스팅 10개의 해시태그 키워드를 추출하고, 검색량 상위 3개와 아직 쓰지 않은 키워드를 확인합니다.</span>
   </div>
 
   <!-- 등급 분포 요약 스트립 — 2026-09-03 중단. 복구 시 style="display:none"만 지운다 -->
-  <div class="radar-note">
-    <b>포스팅 지수 산정을 일시 중단했습니다.</b>
-    네이버 블로그 검색 API의 정확도순 결과가 실제 검색 노출 순서와 크게 어긋나는 현상이 확인되었습니다.
-    지수 100점 중 45점이 순위 기반이라 순위 없이 계산하면 모든 글이 0.55로 눌립니다.
-    정상화되는 대로 복구합니다. 스캔은 계속 동작하며 포스팅 목록과 의도 키워드는 그대로 확인하실 수 있습니다.
-  </div>
+  <!-- 중단 안내는 하단 '포스팅 지수 — 현재 표시 중단' 절로 일원화했다.
+       같은 내용을 두 번 읽히지 않게 상단 배너는 두지 않는다. -->
   <div class="radar-summary" id="radarSummary" style="display:none">
     <div><div class="rv" style="color:var(--green)" id="sumGood">0</div><div class="rl">우수 0.80+</div></div>
     <div><div class="rv" style="color:var(--blue)" id="sumOk">0</div><div class="rl">양호 0.60+</div></div>
@@ -79,7 +77,7 @@
 
   <!-- 결과 리스트 -->
   <div id="radarResults">
-    <div style="padding:26px 16px;text-align:center;color:var(--muted);font-size:13px">
+    <div class="radar-empty-msg">
       스캔 버튼을 누르면 최근 포스팅 10개의 의도 키워드를 자동으로 분석합니다
     </div>
   </div>
@@ -112,11 +110,13 @@
 
 <div class="content-sec">
   <h3>포스팅 지수 — 현재 표시 중단</h3>
+  <div class="two-col">
   <p>포스팅 지수는 각 포스팅의 검색 노출 상태를 0.00~1.00 사이 종합 점수로 보여주던 자체 추정 지표입니다. 네이버 블로그 검색 API의 정확도순 결과가 실제 노출 순서와 크게 어긋나는 현상이 확인되어, <strong>2026년 9월 v2.0부터 산출과 표시를 중단</strong>했습니다.</p>
   <p>배점 100점 중 45점이 검색 노출 순위와 매칭폭에 의존하는 구조였습니다. 순위 없이 남은 항목만으로 계산하면 모든 글이 낮은 점수로 눌려 잘 쓴 글도 나쁘게 보이므로, 부분 산출 대신 전체 중단을 선택했습니다. 틀린 점수를 보여주는 것이 점수를 보여주지 않는 것보다 나쁘다고 판단했습니다.</p>
   <p>API가 정상화되면 복구합니다. 그때까지는 포스팅별 의도 키워드와 <strong>아직 쓰지 않은 키워드</strong>로 다음 글감을 잡는 용도로 사용하시면 됩니다.</p>
+  </div>
 
-  <h4>대신 무엇을 보면 되나요</h4>
+  <h4 class="sec-rule">대신 무엇을 보면 되나요</h4>
   <dl class="metric">
     <dt>의도 키워드</dt>
     <dd>포스팅의 해시태그에서 앞 5개를 읽고, 그중 검색량 상위 3개를 그 글의 실제 키워드로 봅니다. 내가 노리는 키워드와 도구가 읽은 키워드가 어긋난다면 태그 순서를 조정하시면 됩니다.</dd>
