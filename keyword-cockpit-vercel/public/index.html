@@ -1340,6 +1340,24 @@ async function loadActivityGauges() {
   toast(skipped
     ? `✅ 활동지수 ${done}개 조회 완료 · ${skipped}개는 네이버 블로그가 아니라 제외`
     : `✅ 상위 10 활동지수 조회 완료`);}
+/* 네이버 블로그 글의 고유 키(blogId/글번호)를 뽑는다.
+   같은 글이라도 검색 API·RSS·모바일·구형 경로가 제각각이라
+   링크 문자열을 그대로 비교하면 동일 글을 놓친다. */
+function postKey(link) {
+  const u = String(link || '');
+  let m = u.match(/blog\.naver\.com\/([A-Za-z0-9_-]+)\/(\d+)/);
+  if (m) return m[1].toLowerCase() + '/' + m[2];
+
+  const lg = u.match(/[?&]logNo=(\d+)/i);
+  if (lg) {
+    const bq = u.match(/[?&]blogId=([A-Za-z0-9_-]+)/i);
+    if (bq) return bq[1].toLowerCase() + '/' + lg[1];
+    const bp = u.match(/blog\.naver\.com\/([A-Za-z0-9_-]+)/);
+    if (bp && !NAVER_RESERVED.has(bp[1].toLowerCase())) return bp[1].toLowerCase() + '/' + lg[1];
+  }
+  return null;   // 네이버 블로그 글이 아니면 매칭 대상 아님
+}
+
 /* ── 내 블로그 포스팅 ── */
 /* 원래는 RSS와 검색 상위 100위를 합쳐 찾고 순위 배지를 붙였다.
    2026-08-27 현재 상위 100위 조회를 중단해 top100이 항상 비어 있으므로
@@ -1360,15 +1378,20 @@ async function loadMyPosts(kw) {
   meta.textContent = `${blogId} · "${kw}"`;
   listEl.innerHTML = '<div class="load-box show" style="padding:18px"><div class="spinner"></div></div>';
 
+  /* renderMyPosts()를 try 안에 두면 렌더링 예외까지 "불러오지 못했습니다"로 표시되어
+     조회 실패와 구분되지 않는다. 실제로 그 때문에 API가 정상인데 실패로 보인 적이 있다.
+     조회와 렌더링을 분리한다. */
   try {
     const res  = await fetch(`/api/myposts?query=${encodeURIComponent(kw)}&blogId=${encodeURIComponent(blogId)}`);
     const json = await res.json();
     myPosts = (json.items || []).slice(0, 5);
-    renderMyPosts();
   } catch (e) {
     myPosts = null;
-    listEl.innerHTML = '<div class="mypost-empty">내 포스팅을 불러오지 못했습니다</div>';
+    listEl.innerHTML = '<div class="mypost-empty">일시적으로 불러오지 못했습니다 · '
+      + `<a href="#" onclick="loadMyPosts('${kw.replace(/'/g, "\\'")}');return false;" style="color:var(--orange);font-weight:700">다시 시도</a></div>`;
+    return;
   }
+  renderMyPosts();
 }
 
 function renderMyPosts() {
