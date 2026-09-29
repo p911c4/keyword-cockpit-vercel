@@ -56,12 +56,9 @@
   <button onclick="loadBlogStats()">조회</button>
 </div>
 
-<!-- 2026-09-03 중단 — 복구 시 style="display:none"만 지우면 된다 -->
-  <div class="source-toggle" id="biSourceToggle" style="display:none">
-  <button data-src="naver" class="active" onclick="biSetSource('naver')"><span class="dot"></span>네이버</button>
-  <button data-src="google" onclick="biSetSource('google')" disabled title="Google 지표 연동 준비 중"><span class="dot"></span>구글 <span class="badge cached" id="biGBadge1">준비 중</span></button>
-  <button data-src="both" onclick="biSetSource('both')" disabled title="Google 지표 연동 준비 중"><span class="dot"></span>통합 보기 <span class="badge cached" id="biGBadge2">준비 중</span></button>
-</div>
+<!-- 구글 파트는 2026-09 중단. 감춰 두어도 정적 HTML의 문구는 크롤러가 수집하므로
+     '준비 중' 표기가 남지 않도록 마크업 자체를 두지 않는다.
+     복구 시 소스 토글(naver / google / both)을 이 자리에 되살린다. -->
 
 <div class="err-box" id="biErr"></div>
 
@@ -139,7 +136,7 @@
     <li><strong>블로그 ID 조회</strong>: blog.naver.com/ 뒤의 아이디만 입력합니다. 전체 주소를 붙여넣어도 자동으로 추출됩니다.</li>
     <li><strong>계기판 읽기</strong>: 활동 지수 게이지와 LV.1~9 등급, 최근 30일 발행 수, 총 포스팅 추정치가 한 화면에 표시됩니다.</li>
     <li><strong>발행 패턴 진단</strong>: 발행 밀도·평균 간격·최근 발행일 스트립과 30일 발행 캘린더로 꾸준함을 시각적으로 점검합니다. 캘린더에 빈 칸이 길게 이어진다면 발행 리듬이 무너진 구간입니다.</li>
-    <li><strong>키워드 노출 확인</strong>: 하단에서 키워드를 입력하면 이 블로그의 포스팅이 네이버 블로그 검색 상위 100위 안에 있는지, 몇 위인지 확인됩니다. 여러 키워드를 연속 조회하면 표에 누적되어 한 번에 비교할 수 있고, CSV로 저장해 정기 점검 기록으로 남길 수 있습니다.</li>
+    <li><strong>비교 대상 찾기</strong>: 벤치마킹하려는 블로그의 ID를 이어서 조회하면 같은 기준으로 발행 패턴을 견줄 수 있습니다. 키워드별 노출 순위 조회는 네이버 블로그 검색 API의 정확도순 결과가 실제 노출 순서와 어긋나는 현상이 확인되어 v2.0부터 표시를 중단했습니다.</li>
   </ol>
   <div class="hint">내 블로그뿐 아니라 벤치마킹 대상 블로그의 ID를 조회해 발행 패턴을 비교해 보세요. 상위 노출 블로그의 발행 밀도는 목표 설정의 좋은 기준이 됩니다.</div>
 </div>
@@ -153,8 +150,10 @@
     <dd>활동 지수 구간을 9단계로 나눈 등급입니다. LV.1~3(씨앗·새싹·나무)은 시작과 정착, LV.4~6(꽃·열매·숲)은 꾸준한 성장, LV.7~9(별·왕관·다이아)는 최상위 활동 단계를 뜻합니다.</dd>
     <dt>발행 밀도 / 평균 발행 간격</dt>
     <dd>최근 30일 데이터를 주당 발행 수와 글 사이 평균 일수로 환산한 값입니다. 발행 밀도가 주 2회 이상이고 간격 편차가 작을수록 검색엔진이 선호하는 "활성 블로그" 신호에 가깝습니다.</dd>
-    <dt>키워드 노출 순위</dt>
-    <dd>네이버 블로그 검색 상위 100개 결과에서 해당 블로그 포스팅의 위치입니다. 1~10위는 초록, 11~50위는 주황, 그 밖은 회색 필로 표시됩니다. 단, API의 정확도순(sim) 정렬은 실제 검색 화면의 노출 로직(C-Rank 등)과 구조적으로 다르므로 절대 순위보다 노출 여부와 대략적 위치를 읽는 참고 지표입니다.</dd>
+    <dt>총 포스팅 추정치</dt>
+    <dd>공개 RSS로 확인되는 발행 이력에서 산출한 추정값입니다. 비공개·서로이웃공개 글은 집계되지 않아 실제보다 적게 나올 수 있으므로 "+"를 붙여 표시합니다.</dd>
+    <dt>키워드 노출 순위 (표시 중단)</dt>
+    <dd>네이버 블로그 검색 상위 100개 결과에서 해당 블로그 포스팅의 위치를 보여주던 항목입니다. API의 정확도순(sim) 정렬이 실제 검색 화면의 노출 로직과 구조적으로 달라 틀린 순위를 보여줄 수 있다고 판단해 v2.0부터 표시를 중단했습니다. 그동안은 키워드 분석 페이지의 발행 현황으로 경쟁 강도를 가늠하시면 됩니다.</dd>
   </dl>
 </div>
 
@@ -162,7 +161,7 @@
   <h3>자주 묻는 질문</h3>
   <details class="faq"><summary>활동 지수는 네이버 공식 지수인가요?</summary><p>아니요. 네이버는 공식 블로그 지수를 공개하지 않습니다. 본 지표는 공개 RSS와 검색 API만으로 산출한 자체 추정 지표입니다.</p></details>
   <details class="faq"><summary>총 포스팅 수가 실제와 다릅니다.</summary><p>공개 데이터 기반 추정값이라 "+"를 붙여 표시합니다. 비공개·서로이웃공개 글은 집계되지 않습니다.</p></details>
-  <details class="faq"><summary>노출 순위가 실제 검색 화면과 왜 다른가요?</summary><p>네이버 블로그 검색 API의 정렬 방식이 실제 통합검색 노출 로직과 다르기 때문입니다. API 자체의 구조적 한계로, 노출 여부 확인용 참고 지표로 활용하세요.</p></details>
+  <details class="faq"><summary>키워드 노출 순위 조회는 왜 사라졌나요?</summary><p>네이버 블로그 검색 API의 정렬 방식이 실제 통합검색 노출 로직과 달라, 실제로 상위에 있는 글이 API 결과 100건 안에 나타나지 않는 사례를 여러 키워드에서 확인했습니다. 틀린 순위를 보여주는 것이 순위를 보여주지 않는 것보다 나쁘다고 판단해 v2.0부터 표시를 중단했습니다. API가 정상화되면 복구합니다.</p></details>
   <details class="faq"><summary>다른 사람 블로그도 조회할 수 있나요?</summary><p>네. 공개된 RSS와 검색 데이터만 사용하므로 어떤 네이버 블로그든 ID만 알면 조회할 수 있습니다.</p></details>
   <details class="faq"><summary>활동 지수를 올리려면 어떻게 해야 하나요?</summary><p>산식상 최근 30일 발행 수가 유일한 변수지만, 실제 블로그 성장에는 발행량 못지않게 검색 의도에 맞는 키워드 선정과 글 품질이 중요합니다. 키워드 분석 탭과 노출 레이더를 함께 활용하세요.</p></details>
 </div>
@@ -510,16 +509,9 @@ function biApplySource() {
 }
 
 /* common.js의 checkGoogleFlag()가 호출한다 */
-window.onGoogleFlagReady = function(enabled) {
-  /* 구글 파트 중단 중이므로 플래그가 켜져도 토글을 되살리지 않는다 */
-  return;
-  // eslint-disable-next-line no-unreachable
-  document.querySelectorAll('#biSourceToggle button[data-src="google"], #biSourceToggle button[data-src="both"]')
-    .forEach(b => { b.disabled = !enabled; b.title = enabled ? '' : 'Google 지표 연동 준비 중'; });
-  const b1 = document.getElementById('biGBadge1'), b2 = document.getElementById('biGBadge2');
-  if (b1) b1.style.display = enabled ? 'none' : '';
-  if (b2) b2.style.display = enabled ? 'none' : '';
-};
+/* 구글 파트는 v2.0에서 중단했다. 소스 토글 마크업도 없으므로
+   플래그가 켜져도 되살릴 대상이 없다. 복구 시 마크업과 함께 다시 작성한다. */
+window.onGoogleFlagReady = function() {};
 
 async function loadBlogStats() {
   const raw = document.getElementById('biIdInp').value.trim();

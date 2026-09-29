@@ -59,8 +59,8 @@
 <!-- ── 소스 토글 ── -->
 <div class="source-toggle" id="sourceToggle">
   <button data-src="naver" class="active" onclick="setSource('naver')"><span class="dot"></span>네이버</button>
-  <button data-src="google" onclick="setSource('google')" disabled title="Google 검색량 연동 준비 중"><span class="dot"></span>구글 <span class="badge cached" id="gBadge1">준비 중</span></button>
-  <button data-src="both" onclick="setSource('both')" disabled title="Google 검색량 연동 준비 중"><span class="dot"></span>통합 보기 <span class="badge cached" id="gBadge2">준비 중</span></button>
+  <button data-src="google" onclick="setSource('google')"><span class="dot"></span>구글</button>
+  <button data-src="both" onclick="setSource('both')"><span class="dot"></span>통합 보기</button>
 </div>
 
 <!-- ── 최근 검색 (소스 무관 · 결과 영역 밖) ── -->
@@ -161,15 +161,6 @@
     </div>
     <div id="pubBody"></div>
     <div class="foot"><span>네이버 블로그 검색 · 발행일 내림차순 · 조회 시각 기준</span></div>
-  </div>
-
-  <!-- 상위 10 — 임시 중단 (마크업 유지, CSS로 감춤) -->
-  <div class="card" id="top10Card">
-    <div class="card-head">
-      <h2>네이버 블로그 상위 10 <small>블로그 활동지수 비교</small></h2>
-      <button class="csv-btn" onclick="exportTop100CSV()">상위 100위 CSV 저장</button>
-    </div>
-    <div class="bar-wrap" id="top10Wrap"></div>
   </div>
 
   <!-- 내 블로그 포스팅 -->
@@ -1025,17 +1016,14 @@ function setSource(src) {
   applySourceView();
 }
 /* common.js의 checkGoogleFlag()가 /api/google-keyword?ping=1 응답을 받은 뒤 호출한다.
-   이 핸들러가 없으면 API가 enabled:true를 돌려줘도 토글이 '준비 중'에 머문다. */
+   구글 지표는 v2.0부터 정식 제공하므로 정적 마크업은 활성 상태를 기본으로 둔다.
+   자격증명 누락 등으로 enabled:false 가 오면 여기서 되돌려 잠근다. */
 window.onGoogleFlagReady = function(enabled) {
   document.querySelectorAll('.source-toggle button[data-src="google"], .source-toggle button[data-src="both"]')
     .forEach(b => {
       b.disabled = !enabled;
-      b.title = enabled ? '' : 'Google 검색량 연동 준비 중';
+      b.title = enabled ? '' : '구글 지표를 일시적으로 불러올 수 없습니다';
     });
-  const b1 = document.getElementById('gBadge1');
-  const b2 = document.getElementById('gBadge2');
-  if (b1) b1.style.display = enabled ? 'none' : '';
-  if (b2) b2.style.display = enabled ? 'none' : '';
   /* 승인되어도 기본은 네이버로 둔다.
      기본을 통합으로 두면 검색할 때마다 구글 API가 호출되어
      일일 오퍼레이션을 사용자가 보지도 않는 데이터에 소모한다.
@@ -1044,7 +1032,6 @@ window.onGoogleFlagReady = function(enabled) {
 
 /* 소스 토글은 검색량 표뿐 아니라 해당 소스로 채워지는 카드 전체를 제어한다.
    좌우 행이 대칭이므로 네이버/구글 카드를 짝지어 관리한다. */
-/* top10Card는 임시 중단이라 목록에서 뺀다 (CSS로 감춤 · 마크업은 유지) */
 const NAVER_CARDS  = ['volCard', 'nCompCard', 'trendCard', 'relCard', 'pubCard', 'mypostCard'];
 const GOOGLE_CARDS = ['gVolCard', 'gCompCard', 'gSeasonCard', 'gIdeaCard'];
 
@@ -1293,107 +1280,6 @@ async function loadTrend(kw) {
   }
 }
 
-/* ── 상위 10 바 차트 (display=100 1회 호출 → 화면 10, CSV 100) ── */
-
-/* 네이버 링크 경로 첫 조각이 항상 블로그 ID인 것은 아니다.
-   구형 뷰어 경로(PostView.naver 등)에서는 시스템 이름이 들어온다. */
-const NAVER_RESERVED = new Set([
-  'postview', 'postlist', 'prologue', 'bloghome', 'postmain',
-  'blogmain', 'postthumbnaillist', 'guestbook', 'memolog'
-]);
-
-/* 블로그 ID 추출.
-   글 링크(link)는 네이버가 형식을 여러 번 바꿔 왔고 지금도 4가지가 섞여 나온다.
-   반면 bloggerlink는 "블로그 홈 주소" 전용 필드라 형식이 훨씬 안정적이다.
-   그래서 bloggerlink를 먼저 보고, 없을 때만 글 링크를 파싱한다. */
-function extractBlogId(link, bloggerlink) {
-  for (const src of [bloggerlink, link]) {
-    const s = String(src || '');
-    if (!s) continue;
-    /* ① blogId 쿼리 — 구형 경로에서 가장 확실한 단서 */
-    let m = s.match(/[?&]blogId=([A-Za-z0-9_-]+)/i);
-    if (m) return m[1].toLowerCase();
-    /* ② 경로형 blog.naver.com/아이디 */
-    m = s.match(/blog\.naver\.com\/([A-Za-z0-9_-]+)/);
-    if (m && !NAVER_RESERVED.has(m[1].toLowerCase())) return m[1].toLowerCase();
-  }
-  return '';
-}
-/* 네이버 블로그 글의 고유 키(blogId/글번호)를 뽑는다.
-   같은 글이라도 검색 API·RSS·모바일·구형 경로가 제각각이라
-   링크 문자열을 그대로 비교하면 동일 글을 놓친다. */
-function postKey(link) {
-  const u = String(link || '');
-  let m = u.match(/blog\.naver\.com\/([A-Za-z0-9_-]+)\/(\d+)/);
-  if (m) return m[1].toLowerCase() + '/' + m[2];
-
-  const lg = u.match(/[?&]logNo=(\d+)/i);
-  if (lg) {
-    const bq = u.match(/[?&]blogId=([A-Za-z0-9_-]+)/i);
-    if (bq) return bq[1].toLowerCase() + '/' + lg[1];
-    const bp = u.match(/blog\.naver\.com\/([A-Za-z0-9_-]+)/);
-    if (bp && !NAVER_RESERVED.has(bp[1].toLowerCase())) return bp[1].toLowerCase() + '/' + lg[1];
-  }
-  return null;   // 네이버 블로그 글이 아니면 매칭 대상 아님
-}
-
-/* 내 블로그 판정 — 양쪽 모두 값이 있을 때만 비교한다.
-   extractBlogId()는 네이버 블로그가 아니면 ''를 돌려주므로,
-   단순 === 비교를 쓰면 미설정 상태('')와 맞아떨어져 오탐이 난다. */
-function isMyBlog(blogId, myId) {
-  return !!myId && !!blogId && blogId === myId;
-}
-async function loadTop100(kw) {
-  const wrap = document.getElementById('top10Wrap');
-  wrap.innerHTML = '<div class="load-box show"><div class="spinner"></div></div>';
-  top100 = [];
-  try {
-    const res  = await fetch(`/api/blog?query=${encodeURIComponent(kw)}&display=100`);
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error || '오류');
-    top100 = (json.items || []).map((it, i) => ({
-      rank: i + 1,
-      title: (it.title || '').replace(/<[^>]+>/g, ''),
-      blogger: it.bloggername || '',
-      link: it.link || '',
-      postdate: it.postdate || '',
-      blogId: extractBlogId(it.link, it.bloggerlink)
-    }));
-    if (!top100.length) { wrap.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:13px;text-align:center">검색 결과가 없습니다</div>'; return; }
-
-    const myId = getMyBlogId();
-    const ten  = top100.slice(0, 10);
-    wrap.innerHTML = ten.map(p => {
-      const me = isMyBlog(p.blogId, myId);
-      return `<div class="bar-row">
-        <div class="bar-rank ${me?'me':''}">${p.rank}</div>
-        <div class="bar-body">
-          <div class="bar-label ${me?'me':''}">
-            <a href="${p.link}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">${p.title}</a>
-            <span class="author">${p.blogger}${me?' (내 블로그)':''}</span>
-          </div>
-          <div class="bar-line">
-            <div class="bar-track"><div class="bar-fill ${me?'me':''}" id="barfill-${p.rank}" style="width:0%"></div></div>
-            <div class="bar-val" id="barval-${p.rank}">–</div>
-          </div>
-        </div>
-      </div>`;
-    }).join('')
-    + `<div class="legend">
-        <span><i style="background:#2E4BC6"></i>경쟁 블로그</span>
-        ${myId ? `<span><i style="background:#D9500F"></i>내 블로그 (${myId})</span>` : ''}
-        <span>막대 = 활동지수 추정치</span>
-        <button class="csv-btn" style="margin-left:auto" id="actBtn" onclick="loadActivityGauges()">활동지수 조회</button>
-      </div>`;
-
-    /* loadTop100과 loadMyPosts는 병렬로 시작하므로 어느 쪽이 먼저 끝날지 알 수 없다.
-       내 포스팅이 먼저 그려졌다면 top100이 비어 있어 순위가 붙지 않는다.
-       여기서 다시 그려 순위를 채운다. */
-    if (myPosts) renderMyPosts();
-  } catch (e) {
-    wrap.innerHTML = `<div style="padding:20px;color:var(--red);font-size:13px">상위 포스팅 로드 실패: ${e.message}</div>`;
-  }
-}
 /* 활동지수 온디맨드 조회 — 상위 10 블로그만, 80ms 간격 순차 */
 /* 활동지수는 블로그마다 별도 조회가 필요하고 80ms 딜레이가 붙어 있어
    검색 때 자동 실행하지 않는다. 버튼을 눌렀을 때만 순차 조회한다.
@@ -1454,14 +1340,6 @@ async function loadActivityGauges() {
   toast(skipped
     ? `✅ 활동지수 ${done}개 조회 완료 · ${skipped}개는 네이버 블로그가 아니라 제외`
     : `✅ 상위 10 활동지수 조회 완료`);}
-function exportTop100CSV() {
-  if (!top100.length) { toast('먼저 키워드를 분석하세요'); return; }
-  const myId = getMyBlogId();
-  downloadCSV('상위100포스팅',
-    ['순위','제목','블로그명','링크','발행일','내 블로그'],
-    top100.map(p => [p.rank, p.title, p.blogger, p.link, p.postdate, isMyBlog(p.blogId, myId) ? 'Y' : '']));
-}
-
 /* ── 내 블로그 포스팅 ── */
 /* 원래는 RSS와 검색 상위 100위를 합쳐 찾고 순위 배지를 붙였다.
    2026-08-27 현재 상위 100위 조회를 중단해 top100이 항상 비어 있으므로
