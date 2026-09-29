@@ -27,9 +27,25 @@ function log(type, msg) {
 /* ═══ 블로그 설정 (localStorage) ═══ */
 const BLOG_SETTING_KEY = 'kc_my_blog_id';
 
+/* 저장값은 두 형식이 공존한다 — 예전 문자열("p911c4")과
+   개발 환경에서 쓰던 객체({raw,platform,blogId,rssUrl}).
+   localStorage 가 도메인별로 분리돼 있어 한쪽만 고치면 다른 쪽에서 터진다.
+   읽기를 이 함수 하나로 통일해 두 형식을 모두 받는다. */
+function readSavedBlogId(raw) {
+  if (!raw) return '';
+  const t = String(raw).trim();
+  if (t[0] === '{') {
+    try {
+      const o = JSON.parse(t);
+      if (o && typeof o === 'object') return String(o.blogId || o.raw || '').trim();
+    } catch (e) { /* 깨진 값이면 아래로 떨어져 원문을 그대로 쓴다 */ }
+  }
+  return t;
+}
+
 function getMyBlogId() {
   // 기본값 없음 — 사용자가 설정하지 않았으면 빈 문자열 (하드코딩 제거)
-  return (localStorage.getItem(BLOG_SETTING_KEY) || '').trim();
+  return readSavedBlogId(localStorage.getItem(BLOG_SETTING_KEY));
 }
 
 /* 설정 모달 마크업은 정적 HTML에 두지 않고 여기서 생성한다.
@@ -69,7 +85,7 @@ function ensureSettingsModal() {
 
 function openSettings() {
   ensureSettingsModal();
-  const saved = localStorage.getItem(BLOG_SETTING_KEY) || '';
+  const saved = getMyBlogId();
   const inp   = document.getElementById('settingsBlogId');
   const cur   = document.getElementById('modalCurrentId');
   const savedMsg = document.getElementById('modalSaved');

@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>블로그 지수 – 네이버 블로그 활동 진단 | Keyword Cockpit</title>
-<meta name="description" content="블로그 지수를 무료로 확인하세요. 활동 지수(LV.1~9), 최근 30일 발행량, 키워드별 상위 100위 노출 순위까지 조회합니다">
+<meta name="description" content="블로그 지수를 무료로 확인하세요. 블로그 ID만 입력하면 활동 지수(LV.1~9), 최근 30일 발행량, 발행 밀도와 평균 간격을 조회합니다">
 <link rel="canonical" href="https://tool.keywordcockpit.com/blog">
 <meta property="og:type" content="website">
 <meta property="og:title" content="블로그 지수 – 네이버 블로그 활동 진단 | Keyword Cockpit">
-<meta property="og:description" content="블로그 지수를 무료로 확인하세요. 활동 지수(LV.1~9), 최근 30일 발행량, 키워드별 상위 100위 노출 순위까지 조회합니다">
+<meta property="og:description" content="블로그 지수를 무료로 확인하세요. 블로그 ID만 입력하면 활동 지수(LV.1~9), 최근 30일 발행량, 발행 밀도와 평균 간격을 조회합니다">
 <meta property="og:url" content="https://tool.keywordcockpit.com/blog">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="icon" type="image/png" sizes="48x48" href="/favicon48.png">
@@ -117,30 +117,7 @@
     <div id="biGSeasonBody"></div>
   </div>
 
-  <!-- ─── 행 3 · 키워드 노출 / 키워드 시장 가치 ─── -->
-  <div class="card" id="biRankCard">
-    <div class="card-head">
-      <h2>키워드 노출 현황 <small>상위 100위 내 노출 여부</small></h2>
-      <button class="csv-btn" onclick="exportRankCSV()">CSV 저장</button>
-    </div>
-    <div class="inline-search">
-      <div class="inp-wrap">
-        <input type="text" id="biKwInp" placeholder="확인할 키워드 입력" autocomplete="off"
-               oninput="toggleClear('biKwInp','biKwClear')"
-               onkeydown="if(event.key==='Enter'){checkRankOnce();}">
-        <button class="inp-clear" id="biKwClear" onclick="clearInput('biKwInp','biKwClear')">×</button>
-      </div>
-      <button onclick="checkRankOnce()">순위 확인</button>
-    </div>
-    <table>
-      <thead><tr><th>키워드</th><th>최고 순위</th><th>노출 수</th><th>노출 포스팅</th></tr></thead>
-      <tbody id="rankBody">
-        <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:22px">키워드를 입력하면 조회 결과가 이 표에 누적됩니다</td></tr>
-      </tbody>
-    </table>
-    <div class="foot"><span>조회 결과는 세션 동안 누적 표시됩니다</span><a onclick="clearRankRows()">누적 지우기</a></div>
-  </div>
-
+  <!-- ─── 행 3 · 키워드 시장 가치 ─── -->
   <div class="card" id="biGKwCard">
     <div class="card-head"><h2>키워드별 시장 가치 <small>블로그 대표 키워드</small></h2></div>
     <div id="biGKwBody"></div>
@@ -197,10 +174,10 @@
   </div>
   <div class="footer-blog">
     <strong>Keyword Cockpit</strong>은 운영자가 직접 설계하고 개발한 무료 키워드 분석 도구입니다.<br>
-    키워드 분석 노하우와 도구 제작 과정은 <a href="https://keywordcockpit.com" target="_blank" rel="noopener">공식 블로그 keywordcockpit.com</a>에서 확인하세요.
+    검색엔진·AI 검색 최적화 실험과 도구 제작 과정은 <a href="https://keywordcockpit.com" target="_blank" rel="noopener">공식 블로그 keywordcockpit.com</a>에서 확인하세요.
   </div>
   <div class="footer-legal">
-    활동지수·포스팅 지수는 공개 데이터 기반 자체 추정 지표로, 네이버 공식 지수와 다릅니다.<br>
+    활동 지수·기회 지수는 공개 데이터 기반 자체 추정 지표로, 네이버·구글의 공식 지표와 다릅니다.<br>
     © 2026 Keyword Cockpit · <a href="https://keywordcockpit.com/privacy-policy/" target="_blank" rel="noopener" style="color:inherit">개인정보처리방침</a>
   </div>
 </footer>
@@ -211,7 +188,6 @@
    v2.0 탭2 — 블로그 지수
 ═══════════════════════════════ */
 let currentBlogId = '';
-let rankRows = [];   // 세션 누적 [{kw, best, count, title, link}]
 
 const LEVELS = [
   { lv:1, min:0,  name:'씨앗',   desc:'이제 시작하는 단계' },
@@ -271,7 +247,7 @@ let biGData    = null;   // { rows:[{kw,volume,competition,competitionIndex,cpc,
 let biGLoadedId = null;  // 이미 조회한 블로그 ID (중복 호출 방지)
 let biPosts    = [];     // 활동 지표 조회 시 받아둔 RSS 포스팅
 
-const NAVER_BI_CARDS  = ['biActCard', 'biRankCard'];
+const NAVER_BI_CARDS  = ['biActCard'];   /* 키워드 노출 현황 카드는 v2.0에서 제거 */
 const GOOGLE_BI_CARDS = ['biGTopicCard', 'biGSeasonCard', 'biGKwCard'];
 
 /* ── 접기 유틸 (메인과 동일) ── */
@@ -626,64 +602,9 @@ async function loadBlogStats() {
   }
 }
 
-/* ── 키워드 노출 현황 (세션 누적) ── */
-function rankPill(best) {
-  if (best == null) return `<span class="rank-pill none">100위 밖</span>`;
-  if (best <= 10)   return `<span class="rank-pill top">${best}위</span>`;
-  if (best <= 50)   return `<span class="rank-pill mid">${best}위</span>`;
-  return `<span class="rank-pill none">${best}위</span>`;
-}
-function renderRankRows() {
-  const body = document.getElementById('rankBody');
-  body.innerHTML = rankRows.length
-    ? rankRows.map(r => `<tr>
-        <td class="kw">${r.kw}</td>
-        <td>${rankPill(r.best)}</td>
-        <td>${r.count}개</td>
-        <td style="text-align:left;white-space:normal;max-width:220px">${
-          r.link ? `<a href="${r.link}" target="_blank" rel="noopener" style="color:var(--dark);text-decoration:none;font-size:12px;word-break:keep-all">${r.title}</a>` : '<span style="color:var(--muted);font-size:12px">-</span>'
-        }</td>
-      </tr>`).join('')
-    : `<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:22px">키워드를 입력하면 조회 결과가 이 표에 누적됩니다</td></tr>`;
-}
-async function checkRankOnce() {
-  const kw = document.getElementById('biKwInp').value.trim().replace(/\s+/g, '');
-  if (!kw) { toast('키워드를 입력하세요'); return; }
-  const blogId = currentBlogId || getMyBlogId();
-  if (!blogId) { toast('먼저 위에서 블로그 ID를 입력하고 조회해 주세요', 3000); return; }
-  const body = document.getElementById('rankBody');
-  body.insertAdjacentHTML('afterbegin',
-    `<tr id="rankPending"><td class="kw">${kw}</td><td colspan="3"><span class="loading-pill"></span></td></tr>`);
-  try {
-    const res  = await fetch(`/api/blogstats?keyword=${encodeURIComponent(kw)}&blogId=${encodeURIComponent(blogId)}`);
-    const json = await res.json();
-    const ranks = json.ranking?.ranks || [];
-    const best  = ranks.length ? ranks[0].rank : null;
-    rankRows = rankRows.filter(r => r.kw !== kw);
-    rankRows.unshift({
-      kw, best, count: ranks.length,
-      title: ranks.length ? ranks[0].title : '', link: ranks.length ? ranks[0].link : ''
-    });
-    document.getElementById('biKwInp').value = '';
-    document.getElementById('biKwClear').classList.remove('show');
-    toast(ranks.length ? `✅ "${kw}" — 최고 ${best}위 (${ranks.length}개 노출)` : `"${kw}" — 상위 100위 내 노출 없음`);
-  } catch (e) {
-    toast('⚠️ 순위 조회 실패: ' + e.message, 3000);
-  }
-  document.getElementById('rankPending')?.remove();
-  renderRankRows();
-}
-function clearRankRows() { rankRows = []; renderRankRows(); }
-function exportRankCSV() {
-  if (!rankRows.length) { toast('저장할 조회 결과가 없습니다'); return; }
-  downloadCSV('키워드노출현황',
-    ['블로그 ID','키워드','최고 순위','노출 수','노출 포스팅 제목','링크'],
-    rankRows.map(r => [currentBlogId || getMyBlogId(), r.kw, r.best ?? '100위 밖', r.count, r.title, r.link]));
-}
-
 /* ── 페이지 훅 ── */
 window.pageReset = function() {
-  const saved = localStorage.getItem(BLOG_SETTING_KEY) || '';
+  const saved = getMyBlogId();
   const inp = document.getElementById('biIdInp');
   inp.value = saved;
   toggleClear('biIdInp','biIdClear');
@@ -693,7 +614,6 @@ window.pageReset = function() {
   document.getElementById('biMeta').textContent = '';
   document.getElementById('biLoading').style.display = 'none';
   document.getElementById('biErr').classList.remove('show');
-  rankRows = []; renderRankRows();
   currentBlogId = saved;
 };
 window.onBlogSettingChanged = function() { window.pageReset(); };
@@ -702,7 +622,7 @@ window.onBlogSettingChanged = function() { window.pageReset(); };
 (function init() {
   biApplySource();
   checkGoogleFlag();   /* 구글 연동 여부를 확인해 소스 토글을 활성화한다 */
-  const saved = localStorage.getItem(BLOG_SETTING_KEY) || '';
+  const saved = getMyBlogId();
   if (saved) {
     document.getElementById('biIdInp').value = saved;
     toggleClear('biIdInp','biIdClear');
