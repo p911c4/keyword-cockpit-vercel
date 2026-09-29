@@ -1751,3 +1751,18 @@ html{scroll-behavior:smooth;}
 @media(min-width:1100px){
   .content-sec dl.metric{column-rule:1px solid var(--border);}
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Keyword Cockpit — common.css v3.19 추가분
+   common.css 맨 아래에 붙여 넣는다. 위쪽 규칙은 건드리지 않는다.
+
+   블로그 지수 — 키워드 노출 현황 카드 제거 후 레이아웃 보정.
+
+   네이버 보기에서 카드가 '활동 지표' 하나만 남는다. 2단 그리드에
+   혼자 놓이면 왼쪽 절반만 차지하고 오른쪽이 통째로 빈다.
+   전체 폭을 쓰게 해 발행 캘린더와 스탯이 잘리지 않도록 한다.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+@media(min-width:768px){
+  #biResults.mode-naver #biActCard{grid-column:1/-1;}
+}
