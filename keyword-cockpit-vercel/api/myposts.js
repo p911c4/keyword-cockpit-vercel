@@ -76,8 +76,14 @@ function searchRSS(query, blogId, callback) {
       const kwNorm   = normalize(query);
       const kwTokens = tokenize(query.toLowerCase());
       const matched  = allItems.filter(item => {
-        const hayNorm = normalize(item.title + ' ' + item.description);
-        const hayRaw  = (item.title + ' ' + item.description).toLowerCase();
+        /* 해시태그를 대조 대상에 포함한다.
+           글쓴이가 직접 붙인 의도 키워드이므로 제목·요약보다 정확한 신호다.
+           빠져 있던 동안 "오사카 스시 맛집"처럼 제목에 다른 말이 끼어드는 글이
+           #오사카맛집 태그를 달고도 검색되지 않았다. */
+        const tagStr  = (Array.isArray(item.tags) ? item.tags : []).join(' ');
+        const hay     = item.title + ' ' + item.description + ' ' + tagStr;
+        const hayNorm = normalize(hay);
+        const hayRaw  = hay.toLowerCase();
         return hayNorm.includes(kwNorm)
           || (kwTokens.length > 1 && kwTokens.every(t => hayNorm.includes(t)))
           || hayRaw.includes(query.toLowerCase());
