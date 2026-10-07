@@ -232,6 +232,15 @@ section{animation:kc-fade .5s ease both}
     </section>
 
     <!-- 일별 차트 -->
+    <!-- 구글 API -->
+    <section>
+      <div class="section-title">
+        <span class="section-bar"></span>
+        <span class="section-title-text">구글 API</span>
+      </div>
+      <div class="stat-grid" id="googleGrid"><div class="loading">로딩 중...</div></div>
+    </section>
+
     <section class="chart-card">
       <div class="section-head-row">
         <div class="section-title" style="margin-bottom:0">
@@ -364,14 +373,38 @@ const ICONS = {
 function iconSvg(name) {
   return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]}</svg>`;
 }
-function statCard(iconName, label, value, caption) {
+/* 직전 동기간 대비 증감.
+
+   분모가 빈약하면 비율이 의미를 잃는다. 로깅은 2026-09 초에 정착했고
+   그 이전 기록은 거의 없어, 30일 비교에서 1,000%대 숫자가 나왔다.
+   "지난달보다 14배 늘었다"가 아니라 "지난달에 집계가 없었다"는 뜻이다.
+
+   그래서 직전 값이 현재의 10% 미만이면 비율 대신 '집계 시작'으로 둔다.
+   데이터가 쌓이면 조건에서 자연히 벗어나 정상 비율로 돌아온다.
+   상한 300%도 함께 둔다 — 네 자리 퍼센트는 어차피 읽히지 않는다. */
+function deltaBadge(cur, prev) {
+  cur = Number(cur || 0); prev = Number(prev || 0);
+  if (!prev) return '';
+  if (prev < cur * 0.1) {
+    return '<span style="color:#9AA3B2;font-weight:700;margin-left:6px">집계 시작</span>';
+  }
+  const pct = Math.round((cur - prev) / prev * 100);
+  const mark = pct > 3 ? '▲' : pct < -3 ? '▼' : '—';
+  const color = pct > 3 ? '#1FA463' : pct < -3 ? '#C0392B' : '#9AA3B2';
+  const txt = Math.abs(pct) <= 3 ? '보합'
+            : Math.abs(pct) > 300 ? '300%+'
+            : `${Math.abs(pct)}%`;
+  return `<span style="color:${color};font-weight:700;margin-left:6px">${mark} ${txt}</span>`;
+}
+
+function statCard(iconName, label, value, caption, delta) {
   return `<div class="stat-card">
     <div class="stat-icon-row">
       <span class="stat-icon-wrap">${iconSvg(iconName)}</span>
       <span class="stat-lbl">${label}</span>
     </div>
     <div class="stat-num">${Number(value||0).toLocaleString()}</div>
-    <div class="stat-cap">${caption}</div>
+    <div class="stat-cap">${caption}${delta || ''}</div>
   </div>`;
 }
 
@@ -386,23 +419,73 @@ function srcBadges(k) {
     `<span style="color:${color}">${label} ${k[key]}</span>`).join('') + '</div>';
 }
 
+/* 구글 API 패널.
+   한도 소진율보다 중요한 것은 90일 무호출 회수다 — 일 15,000 중 수십 회만
+   쓰는 상태라 한도는 늘 여유지만, 개발이 멈추면 조용히 접근이 회수된다. */
+function renderGooglePanel(g) {
+  const el = document.getElementById('googleGrid');
+  if (!el) return;
+  const cap   = Number(g.dailyCap || 15000);
+  const today = Number(g.today || 0);
+  const month = Number(g.month || 0);
+  const days  = g.daysSince;
+  const left  = days == null ? null : 90 - days;
+  const lastTxt = g.lastCall
+    ? new Date(g.lastCall).toLocaleString('ko-KR', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' })
+    : '기록 없음';
+  const riskColor = left == null ? '#9AA3B2' : left <= 14 ? '#C0392B' : left <= 30 ? '#D9500F' : '#1FA463';
+
+  el.innerHTML =
+    statCard('search', '오늘 오퍼레이션', today, `일 한도 ${cap.toLocaleString()} 중 ${(today / cap * 100).toFixed(1)}%`) +
+    statCard('cal', '30일 오퍼레이션', month, `일 평균 ${(month / 30).toFixed(1)}회`, deltaBadge(month, g.prevMonth)) +
+    `<div class="stat-card">
+      <div class="stat-icon-row"><span class="stat-icon-wrap">${iconSvg('today')}</span><span class="stat-lbl">마지막 호출</span></div>
+      <div class="stat-num" style="font-size:1.1em">${lastTxt}</div>
+      <div class="stat-cap">${days == null ? '—' : days === 0 ? '오늘' : days + '일 경과'}</div>
+    </div>` +
+    `<div class="stat-card">
+      <div class="stat-icon-row"><span class="stat-icon-wrap">${iconSvg('total')}</span><span class="stat-lbl">접근 회수까지</span></div>
+      <div class="stat-num" style="color:${riskColor}">${left == null ? '—' : left}<span style="font-size:.5em;font-weight:500"> 일</span></div>
+      <div class="stat-cap">90일 무호출 시 Test 등급 강등 · 캐시 ${Number(g.cacheTotal||0).toLocaleString()}건</div>
+    </div>`;
+}
+
 function renderStats(data) {
   const pv = data.pageviews || {};
   const sr = data.searches || {};
 
-  // 방문자 통계 카드
+  const prev = data.prev || { pageviews: {}, searches: {} };
+
+  // 방문자 통계 카드 — 7일·30일에 직전 동기간 대비를 붙인다
   document.getElementById('statGrid').innerHTML =
-    statCard('today', '오늘 방문', pv.today, `최근 7일 ${Number(pv.week||0).toLocaleString()}회`) +
-    statCard('today', '7일 방문', pv.week, '최근 7일 합계') +
-    statCard('cal', '30일 방문', pv.month, `일 평균 ${(Number(pv.month||0)/30).toFixed(1)}회`) +
-    statCard('total', '누적 방문', pv.total, '전체 기간');
+    statCard('today', '오늘 방문', pv.today, `어제 같은 시각 ${Number(prev.pageviews.today||0).toLocaleString()}회`, deltaBadge(pv.today, prev.pageviews.today)) +
+    statCard('today', '7일 방문', pv.week, '직전 7일 대비', deltaBadge(pv.week, prev.pageviews.week)) +
+    statCard('cal', '30일 방문', pv.month, `일 평균 ${(Number(pv.month||0)/30).toFixed(1)}회`, deltaBadge(pv.month, prev.pageviews.month)) +
+    statCard('total', '누적 방문', pv.total, `전체 기간 · 검색 ${Number(sr.total||0).toLocaleString()}회`);
+
+  /* 방문당 검색 — 유입과 사용 깊이를 분리해 읽는 지표.
+     방문이 줄어도 이 값이 오르면 도구는 더 깊게 쓰이고 있다는 뜻이다. */
+  const depth     = Number(pv.month) ? (Number(sr.month) / Number(pv.month)) : 0;
+  const prevDepth = Number(prev.pageviews.month) ? (Number(prev.searches.month) / Number(prev.pageviews.month)) : 0;
 
   // 검색 통계 카드
   document.getElementById('searchStatGrid').innerHTML =
-    statCard('search', '오늘 검색', sr.today, `최근 7일 ${Number(sr.week||0).toLocaleString()}회`) +
-    statCard('search', '7일 검색', sr.week, '최근 7일 합계') +
-    statCard('cal', '30일 검색', sr.month, `일 평균 ${(Number(sr.month||0)/30).toFixed(1)}회`) +
-    statCard('total', '누적 검색', sr.total, '전체 기간');
+    statCard('search', '오늘 검색', sr.today, `어제 같은 시각 ${Number(prev.searches.today||0).toLocaleString()}회`, deltaBadge(sr.today, prev.searches.today)) +
+    statCard('search', '7일 검색', sr.week, '직전 7일 대비', deltaBadge(sr.week, prev.searches.week)) +
+    statCard('cal', '30일 검색', sr.month, `일 평균 ${(Number(sr.month||0)/30).toFixed(1)}회`, deltaBadge(sr.month, prev.searches.month)) +
+    `<div class="stat-card">
+      <div class="stat-icon-row"><span class="stat-icon-wrap">${iconSvg('search')}</span><span class="stat-lbl">방문당 검색</span></div>
+      <div class="stat-num">${depth.toFixed(1)}<span style="font-size:.5em;font-weight:500"> 회</span></div>
+      <div class="stat-cap">직전 30일 ${prevDepth.toFixed(1)}회${
+        /* 비율끼리 비교하면 분모가 빈약해도 그럴듯한 값이 나온다.
+           원본 건수로 가드를 걸어 집계 초기 구간을 걸러낸다. */
+        Number(prev.searches.month) < Number(sr.month) * 0.1
+          ? '<span style="color:#9AA3B2;font-weight:700;margin-left:6px">집계 시작</span>'
+          : deltaBadge(depth * 100, prevDepth * 100)
+      }</div>
+    </div>`;
+
+  renderGooglePanel(data.google || {});
 
   // 일별 차트 (30일 방문자+검색 라인 차트 + 방문자 평균선)
   const daily = data.dailyViews || [];
