@@ -180,6 +180,53 @@ module.exports = async (req, res) => {
       ? Math.round((dailySearches.reduce((sum, d) => sum + d.count, 0) / dailySearches.length) * 10) / 10
       : 0;
 
+    /* ── 직전 기간 (전기 대비용) ──
+       7일: 13일 전 ~ 7일 전 / 30일: 59일 전 ~ 30일 전.
+       lt 로 경계를 막지 않으면 현재 구간과 겹쳐 증감이 왜곡된다. */
+    const prevWeekFrom  = kstDaysAgoStartUTC(13);
+    const prevMonthFrom = kstDaysAgoStartUTC(59);
+    const prevWeekTo    = week;
+    const prevMonthTo   = month;
+    /* 오늘은 진행 중인 값이라 어제 하루 전체와 비교하면 늘 적게 나온다.
+       자정부터 지금까지 흐른 시간만큼만 어제에서 잘라 같은 시점끼리 견준다. */
+    const elapsedMs    = Date.now() - new Date(todayStart).getTime();
+    const ydayStart    = kstDaysAgoStartUTC(1);
+    const ydaySameTime = new Date(new Date(ydayStart).getTime() + elapsedMs).toISOString();
+
+    const [pvPrevWeek, pvPrevMonth, kwPrevWeek, kwPrevMonth, pvYday, kwYday] = await Promise.all([
+      supabaseCount(`page_views?select=created_at&created_at=gte.${prevWeekFrom}&created_at=lt.${prevWeekTo}`),
+      supabaseCount(`page_views?select=created_at&created_at=gte.${prevMonthFrom}&created_at=lt.${prevMonthTo}`),
+      supabaseCount(`search_logs?select=created_at&${SEARCH_ONLY}&created_at=gte.${prevWeekFrom}&created_at=lt.${prevWeekTo}`),
+      supabaseCount(`search_logs?select=created_at&${SEARCH_ONLY}&created_at=gte.${prevMonthFrom}&created_at=lt.${prevMonthTo}`),
+      supabaseCount(`page_views?select=created_at&created_at=gte.${ydayStart}&created_at=lt.${ydaySameTime}`),
+      supabaseCount(`search_logs?select=created_at&${SEARCH_ONLY}&created_at=gte.${ydayStart}&created_at=lt.${ydaySameTime}`),
+    ]);
+
+    /* ── 구글 API ──
+       google_api_usage 는 날짜별 ops 누적이라 실호출을 그대로 센다.
+       google_kw_cache.fetched_at 은 캐시 미스일 때만 갱신되므로
+       최댓값이 마지막 실호출 시각이고, 90일 무호출 회수 감시의 기준이 된다. */
+    const [gUsage, gCacheRecent, gCacheTotal] = await Promise.all([
+      supabaseQuery(`google_api_usage?select=day,ops&order=day.desc&limit=60`),
+      supabaseQuery(`google_kw_cache?select=fetched_at&order=fetched_at.desc&limit=1`),
+      supabaseCount(`google_kw_cache?select=keyword`),
+    ]);
+    const usageRows = Array.isArray(gUsage) ? gUsage : [];
+    const sumOps = (rows) => rows.reduce((a, r) => a + (Number(r.ops) || 0), 0);
+    const todayKey = toKSTDateString(new Date().toISOString());
+    const monthKey = toKSTDateString(month);
+    const prevMonthKey = toKSTDateString(prevMonthFrom);
+    const lastCall = (gCacheRecent && gCacheRecent[0] && gCacheRecent[0].fetched_at) || null;
+    const google = {
+      today:      sumOps(usageRows.filter(r => r.day === todayKey)),
+      month:      sumOps(usageRows.filter(r => r.day >= monthKey)),
+      prevMonth:  sumOps(usageRows.filter(r => r.day >= prevMonthKey && r.day < monthKey)),
+      lastCall,
+      daysSince:  lastCall ? Math.floor((Date.now() - new Date(lastCall).getTime()) / 86400000) : null,
+      cacheTotal: gCacheTotal || 0,
+      dailyCap:   15000,
+    };
+
     // 최근 검색 키워드 20개
     const recentKw = await supabaseQuery(
       `search_logs?select=keyword,created_at,source&${SEARCH_ONLY}&order=created_at.desc&limit=20`
@@ -202,6 +249,11 @@ module.exports = async (req, res) => {
     const switchTotal = (switches || []).length;
 
     return res.status(200).json({
+      google,
+      prev: {
+        pageviews: { today: pvYday || 0, week: pvPrevWeek || 0, month: pvPrevMonth || 0 },
+        searches:  { today: kwYday || 0, week: kwPrevWeek || 0, month: kwPrevMonth || 0 },
+      },
       sourceTotals,
       sourceSwitches,
       switchTotal,
