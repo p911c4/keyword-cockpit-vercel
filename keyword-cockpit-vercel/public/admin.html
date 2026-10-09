@@ -456,12 +456,21 @@ function renderStats(data) {
 
   const prev = data.prev || { pageviews: {}, searches: {} };
 
-  // 방문자 통계 카드 — 7일·30일에 직전 동기간 대비를 붙인다
+  /* 원본 로그는 30일 후 삭제되므로 테이블 카운트는 누적이 아니다.
+     daily_stats 에 남겨 둔 일별 요약 합계가 진짜 누적이다. */
+  const lt = data.lifetime || {};
+  const ltPv = Number(lt.pageviews || pv.total || 0);
+  const ltKw = Number(lt.searches  || sr.total || 0);
+  const ltCap = lt.days
+    ? `${lt.sinceDay} 이후 ${lt.days}일 · 검색 ${ltKw.toLocaleString()}회`
+    : `전체 기간 · 검색 ${ltKw.toLocaleString()}회`;
+
+  // 방문자 통계 카드
   document.getElementById('statGrid').innerHTML =
     statCard('today', '오늘 방문', pv.today, `어제 같은 시각 ${Number(prev.pageviews.today||0).toLocaleString()}회`, deltaBadge(pv.today, prev.pageviews.today)) +
     statCard('today', '7일 방문', pv.week, '직전 7일 대비', deltaBadge(pv.week, prev.pageviews.week)) +
     statCard('cal', '30일 방문', pv.month, `일 평균 ${(Number(pv.month||0)/30).toFixed(1)}회`, deltaBadge(pv.month, prev.pageviews.month)) +
-    statCard('total', '누적 방문', pv.total, `전체 기간 · 검색 ${Number(sr.total||0).toLocaleString()}회`);
+    statCard('total', '누적 방문', ltPv, ltCap);
 
   /* 방문당 검색 — 유입과 사용 깊이를 분리해 읽는 지표.
      방문이 줄어도 이 값이 오르면 도구는 더 깊게 쓰이고 있다는 뜻이다. */
