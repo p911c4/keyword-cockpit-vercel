@@ -237,11 +237,16 @@ module.exports = async (req, res) => {
     const hist = Array.isArray(histRows) ? histRows : [];
     const histPv = hist.reduce((a, r) => a + (Number(r.pageviews) || 0), 0);
     const histKw = hist.reduce((a, r) => a + (Number(r.searches)  || 0), 0);
+    /* daily_stats 에는 구글 호출만 있고 방문·검색은 0인 날이 섞인다
+       (google_api_usage 가 방문 로깅보다 먼저 쌓이기 시작했다).
+       그 날짜를 집계 시작일로 쓰면 "그때부터 방문자를 세어 왔다"로 잘못 읽힌다.
+       트래픽이 실제로 있던 날만 세어 기간을 말한다. */
+    const traffic = hist.filter(r => (Number(r.pageviews) || 0) > 0 || (Number(r.searches) || 0) > 0);
     const lifetime = {
       pageviews: Math.max(histPv, pvTotal || 0),
       searches:  Math.max(histKw, kwTotal || 0),
-      sinceDay:  hist.length ? hist[0].day : null,
-      days:      hist.length,
+      sinceDay:  traffic.length ? traffic[0].day : null,
+      days:      traffic.length,
     };
 
     // 최근 검색 키워드 20개
