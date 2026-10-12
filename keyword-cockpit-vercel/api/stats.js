@@ -62,6 +62,25 @@ async function supabaseCount(pathWithoutSelect) {
   return total === '*' ? 0 : parseInt(total, 10) || 0;
 }
 
+/* PostgREST 는 서버측 행 상한(db-max-rows = 10,000)을 limit 으로 넘지 못한다.
+   오류 없이 잘린 결과가 200 OK 로 돌아오므로, 행을 끌어와 JS 에서 세는 집계는
+   데이터가 1만 건을 넘는 순간 조용히 틀린다. 집계는 DB 함수에 맡긴다. */
+async function supabaseRpc(fn, body) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body || {}),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) { return null; }
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -102,83 +121,58 @@ module.exports = async (req, res) => {
       supabaseCount(`search_logs?select=created_at&${SEARCH_ONLY}&created_at=gte.${month}`),
     ]);
 
-    // 인기 키워드 TOP 20 (전체) — limit을 넉넉히 잡아 누적 검색량이 많아도 전체 기간을 반영
-    const kwAll = await supabaseQuery(
-      `search_logs?select=keyword,source&${SEARCH_ONLY}&order=created_at.desc&limit=20000`
-    );
+    /* ── 인기 키워드 · 소스별 집계 ──
+       전에는 search_logs 를 limit=20000 으로 끌어와 JS 에서 셌는데, 1만 행
+       상한에 걸려 잘렸다. 소스별 합이 네이버 8,564 + 구글 169 + 통합 1,229
+       + 기록 전 38 = 정확히 10,000 으로 떨어진 것이 그 흔적이었다.
 
-    // 키워드 집계
-    const kwCount = {};
-    (kwAll || []).forEach(r => {
-      const e = kwCount[r.keyword] || (kwCount[r.keyword] =
-        { count: 0, naver: 0, google: 0, both: 0, unknown: 0 });
-      e.count++;
-      e[r.source || 'unknown']++;
-    });
-    const topKeywords = Object.entries(kwCount)
-      .sort((a,b) => b[1].count - a[1].count)
-      .slice(0, 20)
-      .map(([keyword, v]) => ({ keyword, ...v }));
-
-    /* ── 소스별 집계 ──
-       2026-09 이전 기록에는 source가 없다. null은 unknown으로 묶어
+       2026-09 이전 기록에는 source 가 없다. null 은 unknown 으로 묶어
        "기록 전"으로 표시한다 — 0으로 처리하면 과거가 사라진 것처럼 보인다. */
-    const srcCount = (rows) => {
-      const o = { naver: 0, google: 0, both: 0, unknown: 0 };
-      (rows || []).forEach(r => { o[r.source || 'unknown']++; });
-      return o;
+    const [topRows, srcRows] = await Promise.all([
+      supabaseRpc('top_keywords', { p_limit: 20 }),
+      supabaseRpc('source_totals'),
+    ]);
+    const topKeywords = (Array.isArray(topRows) ? topRows : []).map(r => ({
+      keyword: r.keyword,
+      count:   Number(r.cnt)     || 0,
+      naver:   Number(r.naver)   || 0,
+      google:  Number(r.google)  || 0,
+      both:    Number(r.both)    || 0,
+      unknown: Number(r.unknown) || 0,
+    }));
+    const s0 = (Array.isArray(srcRows) && srcRows[0]) || {};
+    const sourceTotals = {
+      naver:   Number(s0.naver)   || 0,
+      google:  Number(s0.google)  || 0,
+      both:    Number(s0.both)    || 0,
+      unknown: Number(s0.unknown) || 0,
     };
-    const sourceTotals = srcCount(kwAll);
 
-    // 최근 30일 일별 페이지뷰 (KST 기준 날짜로 집계)
-    // limit을 넉넉히 명시 — Supabase REST 기본 응답 제한(보통 1000행)에 걸려
-    // 방문/검색이 많은 달에는 뒷부분 데이터가 잘려 카드 합계와 어긋날 수 있음
-    const pvDaily = await supabaseQuery(
-      `page_views?select=created_at&created_at=gte.${month}&order=created_at.asc&limit=20000`
-    );
-    const dailyMap = {};
-    for (let i = 29; i >= 0; i--) {
-      const key = toKSTDateString(kstDaysAgoStartUTC(i));
-      dailyMap[key] = 0;
-    }
-    (pvDaily || []).forEach(r => {
-      const key = toKSTDateString(r.created_at);
-      if (dailyMap[key] !== undefined) dailyMap[key]++;
-    });
-    const dailyViews = Object.entries(dailyMap).map(([date, count]) => ({ date, count }));
+    /* ── 최근 30일 일별 추이 (차트) ──
+       전에는 page_views·search_logs 를 order=created_at.asc 로 끌어와 JS 에서
+       날짜별로 셌다. search_logs 30일이 1만 건을 넘자 가장 "최근" 며칠이
+       통째로 잘려 차트 끝이 0 으로 찍혔다. asc 정렬이라 잘린 쪽이 최신이었다.
+       DB 함수가 KST 날짜로 group by 해 30행만 돌려주므로 상한과 무관하다. */
+    const seriesRows = await supabaseRpc('daily_series', { p_days: 30 });
+    const series = Array.isArray(seriesRows) ? seriesRows : [];
 
-    // 30일 평균 (일별 합 ÷ 30)
-    const monthAvg = dailyViews.length
-      ? Math.round((dailyViews.reduce((sum, d) => sum + d.count, 0) / dailyViews.length) * 10) / 10
+    const dailyViews = series.map(r => ({
+      date: r.day, count: Number(r.pageviews) || 0,
+    }));
+    const dailySearches = series.map(r => ({
+      date:    r.day,
+      count:   Number(r.searches) || 0,
+      naver:   Number(r.naver)    || 0,
+      google:  Number(r.google)   || 0,
+      both:    Number(r.both)     || 0,
+      unknown: Number(r.unknown)  || 0,
+    }));
+
+    const avgOf = (arr) => arr.length
+      ? Math.round((arr.reduce((sum, d) => sum + d.count, 0) / arr.length) * 10) / 10
       : 0;
-
-    // 최근 30일 일별 검색 횟수 (KST 기준 날짜로 집계, 페이지뷰와 동일 구조)
-    const kwDaily = await supabaseQuery(
-      `search_logs?select=created_at,source&${SEARCH_ONLY}&created_at=gte.${month}&order=created_at.asc&limit=20000`
-    );
-    const kwDailyMap = {};
-    for (let i = 29; i >= 0; i--) {
-      const key = toKSTDateString(kstDaysAgoStartUTC(i));
-      kwDailyMap[key] = 0;
-    }
-    const kwDailySrc = {};
-    for (const k of Object.keys(kwDailyMap)) {
-      kwDailySrc[k] = { naver: 0, google: 0, both: 0, unknown: 0 };
-    }
-    (kwDaily || []).forEach(r => {
-      const key = toKSTDateString(r.created_at);
-      if (kwDailyMap[key] !== undefined) {
-        kwDailyMap[key]++;
-        kwDailySrc[key][r.source || 'unknown']++;
-      }
-    });
-    const dailySearches = Object.entries(kwDailyMap)
-      .map(([date, count]) => ({ date, count, ...kwDailySrc[date] }));
-
-    // 30일 검색 평균
-    const monthSearchAvg = dailySearches.length
-      ? Math.round((dailySearches.reduce((sum, d) => sum + d.count, 0) / dailySearches.length) * 10) / 10
-      : 0;
+    const monthAvg       = avgOf(dailyViews);
+    const monthSearchAvg = avgOf(dailySearches);
 
     /* ── 직전 기간 (전기 대비) ──
        7일: 13일 전 ~ 7일 전 / 30일: 59일 전 ~ 30일 전.
@@ -258,7 +252,9 @@ module.exports = async (req, res) => {
        결과를 보고 있는 상태에서 토글을 옮긴 기록. 검색 후 실제로
        다른 소스를 봤는지가 여기서 나온다. */
     const switches = await supabaseQuery(
-      `search_logs?select=source,from_source,created_at&event=eq.switch&created_at=gte.${month}&limit=20000`
+      /* 전환 기록은 30일에 수백 건 수준이라 아직 1만 상한에 닿지 않는다.
+         넘어서면 이것도 DB 집계로 옮겨야 한다. */
+      `search_logs?select=source,from_source,created_at&event=eq.switch&created_at=gte.${month}&limit=10000`
     );
     const switchPairs = {};
     (switches || []).forEach(r => {
