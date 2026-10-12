@@ -153,6 +153,12 @@ section{animation:kc-fade .5s ease both}
   .two-col{grid-template-columns:1fr}
   .kw-text{width:96px}
 }
+@media(max-width:480px){
+  /* 최근 검색 — 키워드가 남는 폭을 최대한 쓰도록 메타 쪽을 줄인다 */
+  .recent-item{gap:8px}
+  .recent-time{font-size:11px}
+  .recent-kw-wrap{gap:7px;flex:1 1 auto}
+}
 @media(max-width:420px){
   .stat-grid{grid-template-columns:1fr 1fr;gap:8px}
 }
@@ -678,9 +684,11 @@ function renderStats(data) {
   const recentKw = data.recentKeywords || [];
   document.getElementById('recentKwList').innerHTML = recentKw.length
     ? recentKw.map(k => {
+        /* "10월 12일 오후 02:02"(19자)는 좁은 화면에서 키워드를 두세 글자로
+           밀어낸다. "10/12 14:02"(11자)로 줄이고 24시간제로 통일한다. */
         const t = new Date(k.created_at);
-        const timeStr = t.toLocaleDateString('ko-KR',{month:'short',day:'numeric'}) + ' ' +
-          t.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+        const p2 = n => String(n).padStart(2, '0');
+        const timeStr = `${p2(t.getMonth()+1)}/${p2(t.getDate())} ${p2(t.getHours())}:${p2(t.getMinutes())}`;
         return `<div class="recent-item">
           <span class="recent-kw-wrap">
             <span class="recent-dot"></span>
